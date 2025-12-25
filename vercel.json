@@ -1,5 +1,0 @@
-{
-  "buildCommand": "pnpm turbo build --filter=@haspulse/web",
-  "outputDirectory": "apps/web/.next",
-  "installCommand": "pnpm install"
-}
