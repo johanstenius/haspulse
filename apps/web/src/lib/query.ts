@@ -1,5 +1,6 @@
 import {
 	type UseMutationOptions,
+	keepPreviousData,
 	useMutation,
 	useQuery,
 	useQueryClient,
@@ -9,6 +10,7 @@ import {
 	type BillingInfo,
 	type Channel,
 	type Check,
+	type CheckListParams,
 	type CreateApiKeyData,
 	type CreateChannelData,
 	type CreateCheckData,
@@ -35,7 +37,8 @@ export const queryKeys = {
 		detail: (id: string) => ["projects", id] as const,
 	},
 	checks: {
-		list: (projectId: string) => ["checks", projectId] as const,
+		list: (projectId: string, params?: CheckListParams) =>
+			["checks", projectId, params] as const,
 		detail: (id: string) => ["checks", "detail", id] as const,
 	},
 	channels: {
@@ -126,11 +129,12 @@ export function useDeleteProject(
 }
 
 // Checks
-export function useChecks(projectId: string) {
+export function useChecks(projectId: string, params?: CheckListParams) {
 	return useQuery({
-		queryKey: queryKeys.checks.list(projectId),
-		queryFn: () => api.checks.list(projectId),
+		queryKey: queryKeys.checks.list(projectId, params),
+		queryFn: () => api.checks.list(projectId, params),
 		enabled: !!projectId,
+		placeholderData: keepPreviousData,
 	})
 }
 
@@ -158,7 +162,7 @@ export function useCreateCheck(
 			api.checks.create(projectId, data),
 		onSuccess: (_, { projectId }) => {
 			queryClient.invalidateQueries({
-				queryKey: queryKeys.checks.list(projectId),
+				queryKey: ["checks", projectId],
 			})
 		},
 		...options,
@@ -178,7 +182,7 @@ export function useUpdateCheck(
 			api.checks.update(id, data),
 		onSuccess: (check) => {
 			queryClient.invalidateQueries({
-				queryKey: queryKeys.checks.list(check.projectId),
+				queryKey: ["checks", check.projectId],
 			})
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.checks.detail(check.id),
@@ -197,7 +201,7 @@ export function useDeleteCheck(
 			api.checks.delete(id),
 		onSuccess: (_, { projectId }) => {
 			queryClient.invalidateQueries({
-				queryKey: queryKeys.checks.list(projectId),
+				queryKey: ["checks", projectId],
 			})
 		},
 		...options,
@@ -212,7 +216,7 @@ export function usePauseCheck(
 		mutationFn: (id: string) => api.checks.pause(id),
 		onSuccess: (check) => {
 			queryClient.invalidateQueries({
-				queryKey: queryKeys.checks.list(check.projectId),
+				queryKey: ["checks", check.projectId],
 			})
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.checks.detail(check.id),
@@ -230,7 +234,7 @@ export function useResumeCheck(
 		mutationFn: (id: string) => api.checks.resume(id),
 		onSuccess: (check) => {
 			queryClient.invalidateQueries({
-				queryKey: queryKeys.checks.list(check.projectId),
+				queryKey: ["checks", check.projectId],
 			})
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.checks.detail(check.id),

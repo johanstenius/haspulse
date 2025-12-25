@@ -10,8 +10,20 @@ export {
 	errorResponseSchema,
 	projectIdParamSchema,
 	idParamSchema as checkIdParamSchema,
-	paginationQuerySchema,
 }
+
+export const checkListQuerySchema = paginationQuerySchema.extend({
+	search: z
+		.string()
+		.optional()
+		.openapi({ param: { name: "search", in: "query" }, example: "backup" }),
+	status: z
+		.enum(["NEW", "UP", "LATE", "DOWN", "PAUSED"])
+		.optional()
+		.openapi({ param: { name: "status", in: "query" }, example: "DOWN" }),
+})
+
+export type CheckListQuery = z.infer<typeof checkListQuerySchema>
 
 export const checkStatusSchema = z.enum(["NEW", "UP", "LATE", "DOWN", "PAUSED"])
 export const scheduleTypeSchema = z.enum(["PERIOD", "CRON"])

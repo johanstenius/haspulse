@@ -1,11 +1,14 @@
 "use client"
 
 import { StatusBadge, statusColors } from "@/components/checks/status-badge"
+import { EmptyState } from "@/components/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { DashboardCheck } from "@/lib/api"
 import { useDashboardChecks, useDashboardStats } from "@/lib/query"
 import { formatDistanceToNow } from "date-fns"
+import { Zap } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 function CheckRow({ check }: { check: DashboardCheck }) {
 	const isOverdue = check.status === "LATE" || check.status === "DOWN"
@@ -43,6 +46,7 @@ function CheckRow({ check }: { check: DashboardCheck }) {
 }
 
 export default function DashboardPage() {
+	const router = useRouter()
 	const { data: stats, isLoading: statsLoading } = useDashboardStats()
 	const { data: checksData, isLoading: checksLoading } = useDashboardChecks()
 
@@ -143,15 +147,15 @@ export default function DashboardPage() {
 							</tbody>
 						</table>
 					) : (
-						<div className="text-center py-12 text-muted-foreground">
-							<p className="mb-4">No checks yet.</p>
-							<Link
-								href="/projects"
-								className="text-primary hover:underline font-medium"
-							>
-								Create a project to add checks
-							</Link>
-						</div>
+						<EmptyState
+							icon={Zap}
+							title="Welcome to Haspulse"
+							description="Monitor your cron jobs, scheduled tasks, and background workers. Create a project to get started."
+							action={{
+								label: "Create project",
+								onClick: () => router.push("/projects"),
+							}}
+						/>
 					)}
 				</div>
 			</div>

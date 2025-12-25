@@ -1,5 +1,6 @@
 "use client"
 
+import { EmptyState } from "@/components/empty-state"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
@@ -9,10 +10,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Check, CheckStatus } from "@/lib/api"
+import type { Check } from "@/lib/api"
 import { formatRelativeCompactAgo } from "@/lib/format"
 import { useDeleteCheck, usePauseCheck, useResumeCheck } from "@/lib/query"
 import {
+	Clock,
 	History,
 	MoreHorizontal,
 	Pause,
@@ -29,9 +31,15 @@ type CheckTableProps = {
 	checks: Check[]
 	projectId: string
 	onEdit: (check: Check) => void
+	onAdd?: () => void
 }
 
-export function CheckTable({ checks, projectId, onEdit }: CheckTableProps) {
+export function CheckTable({
+	checks,
+	projectId,
+	onEdit,
+	onAdd,
+}: CheckTableProps) {
 	const pauseCheck = usePauseCheck()
 	const resumeCheck = useResumeCheck()
 	const deleteCheck = useDeleteCheck()
@@ -79,9 +87,12 @@ export function CheckTable({ checks, projectId, onEdit }: CheckTableProps) {
 
 	if (checks.length === 0) {
 		return (
-			<div className="text-center py-12 text-muted-foreground">
-				No checks yet. Create one to start monitoring.
-			</div>
+			<EmptyState
+				icon={Clock}
+				title="No checks yet"
+				description="Checks monitor your cron jobs and alert you when they miss a beat."
+				action={onAdd ? { label: "Add check", onClick: onAdd } : undefined}
+			/>
 		)
 	}
 

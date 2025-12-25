@@ -1,5 +1,6 @@
 "use client"
 
+import { EmptyState } from "@/components/empty-state"
 import { ProjectCard } from "@/components/projects/project-card"
 import { ProjectForm } from "@/components/projects/project-form"
 import { Button } from "@/components/ui/button"
@@ -8,7 +9,7 @@ import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { isLimitExceeded } from "@/lib/api"
 import { useBilling, useCreateProject, useProjects } from "@/lib/query"
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts"
-import { Plus } from "lucide-react"
+import { FolderOpen, Plus } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -68,13 +69,15 @@ export default function ProjectsPage() {
 					))}
 				</div>
 			) : data?.projects.length === 0 ? (
-				<div className="text-center py-12">
-					<p className="text-muted-foreground mb-4">No projects yet</p>
-					<Button onClick={() => setShowForm(true)}>
-						<Plus className="h-4 w-4 mr-2" />
-						Create your first project
-					</Button>
-				</div>
+				<EmptyState
+					icon={FolderOpen}
+					title="No projects yet"
+					description="Projects help you organize your checks. Create your first one to get started."
+					action={{
+						label: "Create project",
+						onClick: () => setShowForm(true),
+					}}
+				/>
 			) : (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{data?.projects.map((project) => (

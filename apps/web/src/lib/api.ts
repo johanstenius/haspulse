@@ -58,6 +58,21 @@ export type Project = {
 export type CheckStatus = "NEW" | "UP" | "LATE" | "DOWN" | "PAUSED"
 export type ScheduleType = "PERIOD" | "CRON"
 
+export type CheckListParams = {
+	page?: number
+	limit?: number
+	search?: string
+	status?: CheckStatus
+}
+
+export type CheckListResponse = {
+	checks: Check[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
 export type Check = {
 	id: string
 	projectId: string
@@ -323,8 +338,17 @@ export const api = {
 		delete: (id: string) => del(`/v1/projects/${id}`),
 	},
 	checks: {
-		list: (projectId: string) =>
-			get<{ checks: Check[] }>(`/v1/projects/${projectId}/checks`),
+		list: (projectId: string, params?: CheckListParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			if (params?.search) searchParams.set("search", params.search)
+			if (params?.status) searchParams.set("status", params.status)
+			const query = searchParams.toString()
+			return get<CheckListResponse>(
+				`/v1/projects/${projectId}/checks${query ? `?${query}` : ""}`,
+			)
+		},
 		get: (id: string) => get<Check>(`/v1/checks/${id}`),
 		create: (projectId: string, data: CreateCheckData) =>
 			post<Check>(`/v1/projects/${projectId}/checks`, data),

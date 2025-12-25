@@ -65,8 +65,14 @@ export async function listChecksByProjectPaginated(
 	projectId: string,
 	page: number,
 	limit: number,
+	filters?: { search?: string; status?: CheckStatus },
 ): Promise<{ data: CheckModel[]; total: number }> {
-	return checkRepository.findByProjectIdPaginated(projectId, page, limit)
+	return checkRepository.findByProjectIdPaginated(
+		projectId,
+		page,
+		limit,
+		filters,
+	)
 }
 
 export async function updateCheck(

@@ -221,15 +221,36 @@ export const checkRepository = {
 		projectId: string,
 		page: number,
 		limit: number,
+		filters?: { search?: string; status?: CheckStatus },
 	): Promise<{ data: CheckModel[]; total: number }> {
+		const where: {
+			projectId: string
+			status?: CheckStatus
+			OR?: Array<
+				| { name: { contains: string; mode: "insensitive" } }
+				| { slug: { contains: string; mode: "insensitive" } }
+			>
+		} = { projectId }
+
+		if (filters?.status) {
+			where.status = filters.status
+		}
+
+		if (filters?.search) {
+			where.OR = [
+				{ name: { contains: filters.search, mode: "insensitive" } },
+				{ slug: { contains: filters.search, mode: "insensitive" } },
+			]
+		}
+
 		const [checks, total] = await Promise.all([
 			prisma.check.findMany({
-				where: { projectId },
+				where,
 				orderBy: { createdAt: "desc" },
 				skip: (page - 1) * limit,
 				take: limit,
 			}),
-			prisma.check.count({ where: { projectId } }),
+			prisma.check.count({ where }),
 		])
 		return { data: checks.map(toCheckModel), total }
 	},

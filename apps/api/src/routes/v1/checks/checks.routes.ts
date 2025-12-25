@@ -36,11 +36,11 @@ import {
 } from "../../../services/project.service.js"
 import {
 	checkIdParamSchema,
+	checkListQuerySchema,
 	checkListResponseSchema,
 	checkResponseSchema,
 	createCheckBodySchema,
 	errorResponseSchema,
-	paginationQuerySchema,
 	projectIdParamSchema,
 	updateCheckBodySchema,
 } from "./checks.schemas.js"
@@ -92,7 +92,7 @@ async function getAuthorizedCheck(
 const listChecksRoute = createRoute({
 	method: "get",
 	path: "/{projectId}/checks",
-	request: { params: projectIdParamSchema, query: paginationQuerySchema },
+	request: { params: projectIdParamSchema, query: checkListQuerySchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: checkListResponseSchema } },
@@ -281,12 +281,13 @@ const resumeCheckRoute = createRoute({
 // Project-scoped routes
 projectCheckRoutes.openapi(listChecksRoute, async (c) => {
 	const { projectId } = c.req.valid("param")
-	const { page, limit } = c.req.valid("query")
+	const { page, limit, search, status } = c.req.valid("query")
 	const project = await getAuthorizedProject(c, projectId)
 	const { data, total } = await listChecksByProjectPaginated(
 		project.id,
 		page,
 		limit,
+		{ search, status },
 	)
 	const checksWithChannels = await Promise.all(
 		data.map(async (check) => {
