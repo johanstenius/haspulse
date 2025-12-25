@@ -1,0 +1,370 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+
+// Organization types
+export type Organization = {
+	id: string
+	name: string
+	slug: string
+	plan: "free" | "pro"
+	createdAt: string
+	updatedAt: string
+}
+
+export type OrgMember = {
+	id: string
+	role: "owner" | "admin" | "member"
+	userId: string
+	orgId: string
+	createdAt: string
+}
+
+export type BillingInfo = {
+	plan: string
+	displayName: string
+	isTrialing: boolean
+	trialEndsAt: string | null
+	usage: {
+		checks: { current: number; limit: number | null }
+		projects: { current: number; limit: number | null }
+	}
+}
+
+export function setCurrentOrgId(orgId: string | null): void {
+	if (typeof window === "undefined") return
+	if (orgId) {
+		localStorage.setItem("currentOrgId", orgId)
+	} else {
+		localStorage.removeItem("currentOrgId")
+	}
+}
+
+export function getCurrentOrgId(): string | null {
+	if (typeof window === "undefined") return null
+	return localStorage.getItem("currentOrgId")
+}
+
+export type Project = {
+	id: string
+	name: string
+	slug: string
+	timezone: string
+	statusPageEnabled: boolean
+	statusPageTitle: string | null
+	statusPageLogoUrl: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export type CheckStatus = "NEW" | "UP" | "LATE" | "DOWN" | "PAUSED"
+export type ScheduleType = "PERIOD" | "CRON"
+
+export type Check = {
+	id: string
+	projectId: string
+	name: string
+	slug: string | null
+	scheduleType: ScheduleType
+	scheduleValue: string
+	graceSeconds: number
+	timezone: string | null
+	status: CheckStatus
+	lastPingAt: string | null
+	lastStartedAt: string | null
+	nextExpectedAt: string | null
+	alertOnRecovery: boolean
+	reminderIntervalHours: number | null
+	channelIds: string[]
+	createdAt: string
+	updatedAt: string
+}
+
+export type ChannelType = "EMAIL" | "SLACK" | "WEBHOOK"
+
+export type Channel = {
+	id: string
+	projectId: string
+	type: ChannelType
+	name: string
+	config: Record<string, unknown>
+	createdAt: string
+	updatedAt: string
+}
+
+export type ApiKey = {
+	id: string
+	projectId: string
+	name: string
+	keyPrefix: string
+	lastUsedAt: string | null
+	createdAt: string
+}
+
+export type ApiKeyCreated = {
+	apiKey: ApiKey
+	fullKey: string
+}
+
+export type PingType = "SUCCESS" | "START" | "FAIL"
+
+export type Ping = {
+	id: string
+	checkId: string
+	type: PingType
+	body: string | null
+	sourceIp: string
+	createdAt: string
+}
+
+export type ApiError = {
+	error: {
+		code: string
+		message: string
+	}
+}
+
+export type FetchError = {
+	name: "FetchError"
+	message: string
+	status: number
+	code: string
+}
+
+function createFetchError(status: number, data: ApiError): FetchError {
+	return {
+		name: "FetchError",
+		message: data.error.message,
+		status,
+		code: data.error.code,
+	}
+}
+
+export function isLimitExceeded(error: unknown): boolean {
+	return isFetchError(error) && error.code === "LIMIT_EXCEEDED"
+}
+
+function isFetchError(error: unknown): error is FetchError {
+	return (
+		typeof error === "object" &&
+		error !== null &&
+		"name" in error &&
+		error.name === "FetchError"
+	)
+}
+
+async function request<T>(
+	path: string,
+	options: RequestInit = {},
+	includeOrg = true,
+): Promise<T> {
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+		...(options.headers as Record<string, string>),
+	}
+
+	if (includeOrg) {
+		const orgId = getCurrentOrgId()
+		if (orgId) {
+			headers["X-Org-Id"] = orgId
+		}
+	}
+
+	const res = await fetch(`${API_URL}${path}`, {
+		...options,
+		credentials: "include",
+		headers,
+	})
+
+	if (!res.ok) {
+		const data = (await res.json()) as ApiError
+		throw createFetchError(res.status, data)
+	}
+
+	return res.json() as Promise<T>
+}
+
+function get<T>(path: string, includeOrg = true): Promise<T> {
+	return request<T>(path, { method: "GET" }, includeOrg)
+}
+
+function post<T>(path: string, body: unknown, includeOrg = true): Promise<T> {
+	return request<T>(
+		path,
+		{ method: "POST", body: JSON.stringify(body) },
+		includeOrg,
+	)
+}
+
+function patch<T>(path: string, body: unknown, includeOrg = true): Promise<T> {
+	return request<T>(
+		path,
+		{ method: "PATCH", body: JSON.stringify(body) },
+		includeOrg,
+	)
+}
+
+function del<T = void>(path: string, includeOrg = true): Promise<T> {
+	return request<T>(path, { method: "DELETE" }, includeOrg)
+}
+
+export type CreateProjectData = {
+	name: string
+	slug: string
+	timezone?: string
+}
+
+export type UpdateProjectData = {
+	name?: string
+	slug?: string
+	timezone?: string
+	statusPageEnabled?: boolean
+	statusPageTitle?: string | null
+	statusPageLogoUrl?: string | null
+}
+
+export type CreateCheckData = {
+	name: string
+	slug?: string
+	scheduleType: ScheduleType
+	scheduleValue: string
+	graceSeconds?: number
+	timezone?: string
+	alertOnRecovery?: boolean
+	reminderIntervalHours?: number
+}
+
+export type UpdateCheckData = {
+	name?: string
+	slug?: string | null
+	scheduleType?: ScheduleType
+	scheduleValue?: string
+	graceSeconds?: number
+	timezone?: string | null
+	alertOnRecovery?: boolean
+	reminderIntervalHours?: number | null
+	channelIds?: string[]
+}
+
+export type CreateChannelData = {
+	type: ChannelType
+	name: string
+	config: Record<string, unknown>
+}
+
+export type UpdateChannelData = {
+	name?: string
+	config?: Record<string, unknown>
+}
+
+export type CreateApiKeyData = {
+	name: string
+}
+
+export type DashboardStats = {
+	totalProjects: number
+	totalChecks: number
+	checksByStatus: {
+		UP: number
+		DOWN: number
+		LATE: number
+		NEW: number
+		PAUSED: number
+	}
+}
+
+export type DashboardCheck = {
+	id: string
+	name: string
+	status: CheckStatus
+	scheduleType: ScheduleType
+	scheduleValue: string
+	lastPingAt: string | null
+	projectId: string
+	projectName: string
+}
+
+export type CreateOrgData = {
+	name: string
+	slug: string
+}
+
+export type UpdateOrgData = {
+	name?: string
+	slug?: string
+}
+
+export const api = {
+	organizations: {
+		list: () =>
+			get<{ organizations: Organization[] }>("/v1/organizations", false),
+		get: (id: string) => get<Organization>(`/v1/organizations/${id}`, false),
+		create: (data: CreateOrgData) =>
+			post<Organization>("/v1/organizations", data, false),
+		update: (id: string, data: UpdateOrgData) =>
+			patch<Organization>(`/v1/organizations/${id}`, data, false),
+		delete: (id: string) => del(`/v1/organizations/${id}`, false),
+	},
+	billing: {
+		get: () => get<BillingInfo>("/v1/billing"),
+		createCheckout: (successUrl: string, cancelUrl: string) =>
+			post<{ url: string }>("/v1/billing/checkout", { successUrl, cancelUrl }),
+		createPortal: (returnUrl: string) =>
+			post<{ url: string }>("/v1/billing/portal", { returnUrl }),
+	},
+	dashboard: {
+		stats: () => get<DashboardStats>("/v1/dashboard/stats"),
+		checks: () => get<{ checks: DashboardCheck[] }>("/v1/dashboard/checks"),
+	},
+	projects: {
+		list: () => get<{ projects: Project[] }>("/v1/projects"),
+		get: (id: string) => get<Project>(`/v1/projects/${id}`),
+		create: (data: CreateProjectData) => post<Project>("/v1/projects", data),
+		update: (id: string, data: UpdateProjectData) =>
+			patch<Project>(`/v1/projects/${id}`, data),
+		delete: (id: string) => del(`/v1/projects/${id}`),
+	},
+	checks: {
+		list: (projectId: string) =>
+			get<{ checks: Check[] }>(`/v1/projects/${projectId}/checks`),
+		get: (id: string) => get<Check>(`/v1/checks/${id}`),
+		create: (projectId: string, data: CreateCheckData) =>
+			post<Check>(`/v1/projects/${projectId}/checks`, data),
+		update: (id: string, data: UpdateCheckData) =>
+			patch<Check>(`/v1/checks/${id}`, data),
+		delete: (id: string) => del(`/v1/checks/${id}`),
+		pause: (id: string) => post<Check>(`/v1/checks/${id}/pause`, {}),
+		resume: (id: string) => post<Check>(`/v1/checks/${id}/resume`, {}),
+	},
+	channels: {
+		list: (projectId: string) =>
+			get<{ channels: Channel[] }>(`/v1/projects/${projectId}/channels`),
+		get: (projectId: string, channelId: string) =>
+			get<Channel>(`/v1/projects/${projectId}/channels/${channelId}`),
+		create: (projectId: string, data: CreateChannelData) =>
+			post<Channel>(`/v1/projects/${projectId}/channels`, data),
+		update: (projectId: string, channelId: string, data: UpdateChannelData) =>
+			patch<Channel>(`/v1/projects/${projectId}/channels/${channelId}`, data),
+		delete: (projectId: string, channelId: string) =>
+			del(`/v1/projects/${projectId}/channels/${channelId}`),
+		test: (projectId: string, channelId: string) =>
+			post<{ success: boolean; error?: string }>(
+				`/v1/projects/${projectId}/channels/${channelId}/test`,
+				{},
+			),
+	},
+	apiKeys: {
+		list: (projectId: string) =>
+			get<{ apiKeys: ApiKey[] }>(`/v1/projects/${projectId}/api-keys`),
+		create: (projectId: string, data: CreateApiKeyData) =>
+			post<ApiKeyCreated>(`/v1/projects/${projectId}/api-keys`, data),
+		delete: (projectId: string, apiKeyId: string) =>
+			del(`/v1/projects/${projectId}/api-keys/${apiKeyId}`),
+	},
+	pings: {
+		list: (checkId: string, limit?: number) =>
+			get<{ pings: Ping[] }>(
+				`/v1/checks/${checkId}/pings${limit ? `?limit=${limit}` : ""}`,
+			),
+	},
+}
+
+export { createFetchError, isFetchError }
