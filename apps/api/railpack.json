@@ -4,14 +4,6 @@
 	"packages": {
 		"node": "20"
 	},
-	"steps": {
-		"build": {
-			"commands": [
-				"pnpm --filter @haspulse/db build",
-				"pnpm --filter @haspulse/api build"
-			]
-		}
-	},
 	"deploy": {
 		"startCommand": "node dist/index.js"
 	}
