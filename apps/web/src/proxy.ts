@@ -1,10 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/verify-email", "/status"]
+const PUBLIC_PATHS = [
+	"/",
+	"/login",
+	"/register",
+	"/verify-email",
+	"/status",
+	"/docs",
+	"/cron",
+	"/manifest.webmanifest",
+	"/icon.svg",
+	"/robots.txt",
+	"/sitemap.xml",
+]
 
 function isPublicPath(pathname: string): boolean {
 	if (PUBLIC_PATHS.includes(pathname)) return true
 	if (pathname.startsWith("/status/")) return true
+	if (pathname.startsWith("/docs/")) return true
+	if (pathname.startsWith("/cron/")) return true
 	return false
 }
 
