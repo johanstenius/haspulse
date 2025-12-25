@@ -1,0 +1,95 @@
+import { z } from "@hono/zod-openapi"
+import {
+	errorResponseSchema,
+	idParamSchema,
+	paginationQuerySchema,
+	projectIdParamSchema,
+} from "../shared/schemas.js"
+
+export {
+	errorResponseSchema,
+	projectIdParamSchema,
+	idParamSchema as checkIdParamSchema,
+	paginationQuerySchema,
+}
+
+export const checkStatusSchema = z.enum(["NEW", "UP", "LATE", "DOWN", "PAUSED"])
+export const scheduleTypeSchema = z.enum(["PERIOD", "CRON"])
+
+export const checkResponseSchema = z
+	.object({
+		id: z.string(),
+		projectId: z.string(),
+		name: z.string(),
+		slug: z.string().nullable(),
+		scheduleType: scheduleTypeSchema,
+		scheduleValue: z.string(),
+		graceSeconds: z.number(),
+		timezone: z.string().nullable(),
+		status: checkStatusSchema,
+		lastPingAt: z.string().datetime().nullable(),
+		lastStartedAt: z.string().datetime().nullable(),
+		nextExpectedAt: z.string().datetime().nullable(),
+		alertOnRecovery: z.boolean(),
+		reminderIntervalHours: z.number().nullable(),
+		channelIds: z.array(z.string()),
+		createdAt: z.string().datetime(),
+		updatedAt: z.string().datetime(),
+	})
+	.openapi("Check")
+
+export type CheckResponse = z.infer<typeof checkResponseSchema>
+
+export const checkListResponseSchema = z
+	.object({
+		checks: z.array(checkResponseSchema),
+		total: z.number(),
+		page: z.number(),
+		limit: z.number(),
+		totalPages: z.number(),
+	})
+	.openapi("CheckList")
+
+export type CheckListResponse = z.infer<typeof checkListResponseSchema>
+
+export const createCheckBodySchema = z
+	.object({
+		name: z.string().min(1).max(100),
+		slug: z
+			.string()
+			.min(1)
+			.max(64)
+			.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes")
+			.optional(),
+		scheduleType: scheduleTypeSchema,
+		scheduleValue: z.string().min(1),
+		graceSeconds: z.number().min(0).max(86400).optional().default(300),
+		timezone: z.string().optional(),
+		alertOnRecovery: z.boolean().optional().default(true),
+		reminderIntervalHours: z.number().min(1).max(168).optional(),
+	})
+	.openapi("CreateCheckRequest")
+
+export type CreateCheckBody = z.infer<typeof createCheckBodySchema>
+
+export const updateCheckBodySchema = z
+	.object({
+		name: z.string().min(1).max(100).optional(),
+		slug: z
+			.string()
+			.min(1)
+			.max(64)
+			.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes")
+			.nullable()
+			.optional(),
+		scheduleType: scheduleTypeSchema.optional(),
+		scheduleValue: z.string().min(1).optional(),
+		graceSeconds: z.number().min(0).max(86400).optional(),
+		timezone: z.string().nullable().optional(),
+		alertOnRecovery: z.boolean().optional(),
+		reminderIntervalHours: z.number().min(1).max(168).nullable().optional(),
+		channelIds: z.array(z.string()).optional(),
+	})
+	.openapi("UpdateCheckRequest")
+
+export type UpdateCheckBody = z.infer<typeof updateCheckBodySchema>
