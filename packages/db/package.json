@@ -1,0 +1,30 @@
+{
+	"name": "@haspulse/db",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"build": "prisma generate && tsc",
+		"dev": "tsc --watch",
+		"db:generate": "prisma generate",
+		"db:migrate": "prisma migrate dev",
+		"db:push": "prisma db push"
+	},
+	"dependencies": {
+		"@prisma/client": "6.1.0",
+		"better-auth": "^1.4.9"
+	},
+	"devDependencies": {
+		"@types/node": "22.10.2",
+		"date-fns": "^4.1.0",
+		"prisma": "6.1.0",
+		"tsx": "4.19.2",
+		"typescript": "5.7.2"
+	}
+}

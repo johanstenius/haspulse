@@ -1,0 +1,384 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// BetterAuth models
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions    Session[]
+  accounts    Account[]
+  memberships OrgMember[]
+
+  @@map("user")
+}
+
+model Organization {
+  id                   String    @id @default(cuid())
+  name                 String
+  slug                 String    @unique
+  plan                 String    @default("free")
+  stripeCustomerId     String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  trialEndsAt          DateTime? @map("trial_ends_at")
+  autoCreateIncidents  Boolean   @default(true) @map("auto_create_incidents")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  members  OrgMember[]
+  projects Project[]
+
+  @@map("organizations")
+}
+
+model OrgMember {
+  id        String   @id @default(cuid())
+  role      String   @default("member")
+  userId    String   @map("user_id")
+  orgId     String   @map("org_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([userId])
+  @@index([orgId])
+  @@map("org_members")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// Haspulse models
+model Project {
+  id                String   @id @default(dbgenerated("nanoid(16)"))
+  orgId             String   @map("org_id")
+  name              String
+  slug              String   @unique
+  timezone          String   @default("UTC")
+  statusPageEnabled Boolean  @default(false) @map("status_page_enabled")
+  statusPageTitle   String?  @map("status_page_title")
+  statusPageLogoUrl String?  @map("status_page_logo_url")
+  customDomain      String?  @unique @map("custom_domain")
+  domainVerified    Boolean  @default(false) @map("domain_verified")
+  domainVerifyToken String?  @map("domain_verify_token")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  checks      Check[]
+  channels    Channel[]
+  apiKeys     ApiKey[]
+  incidents   Incident[]
+  maintenance Maintenance[]
+
+  @@index([orgId])
+  @@map("projects")
+}
+
+model Check {
+  id                    String       @id @default(dbgenerated("nanoid(16)"))
+  projectId             String       @map("project_id")
+  name                  String
+  slug                  String?
+  scheduleType          ScheduleType @map("schedule_type")
+  scheduleValue         String       @map("schedule_value")
+  graceSeconds          Int          @default(300) @map("grace_seconds")
+  timezone              String?
+  status                CheckStatus  @default(NEW)
+  lastPingAt            DateTime?    @map("last_ping_at")
+  lastStartedAt         DateTime?    @map("last_started_at")
+  nextExpectedAt        DateTime?    @map("next_expected_at")
+  lastAlertAt           DateTime?    @map("last_alert_at")
+  alertOnRecovery       Boolean      @default(true) @map("alert_on_recovery")
+  reminderIntervalHours Int?         @map("reminder_interval_hours")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pings             Ping[]
+  checkChannels     CheckChannel[]
+  alerts            Alert[]
+  incidentChecks    IncidentCheck[]
+  maintenanceChecks MaintenanceCheck[]
+  dailyStats        CheckDailyStat[]
+
+  @@unique([projectId, slug])
+  @@index([status])
+  @@index([nextExpectedAt])
+  @@map("checks")
+}
+
+model Ping {
+  id        String   @id @default(dbgenerated("nanoid(16)"))
+  checkId   String   @map("check_id")
+  type      PingType
+  body      String?
+  sourceIp  String   @map("source_ip")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@index([checkId, createdAt(sort: Desc)])
+  @@map("pings")
+}
+
+model CheckDailyStat {
+  id          String   @id @default(dbgenerated("nanoid(16)"))
+  checkId     String   @map("check_id")
+  date        DateTime @db.Date
+  upMinutes   Int      @default(0) @map("up_minutes")
+  downMinutes Int      @default(0) @map("down_minutes")
+  totalPings  Int      @default(0) @map("total_pings")
+  upPercent   Float    @default(0) @map("up_percent")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@unique([checkId, date])
+  @@index([checkId, date])
+  @@map("check_daily_stats")
+}
+
+model Channel {
+  id        String      @id @default(dbgenerated("nanoid(16)"))
+  projectId String      @map("project_id")
+  type      ChannelType
+  name      String
+  config    Json
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  checkChannels CheckChannel[]
+
+  @@map("channels")
+}
+
+model CheckChannel {
+  checkId   String @map("check_id")
+  channelId String @map("channel_id")
+
+  check   Check   @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([checkId, channelId])
+  @@map("check_channels")
+}
+
+model Alert {
+  id        String   @id @default(dbgenerated("nanoid(16)"))
+  checkId   String   @map("check_id")
+  event     String
+  channels  Json
+  success   Boolean
+  error     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@index([checkId, createdAt(sort: Desc)])
+  @@map("alerts")
+}
+
+model ApiKey {
+  id         String    @id @default(dbgenerated("nanoid(16)"))
+  projectId  String    @map("project_id")
+  name       String
+  keyHash    String    @unique @map("key_hash")
+  keyPrefix  String    @map("key_prefix")
+  lastUsedAt DateTime? @map("last_used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+enum CheckStatus {
+  NEW
+  UP
+  LATE
+  DOWN
+  PAUSED
+
+  @@map("check_status")
+}
+
+enum PingType {
+  SUCCESS
+  START
+  FAIL
+
+  @@map("ping_type")
+}
+
+enum ScheduleType {
+  PERIOD
+  CRON
+
+  @@map("schedule_type")
+}
+
+enum ChannelType {
+  EMAIL
+  SLACK_WEBHOOK
+  SLACK_APP
+  DISCORD
+  PAGERDUTY
+  OPSGENIE
+  WEBHOOK
+
+  @@map("channel_type")
+}
+
+enum IncidentStatus {
+  INVESTIGATING
+  IDENTIFIED
+  MONITORING
+  RESOLVED
+
+  @@map("incident_status")
+}
+
+enum IncidentImpact {
+  NONE
+  MINOR
+  MAJOR
+  CRITICAL
+
+  @@map("incident_impact")
+}
+
+model Incident {
+  id          String         @id @default(dbgenerated("nanoid(16)"))
+  projectId   String         @map("project_id")
+  title       String
+  status      IncidentStatus @default(INVESTIGATING)
+  impact      IncidentImpact @default(MINOR)
+  autoCreated Boolean        @default(false) @map("auto_created")
+  resolvedAt  DateTime?      @map("resolved_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updates IncidentUpdate[]
+  checks  IncidentCheck[]
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([projectId, status])
+  @@map("incidents")
+}
+
+model IncidentUpdate {
+  id         String         @id @default(dbgenerated("nanoid(16)"))
+  incidentId String         @map("incident_id")
+  status     IncidentStatus
+  message    String
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, createdAt(sort: Desc)])
+  @@map("incident_updates")
+}
+
+model IncidentCheck {
+  incidentId String @map("incident_id")
+  checkId    String @map("check_id")
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  check    Check    @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@id([incidentId, checkId])
+  @@map("incident_checks")
+}
+
+model Maintenance {
+  id          String   @id @default(dbgenerated("nanoid(16)"))
+  projectId   String   @map("project_id")
+  title       String
+  description String?
+  startsAt    DateTime @map("starts_at")
+  endsAt      DateTime @map("ends_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  checks  MaintenanceCheck[]
+
+  @@index([projectId, startsAt])
+  @@map("maintenance")
+}
+
+model MaintenanceCheck {
+  maintenanceId String @map("maintenance_id")
+  checkId       String @map("check_id")
+
+  maintenance Maintenance @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
+  check       Check       @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@id([maintenanceId, checkId])
+  @@map("maintenance_checks")
+}
