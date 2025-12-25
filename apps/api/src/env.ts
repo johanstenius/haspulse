@@ -12,6 +12,7 @@ export const config = {
 
 	// Auth
 	authSecret: env.get("AUTH_SECRET").required().asString(),
+	apiUrl: env.get("API_URL").default("http://localhost:4000").asString(),
 	appUrl: env.get("APP_URL").default("http://localhost:4001").asString(),
 
 	// OAuth (optional)

@@ -33,7 +33,7 @@ export const auth = betterAuth({
 		provider: "postgresql",
 	}),
 	secret: config.authSecret,
-	baseURL: `http://localhost:${config.port}`,
+	baseURL: config.apiUrl,
 	basePath: "/auth",
 	emailAndPassword: {
 		enabled: true,
