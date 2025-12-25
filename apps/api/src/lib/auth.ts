@@ -38,25 +38,26 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: true,
-		sendResetPassword: async ({ user, url }) => {
+		sendResetPassword: async ({ user, token }) => {
+			const resetUrl = `${config.appUrl}/auth/reset-password?token=${token}`
 			await sendTransactionalEmail({
 				to: user.email,
 				subject: "Reset your Haspulse password",
-				html: await renderPasswordResetEmail(url),
+				html: await renderPasswordResetEmail(resetUrl),
 			})
 		},
 	},
 	emailVerification: {
-		sendVerificationEmail: async ({ user, url }) => {
+		sendVerificationEmail: async ({ user, token }) => {
+			const verifyUrl = `${config.appUrl}/auth/verify-callback?token=${token}`
 			await sendTransactionalEmail({
 				to: user.email,
 				subject: "Verify your Haspulse email",
-				html: await renderVerificationEmail(url),
+				html: await renderVerificationEmail(verifyUrl),
 			})
 		},
 		sendOnSignUp: true,
 		autoSignInAfterVerification: true,
-		callbackURL: `${config.appUrl}/dashboard`,
 	},
 	socialProviders: {
 		google: {
@@ -72,11 +73,12 @@ export const auth = betterAuth({
 	},
 	plugins: [
 		magicLink({
-			sendMagicLink: async ({ email, url }) => {
+			sendMagicLink: async ({ email, token }) => {
+				const magicUrl = `${config.appUrl}/auth/magic-link?token=${token}`
 				await sendTransactionalEmail({
 					to: email,
 					subject: "Sign in to Haspulse",
-					html: await renderMagicLinkEmail(url),
+					html: await renderMagicLinkEmail(magicUrl),
 				})
 			},
 		}),
