@@ -14,6 +14,7 @@ export const config = {
 	authSecret: env.get("AUTH_SECRET").required().asString(),
 	apiUrl: env.get("API_URL").default("http://localhost:4000").asString(),
 	appUrl: env.get("APP_URL").default("http://localhost:4001").asString(),
+	cookieDomain: env.get("COOKIE_DOMAIN").default("localhost").asString(),
 
 	// OAuth (optional)
 	googleClientId: env.get("GOOGLE_CLIENT_ID").asString(),

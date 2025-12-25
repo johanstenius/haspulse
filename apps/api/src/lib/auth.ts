@@ -90,6 +90,13 @@ export const auth = betterAuth({
 		},
 	},
 	trustedOrigins: [config.appUrl],
+	advanced: {
+		crossSubDomainCookies: {
+			enabled: true,
+			domain: config.cookieDomain,
+		},
+		useSecureCookies: config.nodeEnv === "production",
+	},
 	user: {
 		additionalFields: {},
 		changeEmail: { enabled: false },
