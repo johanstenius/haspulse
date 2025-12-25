@@ -10,10 +10,7 @@
 		},
 		"build": {
 			"inputs": [{ "step": "install" }],
-			"commands": [
-				"pnpm --filter @haspulse/db build",
-				"pnpm --filter @haspulse/api build"
-			]
+			"commands": ["pnpm turbo build --filter=@haspulse/api"]
 		}
 	},
 	"deploy": {
