@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Haspulse — V4B Dark</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex">
+
+  <!-- Icon sidebar -->
+  <aside class="w-14 bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-4">
+    <div class="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center mb-6">
+      <svg class="w-5 h-5 text-zinc-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M3 12h4l3-9 4 18 3-9h4"/>
+      </svg>
+    </div>
+    <nav class="flex-1 flex flex-col items-center gap-1">
+      <button class="w-9 h-9 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-100">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h4l3-9 4 18 3-9h4"/>
+        </svg>
+      </button>
+      <button class="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </button>
+      <button class="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+      </button>
+      <button class="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+      </button>
+    </nav>
+    <button class="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    </button>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1">
+    <!-- Top bar -->
+    <header class="border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">Production</span>
+          <svg class="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </div>
+        <div class="h-4 w-px bg-zinc-800"></div>
+        <div class="flex items-center gap-4 text-sm">
+          <span class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            <span class="text-zinc-400">5 up</span>
+          </span>
+          <span class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
+            <span class="text-zinc-400">1 late</span>
+          </span>
+          <span class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-zinc-600 rounded-full"></div>
+            <span class="text-zinc-400">1 paused</span>
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-xs text-zinc-500 mono">99.98% · 30d</div>
+        <button class="px-3 py-1.5 bg-emerald-500 text-zinc-950 rounded-md text-sm font-medium hover:bg-emerald-400 transition-colors">
+          + Add
+        </button>
+      </div>
+    </header>
+
+    <!-- Cards section -->
+    <div class="p-6">
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div class="text-xs text-zinc-500 uppercase tracking-wide mb-1">Uptime</div>
+          <div class="text-2xl font-semibold text-emerald-400">99.98%</div>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div class="text-xs text-zinc-500 uppercase tracking-wide mb-1">Pings</div>
+          <div class="text-2xl font-semibold">2,147</div>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div class="text-xs text-zinc-500 uppercase tracking-wide mb-1">Incidents</div>
+          <div class="text-2xl font-semibold">0</div>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div class="text-xs text-zinc-500 uppercase tracking-wide mb-1">Last alert</div>
+          <div class="text-2xl font-semibold text-zinc-400">23d ago</div>
+        </div>
+      </div>
+
+      <!-- Table in card -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+          <span class="font-medium">Checks</span>
+          <div class="flex items-center gap-2">
+            <button class="px-2 py-1 text-xs bg-zinc-800 text-zinc-300 rounded hover:bg-zinc-700 transition-colors">All</button>
+            <button class="px-2 py-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Issues</button>
+            <button class="px-2 py-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Paused</button>
+          </div>
+        </div>
+
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-zinc-500 uppercase tracking-wide border-b border-zinc-800">
+              <th class="text-left py-3 px-4 font-medium">Check</th>
+              <th class="text-left py-3 px-4 font-medium">Status</th>
+              <th class="text-left py-3 px-4 font-medium mono">Schedule</th>
+              <th class="text-left py-3 px-4 font-medium">Last ping</th>
+              <th class="text-left py-3 px-4 font-medium">7d</th>
+              <th class="w-10"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800/50">
+            <tr class="hover:bg-zinc-800/30 cursor-pointer transition-colors">
+              <td class="py-3 px-4">
+                <div class="font-medium">Database backup</div>
+                <div class="text-xs text-zinc-500 mono">db-backup</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                  <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                  UP
+                </span>
+              </td>
+              <td class="py-3 px-4 mono text-xs text-zinc-400">0 3 * * *</td>
+              <td class="py-3 px-4 text-zinc-400 tabular-nums">2m ago</td>
+              <td class="py-3 px-4">
+                <div class="flex gap-px">
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <svg class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </td>
+            </tr>
+
+            <tr class="hover:bg-zinc-800/30 cursor-pointer transition-colors">
+              <td class="py-3 px-4">
+                <div class="font-medium">Email queue</div>
+                <div class="text-xs text-zinc-500 mono">email-queue</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                  <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                  UP
+                </span>
+              </td>
+              <td class="py-3 px-4 mono text-xs text-zinc-400">*/5 * * * *</td>
+              <td class="py-3 px-4 text-zinc-400 tabular-nums">34s ago</td>
+              <td class="py-3 px-4">
+                <div class="flex gap-px">
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <svg class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </td>
+            </tr>
+
+            <tr class="hover:bg-amber-950/20 cursor-pointer transition-colors bg-amber-950/10">
+              <td class="py-3 px-4">
+                <div class="font-medium">SSL renewal</div>
+                <div class="text-xs text-zinc-500 mono">ssl-renewal</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center gap-1.5 text-amber-400 text-xs font-medium">
+                  <div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div>
+                  LATE
+                </span>
+              </td>
+              <td class="py-3 px-4 mono text-xs text-zinc-400">0 9 * * 1</td>
+              <td class="py-3 px-4 text-amber-400 tabular-nums">2h ago</td>
+              <td class="py-3 px-4">
+                <div class="flex gap-px">
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-amber-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-amber-500 rounded-sm"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <svg class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </td>
+            </tr>
+
+            <tr class="hover:bg-zinc-800/30 cursor-pointer transition-colors">
+              <td class="py-3 px-4">
+                <div class="font-medium">Analytics sync</div>
+                <div class="text-xs text-zinc-500 mono">analytics</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                  <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                  UP
+                </span>
+              </td>
+              <td class="py-3 px-4 mono text-xs text-zinc-400">0 * * * *</td>
+              <td class="py-3 px-4 text-zinc-400 tabular-nums">12m ago</td>
+              <td class="py-3 px-4">
+                <div class="flex gap-px">
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-red-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <svg class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </td>
+            </tr>
+
+            <tr class="hover:bg-zinc-800/30 cursor-pointer transition-colors">
+              <td class="py-3 px-4">
+                <div class="font-medium">Invoice generator</div>
+                <div class="text-xs text-zinc-500 mono">invoices</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                  <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                  UP
+                </span>
+              </td>
+              <td class="py-3 px-4 mono text-xs text-zinc-400">0 * * * *</td>
+              <td class="py-3 px-4 text-zinc-400 tabular-nums">45m ago</td>
+              <td class="py-3 px-4">
+                <div class="flex gap-px">
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-emerald-500 rounded-sm"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <svg class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </td>
+            </tr>
+
+            <tr class="hover:bg-zinc-800/30 cursor-pointer transition-colors opacity-40">
+              <td class="py-3 px-4">
+                <div class="font-medium">Sitemap generator</div>
+                <div class="text-xs text-zinc-600 mono">sitemap</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center gap-1.5 text-zinc-500 text-xs font-medium">
+                  <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full"></div>
+                  PAUSED
+                </span>
+              </td>
+              <td class="py-3 px-4 mono text-xs text-zinc-600">0 6 * * *</td>
+              <td class="py-3 px-4 text-zinc-600 tabular-nums">3d ago</td>
+              <td class="py-3 px-4">
+                <div class="flex gap-px">
+                  <div class="w-2 h-4 bg-zinc-700 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-zinc-700 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-zinc-700 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-zinc-800 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-zinc-800 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-zinc-800 rounded-sm"></div>
+                  <div class="w-2 h-4 bg-zinc-800 rounded-sm"></div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <svg class="w-4 h-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

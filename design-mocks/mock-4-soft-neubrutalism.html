@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haspulse - Soft Neubrutalism</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        bg: '#fff9f5',
+                        surface: '#ffffff',
+                        border: '#1f2937',
+                        accent1: '#ffc8dd', // Pink
+                        accent2: '#bde0fe', // Blue
+                        accent3: '#cdb4db', // Purple
+                        accent4: '#a2d2ff', // Light Blue
+                    },
+                    boxShadow: {
+                        'neo': '4px 4px 0 0 #1f2937',
+                        'neo-sm': '2px 2px 0 0 #1f2937',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-bg text-gray-900 min-h-screen font-sans selection:bg-black selection:text-white pb-12">
+
+    <!-- Navbar -->
+    <nav class="border-b-2 border-border bg-surface sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-black rounded-lg transform -rotate-3"></div>
+                <span class="font-extrabold text-xl tracking-tight">Haspulse</span>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                 <div class="hidden md:flex gap-1">
+                     <a href="#" class="px-4 py-1.5 rounded-lg border-2 border-transparent hover:border-border hover:bg-accent2 transition-all font-bold text-sm">Dashboard</a>
+                     <a href="#" class="px-4 py-1.5 rounded-lg border-2 border-transparent hover:border-border hover:bg-transparent transition-all font-bold text-sm text-gray-500 hover:text-black">Projects</a>
+                     <a href="#" class="px-4 py-1.5 rounded-lg border-2 border-transparent hover:border-border hover:bg-transparent transition-all font-bold text-sm text-gray-500 hover:text-black">Settings</a>
+                 </div>
+                 <div class="flex items-center gap-3">
+                     <div class="px-3 py-1 bg-white border-2 border-border rounded-lg shadow-neo-sm font-bold text-xs uppercase tracking-wide">
+                         acme-prod
+                     </div>
+                     <img src="https://ui-avatars.com/api/?name=JS&background=000&color=fff" class="w-9 h-9 rounded-full border-2 border-border" alt="Profile">
+                 </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        
+        <!-- Welcome / Actions -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+            <div>
+                <h1 class="text-4xl font-extrabold mb-2 text-border">System Overview</h1>
+                <p class="text-gray-600 font-medium">Monitoring 24 checks on <span class="text-black font-bold">acme-prod</span></p>
+            </div>
+            <button class="px-6 py-3 bg-black text-white rounded-xl border-2 border-black font-bold shadow-neo hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-neo-sm transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Create New Check
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Card 1 -->
+            <div class="bg-white rounded-2xl border-2 border-border p-6 shadow-neo transform hover:-rotate-1 transition-transform group">
+                <div class="flex justify-between items-start mb-4">
+                     <div class="bg-accent2 w-10 h-10 rounded-xl border-2 border-border flex items-center justify-center">
+                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                     </div>
+                     <span class="bg-green-100 text-green-800 border-2 border-green-200 px-2 py-0.5 rounded-lg text-xs font-bold uppercase">Healthy</span>
+                </div>
+                <div class="text-4xl font-black mb-1">21</div>
+                <div class="text-gray-500 font-bold text-sm">Operational Checks</div>
+            </div>
+
+             <!-- Card 2 -->
+             <div class="bg-white rounded-2xl border-2 border-border p-6 shadow-neo transform hover:rotate-1 transition-transform group">
+                <div class="flex justify-between items-start mb-4">
+                     <div class="bg-accent1 w-10 h-10 rounded-xl border-2 border-border flex items-center justify-center">
+                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                     </div>
+                     <span class="bg-red-100 text-red-800 border-2 border-red-200 px-2 py-0.5 rounded-lg text-xs font-bold uppercase animate-pulse">Alert</span>
+                </div>
+                <div class="text-4xl font-black mb-1">1</div>
+                <div class="text-gray-500 font-bold text-sm">Down Checks</div>
+            </div>
+
+            <!-- Card 3 -->
+             <div class="bg-white rounded-2xl border-2 border-border p-6 shadow-neo transition-transform group">
+                <div class="flex justify-between items-start mb-4">
+                     <div class="bg-accent3 w-10 h-10 rounded-xl border-2 border-border flex items-center justify-center">
+                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                     </div>
+                     <span class="bg-gray-100 text-gray-800 border-2 border-gray-200 px-2 py-0.5 rounded-lg text-xs font-bold uppercase">Paused</span>
+                </div>
+                <div class="text-4xl font-black mb-1">2</div>
+                <div class="text-gray-500 font-bold text-sm">Inactive</div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <button class="px-4 py-2 bg-black text-white border-2 border-black rounded-lg font-bold shadow-neo-sm text-sm whitespace-nowrap">
+                All Checks
+            </button>
+             <button class="px-4 py-2 bg-white text-gray-600 border-2 border-transparent hover:border-black rounded-lg font-bold text-sm hover:shadow-neo-sm transition-all whitespace-nowrap">
+                Operational
+            </button>
+             <button class="px-4 py-2 bg-white text-gray-600 border-2 border-transparent hover:border-black rounded-lg font-bold text-sm hover:shadow-neo-sm transition-all whitespace-nowrap">
+                Issues
+            </button>
+             <button class="px-4 py-2 bg-white text-gray-600 border-2 border-transparent hover:border-black rounded-lg font-bold text-sm hover:shadow-neo-sm transition-all whitespace-nowrap">
+                Paused
+            </button>
+        </div>
+
+        <!-- List -->
+        <div class="space-y-4">
+            
+            <!-- Item 1 -->
+            <div class="bg-white border-2 border-border rounded-xl p-5 shadow-neo-sm hover:shadow-neo transition-all flex flex-col md:flex-row items-center gap-5">
+                <div class="w-12 h-12 bg-accent2/30 rounded-full border-2 border-border flex items-center justify-center shrink-0">
+                    <div class="w-3 h-3 bg-green-500 rounded-full border-2 border-border"></div>
+                </div>
+                <div class="flex-1 w-full text-center md:text-left">
+                    <h3 class="font-bold text-lg text-border">Database Backup</h3>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-3 mt-1 text-sm font-semibold text-gray-500">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Hourly
+                        </span>
+                        <span>•</span>
+                        <span>12m ago</span>
+                    </div>
+                </div>
+                <div class="flex gap-1 h-8 items-end">
+                     <!-- Bars -->
+                     <div class="w-2 bg-green-400 h-full rounded-full border border-black"></div>
+                     <div class="w-2 bg-green-400 h-3/4 rounded-full border border-black"></div>
+                     <div class="w-2 bg-green-400 h-full rounded-full border border-black"></div>
+                     <div class="w-2 bg-green-400 h-5/6 rounded-full border border-black"></div>
+                     <div class="w-2 bg-green-400 h-full rounded-full border border-black"></div>
+                </div>
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors md:ml-4">
+                     <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                </button>
+            </div>
+
+            <!-- Item 2 -->
+             <div class="bg-red-50 border-2 border-border rounded-xl p-5 shadow-neo-sm hover:shadow-neo transition-all flex flex-col md:flex-row items-center gap-5">
+                <div class="w-12 h-12 bg-red-200 rounded-full border-2 border-border flex items-center justify-center shrink-0">
+                    <div class="w-3 h-3 bg-red-500 rounded-full border-2 border-border animate-ping"></div>
+                </div>
+                <div class="flex-1 w-full text-center md:text-left">
+                    <h3 class="font-bold text-lg text-border">Payment Sync</h3>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-3 mt-1 text-sm font-semibold text-gray-500">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Every 5m
+                        </span>
+                        <span>•</span>
+                        <span class="text-red-500 font-bold">LATE (2m)</span>
+                    </div>
+                </div>
+                 <div class="flex gap-1 h-8 items-end">
+                     <div class="w-2 bg-green-400 h-full rounded-full border border-black"></div>
+                     <div class="w-2 bg-green-400 h-3/4 rounded-full border border-black"></div>
+                     <div class="w-2 bg-red-400 h-1/2 rounded-full border border-black"></div>
+                     <div class="w-2 bg-red-500 h-1/4 rounded-full border border-black"></div>
+                </div>
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors md:ml-4">
+                     <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                </button>
+            </div>
+
+             <!-- Item 3 -->
+            <div class="bg-gray-50 border-2 border-border rounded-xl p-5 transition-all flex flex-col md:flex-row items-center gap-5 opacity-70 border-dashed">
+                <div class="w-12 h-12 bg-gray-200 rounded-full border-2 border-border flex items-center justify-center shrink-0">
+                    <div class="w-3 h-3 bg-gray-400 rounded-full border-2 border-border"></div>
+                </div>
+                <div class="flex-1 w-full text-center md:text-left">
+                    <h3 class="font-bold text-lg text-gray-500">Search Indexer</h3>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-3 mt-1 text-sm font-semibold text-gray-400">
+                        <span class="flex items-center gap-1">
+                            Daily
+                        </span>
+                        <span>•</span>
+                        <span>Paused</span>
+                    </div>
+                </div>
+                 <div class="flex gap-1 h-8 items-center justify-center w-32 border-b-2 border-gray-300 border-dashed">
+                     
+                </div>
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors md:ml-4">
+                     <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

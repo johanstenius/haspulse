@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haspulse - Glassmorphism</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.1)',
+                        glassBorder: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+        }
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: #4f46e5;
+            top: -100px;
+            left: -100px;
+            animation: float 10s ease-in-out infinite;
+        }
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #ec4899;
+            bottom: 100px;
+            right: -50px;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 50px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="antialiased h-screen flex overflow-hidden selection:bg-pink-500 selection:text-white">
+
+    <div class="mesh-gradient">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="w-20 lg:w-64 glass-panel flex flex-col z-20 m-4 rounded-2xl h-[calc(100vh-2rem)]">
+        <div class="h-20 flex items-center justify-center lg:justify-start lg:px-8">
+            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-lg shadow-lg shadow-indigo-500/30"></div>
+            <span class="ml-3 font-bold text-xl tracking-tight hidden lg:block bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Haspulse</span>
+        </div>
+
+        <div class="flex-1 px-4 py-6 space-y-2">
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition-all group border border-white/10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span class="ml-3 hidden lg:block">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span class="ml-3 hidden lg:block">Projects</span>
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span class="ml-3 hidden lg:block">Activity</span>
+            </a>
+            <div class="h-px bg-white/10 my-4 mx-2"></div>
+            <a href="#" class="flex items-center px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="ml-3 hidden lg:block">Settings</span>
+            </a>
+        </div>
+
+        <div class="p-6">
+            <div class="glass-card p-3 rounded-xl flex items-center gap-3">
+                <img src="https://ui-avatars.com/api/?name=JS&background=random" class="w-8 h-8 rounded-lg shadow-sm" alt="Profile">
+                <div class="hidden lg:block">
+                    <div class="text-sm font-semibold text-white">Johan Stenius</div>
+                    <div class="text-xs text-indigo-200">Pro Plan</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Area -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden p-4 lg:p-4 lg:pl-0">
+        
+        <!-- Header -->
+        <header class="h-16 flex items-center justify-between px-4 mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+                <p class="text-sm text-indigo-200/70">Overview for <span class="text-white font-medium">acme-prod</span></p>
+            </div>
+            <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all">
+                + Create Check
+            </button>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 px-4">
+            <!-- Card 1 -->
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/20 rounded-full blur-xl group-hover:bg-indigo-500/30 transition-all"></div>
+                <div class="text-indigo-200 text-sm font-medium mb-1">Total Checks</div>
+                <div class="text-3xl font-bold text-white mb-2">24</div>
+                <div class="flex items-center text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded w-fit">
+                    <span>+2 this week</span>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/30 transition-all"></div>
+                <div class="text-indigo-200 text-sm font-medium mb-1">Operational</div>
+                <div class="text-3xl font-bold text-white mb-2">21</div>
+                <div class="flex items-center text-xs text-emerald-300">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 shadow-[0_0_8px_rgba(52,211,153,0.6)]"></div>
+                    All systems go
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group border-rose-500/30">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-rose-500/20 rounded-full blur-xl group-hover:bg-rose-500/30 transition-all"></div>
+                <div class="text-rose-200 text-sm font-medium mb-1">Down</div>
+                <div class="text-3xl font-bold text-white mb-2">1</div>
+                <div class="flex items-center text-xs text-rose-300 bg-rose-500/10 px-2 py-1 rounded w-fit animate-pulse">
+                    ⚠️ Needs attention
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <div class="text-indigo-200 text-sm font-medium mb-1">Avg Response</div>
+                <div class="text-3xl font-bold text-white mb-2">142ms</div>
+                <div class="w-full h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
+                     <div class="h-full bg-indigo-500 w-2/3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checks List -->
+        <div class="flex-1 overflow-y-auto px-4 pb-4">
+            <div class="glass-panel rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <h3 class="font-semibold text-white">Active Monitors</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-indigo-200/60 uppercase font-bold tracking-wider mr-2">Sort by</span>
+                        <select class="bg-black/20 border border-white/10 text-xs text-white rounded-lg px-2 py-1 outline-none">
+                            <option>Status</option>
+                            <option>Name</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="divide-y divide-white/5">
+                    <!-- Item 1 -->
+                    <div class="p-4 hover:bg-white/5 transition-colors flex flex-col md:flex-row items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/10 text-emerald-400 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-white font-medium truncate">Database Backup</h4>
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-white/10 text-indigo-200 font-mono">0 * * * *</span>
+                            </div>
+                            <div class="text-sm text-indigo-200/60 truncate">Last ping: 12 mins ago</div>
+                        </div>
+                        <div class="w-full md:w-32 h-8 flex items-end gap-1 px-2">
+                             <!-- Visualizer bars -->
+                             <div class="w-[10%] h-[40%] bg-emerald-500/30 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[60%] bg-emerald-500/40 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[80%] bg-emerald-500/50 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[50%] bg-emerald-500/60 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[90%] bg-emerald-500/80 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[100%] bg-emerald-400 rounded-t-sm shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                             <div class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
+                                 Operational
+                             </div>
+                             <button class="p-2 text-indigo-200/50 hover:text-white transition-colors">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="p-4 hover:bg-white/5 transition-colors flex flex-col md:flex-row items-center gap-4 bg-rose-500/5">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center shadow-lg shadow-rose-500/10 text-rose-400 shrink-0 relative">
+                            <span class="absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 bg-rose-500 rounded-full animate-ping"></span>
+                            <span class="absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 bg-rose-500 rounded-full"></span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-white font-medium truncate">Payment Processor Sync</h4>
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-white/10 text-indigo-200 font-mono">*/5 * * * *</span>
+                            </div>
+                            <div class="text-sm text-rose-300/80 truncate font-semibold">Late by 2 minutes</div>
+                        </div>
+                        <div class="w-full md:w-32 h-8 flex items-end gap-1 px-2">
+                             <div class="w-[10%] h-[40%] bg-emerald-500/30 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[60%] bg-emerald-500/40 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[20%] bg-rose-500/80 rounded-t-sm"></div>
+                             <div class="w-[10%] h-[20%] bg-rose-500 rounded-t-sm shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                             <div class="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/20 text-rose-300 text-xs font-medium">
+                                 Late
+                             </div>
+                             <button class="p-2 text-indigo-200/50 hover:text-white transition-colors">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="p-4 hover:bg-white/5 transition-colors flex flex-col md:flex-row items-center gap-4 opacity-70">
+                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 shrink-0 border border-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                             <div class="flex items-center gap-2">
+                                <h4 class="text-white font-medium truncate">Search Indexer</h4>
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-white/10 text-indigo-200 font-mono">@daily</span>
+                            </div>
+                            <div class="text-sm text-indigo-200/60 truncate">Paused manually</div>
+                        </div>
+                        <div class="w-full md:w-32 h-8 flex items-center justify-center px-2">
+                             <div class="h-px w-full bg-white/20 border-t border-dashed border-white/20"></div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                             <div class="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-gray-300 text-xs font-medium">
+                                 Paused
+                             </div>
+                             <button class="p-2 text-indigo-200/50 hover:text-white transition-colors">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                             </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
