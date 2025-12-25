@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schema.railpack.com",
+	"provider": "node",
+	"packages": {
+		"node": "20"
+	},
+	"steps": {
+		"install": {
+			"commands": ["corepack enable", "pnpm install --frozen-lockfile"]
+		},
+		"build": {
+			"inputs": [{ "step": "install" }],
+			"commands": [
+				"pnpm --filter @haspulse/db build",
+				"pnpm --filter @haspulse/api build"
+			]
+		}
+	},
+	"deploy": {
+		"startCommand": "node dist/index.js",
+		"inputs": [
+			{
+				"step": "build",
+				"include": ["."]
+			}
+		]
+	}
+}
