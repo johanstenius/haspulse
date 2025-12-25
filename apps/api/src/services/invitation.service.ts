@@ -46,10 +46,14 @@ export async function createInvitation(
 		throw badRequest("Invitation already sent to this email")
 	}
 
-	// Check if email is already a member (need to check via user email)
-	const members = await organizationRepository.getMembers(orgId)
-	// We'd need to fetch user emails here - for now we skip this check
-	// TODO: Add check for existing member by email
+	// Check if email is already a member
+	const isMember = await organizationRepository.isMemberByEmail(
+		orgId,
+		normalizedEmail,
+	)
+	if (isMember) {
+		throw badRequest("This email is already a member of the organization")
+	}
 
 	const token = generateToken()
 	const expiresAt = getExpiryDate()

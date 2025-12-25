@@ -203,6 +203,16 @@ export const organizationRepository = {
 		return prisma.apiKey.count({ where: { projectId } })
 	},
 
+	async isMemberByEmail(orgId: string, email: string): Promise<boolean> {
+		const member = await prisma.orgMember.findFirst({
+			where: {
+				orgId,
+				user: { email: email.toLowerCase() },
+			},
+		})
+		return member !== null
+	},
+
 	async findByCheckId(checkId: string): Promise<OrgModel | null> {
 		const check = await prisma.check.findUnique({
 			where: { id: checkId },

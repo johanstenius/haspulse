@@ -374,9 +374,9 @@ export default function LandingPage() {
 							price="$0"
 							period="Forever"
 							features={[
-								"5 checks",
+								"10 checks",
 								"Email alerts",
-								"1 status page",
+								"2 status pages",
 								"7 day history",
 							]}
 						/>
