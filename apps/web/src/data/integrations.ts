@@ -30,75 +30,75 @@ export const integrations: Integration[] = [
 		slug: "node-js",
 		title: "Monitor Node.js Cron Jobs",
 		description:
-			"Learn how to monitor scheduled tasks in Node.js applications using node-cron, node-schedule, or the built-in timers.",
+			"Learn how to monitor scheduled tasks in Node.js applications using the official Haspulse SDK or raw HTTP calls.",
 		icon: "nodejs",
 		keywords: [
 			"node.js cron",
 			"node-cron monitoring",
 			"node-schedule",
 			"javascript scheduled tasks",
+			"haspulse sdk",
 		],
 		features: [
+			"Official SDK with TypeScript support (npm install haspulse)",
+			"Automatic start/success/fail with wrap() helper",
 			"Works with node-cron, node-schedule, and setTimeout",
-			"Supports start/success/fail lifecycle signals",
-			"Async/await compatible",
-			"Zero dependencies with fetch API",
+			"Zero-config retry and timeout handling",
 		],
 		relatedSlugs: ["typescript", "bash", "docker"],
 		examples: [
 			{
 				language: "javascript",
-				label: "node-cron",
-				code: `import cron from 'node-cron';
+				label: "SDK with wrap()",
+				code: `import { HasPulse } from 'haspulse';
+import cron from 'node-cron';
 
-// Schedule task to run every 5 minutes
+const haspulse = new HasPulse({
+  apiKey: process.env.HASPULSE_API_KEY
+});
+
+// wrap() automatically sends start/success/fail
 cron.schedule('*/5 * * * *', async () => {
-  // Signal start
+  await haspulse.wrap('YOUR_CHECK_ID', async () => {
+    await processQueue();
+  });
+});`,
+			},
+			{
+				language: "javascript",
+				label: "SDK manual ping",
+				code: `import { HasPulse } from 'haspulse';
+
+const haspulse = new HasPulse({
+  apiKey: process.env.HASPULSE_API_KEY
+});
+
+// Manual control over lifecycle
+await haspulse.ping('YOUR_CHECK_ID', { type: 'start' });
+
+try {
+  await processQueue();
+  await haspulse.ping('YOUR_CHECK_ID'); // success
+} catch (error) {
+  await haspulse.ping('YOUR_CHECK_ID', { type: 'fail' });
+  throw error;
+}`,
+			},
+			{
+				language: "javascript",
+				label: "Raw HTTP (no SDK)",
+				code: `// No dependencies needed - just fetch
+cron.schedule('*/5 * * * *', async () => {
   await fetch('https://haspulse.io/ping/YOUR_CHECK_ID/start');
 
   try {
-    // Your job logic here
     await processQueue();
-
-    // Signal success
     await fetch('https://haspulse.io/ping/YOUR_CHECK_ID');
   } catch (error) {
-    // Signal failure
     await fetch('https://haspulse.io/ping/YOUR_CHECK_ID/fail');
     throw error;
   }
 });`,
-			},
-			{
-				language: "javascript",
-				label: "node-schedule",
-				code: `import schedule from 'node-schedule';
-
-// Run every day at 3 AM
-const job = schedule.scheduleJob('0 3 * * *', async () => {
-  try {
-    await runDailyBackup();
-
-    // Ping on success
-    await fetch('https://haspulse.io/ping/YOUR_CHECK_ID');
-  } catch (error) {
-    await fetch('https://haspulse.io/ping/YOUR_CHECK_ID/fail');
-  }
-});`,
-			},
-			{
-				language: "javascript",
-				label: "Simple fetch",
-				code: `// Add to end of any scheduled script
-async function pingHaspulse(checkId, status = '') {
-  const url = \`https://haspulse.io/ping/\${checkId}\${status ? '/' + status : ''}\`;
-  await fetch(url, { method: 'GET' });
-}
-
-// Usage
-await pingHaspulse('YOUR_CHECK_ID');         // Success
-await pingHaspulse('YOUR_CHECK_ID', 'start'); // Started
-await pingHaspulse('YOUR_CHECK_ID', 'fail');  // Failed`,
 			},
 		],
 	},
@@ -661,70 +661,59 @@ pingHaspulse('YOUR_CHECK_ID');`,
 		slug: "typescript",
 		title: "Monitor TypeScript Cron Jobs",
 		description:
-			"Learn how to monitor TypeScript scheduled tasks with full type safety using the Haspulse SDK.",
+			"Learn how to monitor TypeScript scheduled tasks with full type safety using the official Haspulse SDK.",
 		icon: "typescript",
-		keywords: ["typescript cron", "ts cron monitoring", "type-safe monitoring"],
+		keywords: [
+			"typescript cron",
+			"ts cron monitoring",
+			"type-safe monitoring",
+			"haspulse sdk",
+		],
 		features: [
-			"Full TypeScript support with types",
-			"Official SDK available (npm install haspulse)",
+			"Full TypeScript support with exported types",
+			"Built-in wrap() helper for automatic lifecycle",
+			"Zero-config retry and timeout handling",
 			"Works with all Node.js schedulers",
-			"Async/await compatible",
 		],
 		relatedSlugs: ["node-js", "docker", "bash"],
 		examples: [
 			{
 				language: "typescript",
-				label: "With SDK",
-				code: `import { Haspulse } from 'haspulse';
+				label: "SDK with wrap()",
+				code: `import { HasPulse } from 'haspulse';
 import cron from 'node-cron';
 
-const haspulse = new Haspulse({ apiKey: process.env.HASPULSE_API_KEY });
+const haspulse = new HasPulse({
+  apiKey: process.env.HASPULSE_API_KEY!
+});
 
+// wrap() automatically sends start/success/fail
 cron.schedule('*/5 * * * *', async () => {
-  await haspulse.ping('YOUR_CHECK_ID', { status: 'start' });
-
-  try {
+  await haspulse.wrap('YOUR_CHECK_ID', async () => {
     await processQueue();
-    await haspulse.ping('YOUR_CHECK_ID');
-  } catch (error) {
-    await haspulse.ping('YOUR_CHECK_ID', { status: 'fail' });
-    throw error;
-  }
+  });
 });`,
 			},
 			{
 				language: "typescript",
-				label: "Custom wrapper",
-				code: `type PingStatus = 'start' | 'fail' | '';
+				label: "SDK manual ping",
+				code: `import { HasPulse, type PingOptions } from 'haspulse';
 
-async function pingHaspulse(
-  checkId: string,
-  status: PingStatus = ''
-): Promise<void> {
-  const url = \`https://haspulse.io/ping/\${checkId}\${status ? '/' + status : ''}\`;
-  await fetch(url);
-}
+const haspulse = new HasPulse({
+  apiKey: process.env.HASPULSE_API_KEY!
+});
 
-// Type-safe wrapper
-async function withMonitoring<T>(
-  checkId: string,
-  fn: () => Promise<T>
-): Promise<T> {
-  await pingHaspulse(checkId, 'start');
-  try {
-    const result = await fn();
-    await pingHaspulse(checkId);
-    return result;
-  } catch (error) {
-    await pingHaspulse(checkId, 'fail');
-    throw error;
-  }
-}
+// Full control with type-safe options
+await haspulse.ping('YOUR_CHECK_ID', { type: 'start' });
 
-// Usage
-await withMonitoring('YOUR_CHECK_ID', async () => {
-  return await myScheduledTask();
-});`,
+try {
+  const result = await processQueue();
+  await haspulse.ping('YOUR_CHECK_ID'); // success
+  return result;
+} catch (error) {
+  await haspulse.ping('YOUR_CHECK_ID', { type: 'fail' });
+  throw error;
+}`,
 			},
 		],
 	},
