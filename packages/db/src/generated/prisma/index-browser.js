@@ -148,6 +148,17 @@ exports.Prisma.OrgMemberScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.InvitationScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  orgId: 'orgId',
+  role: 'role',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  acceptedAt: 'acceptedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SessionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -388,6 +399,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   Organization: 'Organization',
   OrgMember: 'OrgMember',
+  Invitation: 'Invitation',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',

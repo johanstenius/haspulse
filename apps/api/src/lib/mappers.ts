@@ -5,6 +5,7 @@ import type {
 	IncidentUpdateModel,
 	IncidentWithUpdatesModel,
 } from "../services/incident.service.js"
+import type { InvitationModel } from "../services/invitation.service.js"
 import type {
 	MaintenanceModel,
 	MaintenanceWithChecksModel,
@@ -22,6 +23,7 @@ import type {
 	IncidentUpdateResponse,
 	IncidentWithUpdatesResponse,
 } from "../routes/v1/incidents/incidents.schemas.js"
+import type { InvitationResponse } from "../routes/v1/invitations/invitations.schemas.js"
 import type {
 	MaintenanceResponse,
 	MaintenanceWithChecksResponse,
@@ -166,5 +168,18 @@ export function toOrgMemberResponse(member: OrgMemberModel): OrgMemberResponse {
 		userId: member.userId,
 		role: member.role,
 		createdAt: member.createdAt.toISOString(),
+	}
+}
+
+export function toInvitationResponse(
+	invitation: InvitationModel,
+): InvitationResponse {
+	return {
+		id: invitation.id,
+		email: invitation.email,
+		orgId: invitation.orgId,
+		role: invitation.role,
+		expiresAt: invitation.expiresAt.toISOString(),
+		createdAt: invitation.createdAt.toISOString(),
 	}
 }

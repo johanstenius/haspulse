@@ -16,6 +16,7 @@ import {
 	LayoutDashboard,
 	Menu,
 	Settings,
+	Users,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -26,6 +27,7 @@ import { UserMenu } from "./user-menu"
 const navItems = [
 	{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 	{ href: "/projects", label: "Projects", icon: FolderKanban },
+	{ href: "/settings/team", label: "Team", icon: Users },
 	{ href: "/settings/billing", label: "Billing", icon: CreditCard },
 	{ href: "/settings", label: "Settings", icon: Settings },
 ]

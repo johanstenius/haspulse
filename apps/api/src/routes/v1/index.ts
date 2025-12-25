@@ -8,6 +8,7 @@ import { dashboardRoutes } from "./dashboard/dashboard.routes.js"
 import { domainRoutes } from "./domains/domains.routes.js"
 import { incidentRoutes } from "./incidents/incidents.routes.js"
 import { slackRoutes } from "./integrations/slack.routes.js"
+import { invitationRoutes } from "./invitations/invitations.routes.js"
 import { maintenanceRoutes } from "./maintenance/maintenance.routes.js"
 import { organizationRoutes } from "./organizations/organizations.routes.js"
 import { pingHistoryRoutes } from "./pings/pings.routes.js"
@@ -30,5 +31,6 @@ v1Routes.route("/checks", statsRoutes)
 v1Routes.route("/dashboard", dashboardRoutes)
 v1Routes.route("/billing", billingRoutes)
 v1Routes.route("/integrations/slack", slackRoutes)
+v1Routes.route("/", invitationRoutes) // mounts at /organizations/{orgId}/invites and /invites/accept
 
 export { v1Routes }

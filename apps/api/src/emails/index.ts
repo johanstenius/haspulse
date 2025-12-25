@@ -1,5 +1,6 @@
 export {
 	renderAlertEmail,
+	renderInvitationEmail,
 	renderMagicLinkEmail,
 	renderPasswordResetEmail,
 	renderVerificationEmail,

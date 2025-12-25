@@ -103,6 +103,31 @@ export const projectAndApiKeyIdParamSchema = z.object({
 	apiKeyId: apiKeyIdParam,
 })
 
+// Org ID param
+export const orgIdParam = z
+	.string()
+	.min(1)
+	.openapi({
+		param: { name: "orgId", in: "path" },
+		example: "clx1234567890",
+	})
+
+export const orgIdParamSchema = z.object({ orgId: orgIdParam })
+
+// Invitation params
+export const inviteIdParam = z
+	.string()
+	.min(1)
+	.openapi({
+		param: { name: "inviteId", in: "path" },
+		example: "clx0987654321",
+	})
+
+export const orgAndInviteIdParamSchema = z.object({
+	orgId: orgIdParam,
+	inviteId: inviteIdParam,
+})
+
 // Pagination query schemas
 export const paginationQuerySchema = z.object({
 	page: z.coerce

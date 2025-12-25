@@ -6,6 +6,7 @@ export type Organization = {
 	name: string
 	slug: string
 	plan: "free" | "pro"
+	autoCreateIncidents: boolean
 	createdAt: string
 	updatedAt: string
 }
@@ -305,6 +306,137 @@ export type CreateOrgData = {
 export type UpdateOrgData = {
 	name?: string
 	slug?: string
+	autoCreateIncidents?: boolean
+}
+
+export type Invitation = {
+	id: string
+	email: string
+	orgId: string
+	role: string
+	expiresAt: string
+	createdAt: string
+}
+
+export type CreateInvitationData = {
+	email: string
+	role: "admin" | "member"
+}
+
+export type AcceptInvitationResult = {
+	orgId: string
+	role: string
+}
+
+// Incident types
+export type IncidentStatus =
+	| "INVESTIGATING"
+	| "IDENTIFIED"
+	| "MONITORING"
+	| "RESOLVED"
+export type IncidentImpact = "NONE" | "MINOR" | "MAJOR" | "CRITICAL"
+
+export type IncidentUpdate = {
+	id: string
+	incidentId: string
+	status: IncidentStatus
+	message: string
+	createdAt: string
+}
+
+export type Incident = {
+	id: string
+	projectId: string
+	title: string
+	status: IncidentStatus
+	impact: IncidentImpact
+	autoCreated: boolean
+	resolvedAt: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export type IncidentWithUpdates = Incident & {
+	updates: IncidentUpdate[]
+	checkIds: string[]
+}
+
+export type IncidentListParams = {
+	page?: number
+	limit?: number
+	status?: IncidentStatus
+}
+
+export type IncidentListResponse = {
+	incidents: Incident[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
+export type CreateIncidentData = {
+	title: string
+	status?: IncidentStatus
+	impact?: IncidentImpact
+	checkIds?: string[]
+}
+
+export type UpdateIncidentData = {
+	title?: string
+	status?: IncidentStatus
+	impact?: IncidentImpact
+}
+
+export type CreateIncidentUpdateData = {
+	status: IncidentStatus
+	message: string
+}
+
+// Maintenance types
+export type Maintenance = {
+	id: string
+	projectId: string
+	title: string
+	description: string | null
+	startsAt: string
+	endsAt: string
+	createdAt: string
+	updatedAt: string
+}
+
+export type MaintenanceWithChecks = Maintenance & {
+	checkIds: string[]
+}
+
+export type MaintenanceListParams = {
+	page?: number
+	limit?: number
+	upcoming?: boolean
+}
+
+export type MaintenanceListResponse = {
+	maintenance: Maintenance[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
+export type CreateMaintenanceData = {
+	title: string
+	description?: string
+	startsAt: string
+	endsAt: string
+	checkIds?: string[]
+}
+
+export type UpdateMaintenanceData = {
+	title?: string
+	description?: string | null
+	startsAt?: string
+	endsAt?: string
+	checkIds?: string[]
 }
 
 export const api = {
@@ -388,6 +520,95 @@ export const api = {
 			get<{ pings: Ping[] }>(
 				`/v1/checks/${checkId}/pings${limit ? `?limit=${limit}` : ""}`,
 			),
+	},
+	invitations: {
+		list: (orgId: string) =>
+			get<{ invitations: Invitation[] }>(
+				`/v1/organizations/${orgId}/invites`,
+				false,
+			),
+		create: (orgId: string, data: CreateInvitationData) =>
+			post<Invitation>(`/v1/organizations/${orgId}/invites`, data, false),
+		cancel: (orgId: string, inviteId: string) =>
+			del(`/v1/organizations/${orgId}/invites/${inviteId}`, false),
+		resend: (orgId: string, inviteId: string) =>
+			post<Invitation>(
+				`/v1/organizations/${orgId}/invites/${inviteId}/resend`,
+				{},
+				false,
+			),
+		accept: (token: string) =>
+			post<AcceptInvitationResult>("/v1/invites/accept", { token }, false),
+	},
+	members: {
+		list: (orgId: string) =>
+			get<{ members: OrgMember[] }>(
+				`/v1/organizations/${orgId}/members`,
+				false,
+			),
+	},
+	incidents: {
+		list: (projectId: string, params?: IncidentListParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			if (params?.status) searchParams.set("status", params.status)
+			const query = searchParams.toString()
+			return get<IncidentListResponse>(
+				`/v1/projects/${projectId}/incidents${query ? `?${query}` : ""}`,
+			)
+		},
+		get: (projectId: string, incidentId: string) =>
+			get<IncidentWithUpdates>(
+				`/v1/projects/${projectId}/incidents/${incidentId}`,
+			),
+		create: (projectId: string, data: CreateIncidentData) =>
+			post<Incident>(`/v1/projects/${projectId}/incidents`, data),
+		update: (projectId: string, incidentId: string, data: UpdateIncidentData) =>
+			patch<Incident>(
+				`/v1/projects/${projectId}/incidents/${incidentId}`,
+				data,
+			),
+		delete: (projectId: string, incidentId: string) =>
+			del(`/v1/projects/${projectId}/incidents/${incidentId}`),
+		addUpdate: (
+			projectId: string,
+			incidentId: string,
+			data: CreateIncidentUpdateData,
+		) =>
+			post<IncidentUpdate>(
+				`/v1/projects/${projectId}/incidents/${incidentId}/updates`,
+				data,
+			),
+	},
+	maintenance: {
+		list: (projectId: string, params?: MaintenanceListParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			if (params?.upcoming) searchParams.set("upcoming", "true")
+			const query = searchParams.toString()
+			return get<MaintenanceListResponse>(
+				`/v1/projects/${projectId}/maintenance${query ? `?${query}` : ""}`,
+			)
+		},
+		get: (projectId: string, maintenanceId: string) =>
+			get<MaintenanceWithChecks>(
+				`/v1/projects/${projectId}/maintenance/${maintenanceId}`,
+			),
+		create: (projectId: string, data: CreateMaintenanceData) =>
+			post<Maintenance>(`/v1/projects/${projectId}/maintenance`, data),
+		update: (
+			projectId: string,
+			maintenanceId: string,
+			data: UpdateMaintenanceData,
+		) =>
+			patch<Maintenance>(
+				`/v1/projects/${projectId}/maintenance/${maintenanceId}`,
+				data,
+			),
+		delete: (projectId: string, maintenanceId: string) =>
+			del(`/v1/projects/${projectId}/maintenance/${maintenanceId}`),
 	},
 }
 

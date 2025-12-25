@@ -37,8 +37,9 @@ model Organization {
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
-  members  OrgMember[]
-  projects Project[]
+  members     OrgMember[]
+  projects    Project[]
+  invitations Invitation[]
 
   @@map("organizations")
 }
@@ -57,6 +58,23 @@ model OrgMember {
   @@index([userId])
   @@index([orgId])
   @@map("org_members")
+}
+
+model Invitation {
+  id         String    @id @default(cuid())
+  email      String
+  orgId      String    @map("org_id")
+  role       String    @default("member")
+  token      String    @unique
+  expiresAt  DateTime  @map("expires_at")
+  acceptedAt DateTime? @map("accepted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([email])
+  @@map("invitations")
 }
 
 model Session {

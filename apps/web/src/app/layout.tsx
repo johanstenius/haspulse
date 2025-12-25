@@ -34,6 +34,8 @@ export const metadata: Metadata = {
 		"uptime monitoring",
 		"heartbeat monitoring",
 		"background job monitoring",
+		"dead mans switch",
+		"job scheduler monitoring",
 	],
 	authors: [{ name: "Haspulse" }],
 	creator: "Haspulse",
@@ -47,17 +49,30 @@ export const metadata: Metadata = {
 		title: "Haspulse — Cron monitoring that just works",
 		description:
 			"Dead simple monitoring for cron jobs, scheduled tasks, and background workers. Get alerted before your users notice.",
+		images: [
+			{
+				url: "/og-default.png",
+				width: 1200,
+				height: 630,
+				alt: "Haspulse - Cron monitoring that just works",
+			},
+		],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Haspulse — Cron monitoring that just works",
 		description:
 			"Dead simple monitoring for cron jobs, scheduled tasks, and background workers.",
+		images: ["/og-default.png"],
 	},
 	icons: {
-		icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-		apple: [{ url: "/favicon.svg" }],
+		icon: [
+			{ url: "/favicon.svg", type: "image/svg+xml" },
+			{ url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+		],
+		apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
 	},
+	manifest: "/manifest.webmanifest",
 }
 
 export default function RootLayout({
