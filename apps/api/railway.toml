@@ -1,6 +1,0 @@
-[build]
-builder = "nixpacks"
-buildCommand = "pnpm --filter @haspulse/db build && pnpm --filter @haspulse/api build"
-
-[deploy]
-startCommand = "node dist/index.js"
