@@ -23,4 +23,4 @@ export {
 	type IncidentCheck,
 	type Maintenance,
 	type MaintenanceCheck,
-} from "./generated/prisma/index.js"
+} from "../generated/prisma/index.js"

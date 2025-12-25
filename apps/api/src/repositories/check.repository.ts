@@ -341,7 +341,7 @@ export const checkRepository = {
 			where: { checkId },
 			select: { channelId: true },
 		})
-		return relations.map((r) => r.channelId)
+		return relations.map((r: { channelId: string }) => r.channelId)
 	},
 
 	async setChannelIds(checkId: string, channelIds: string[]): Promise<void> {
@@ -366,6 +366,6 @@ export const checkRepository = {
 		const checks = await prisma.check.findMany({
 			select: { id: true },
 		})
-		return checks.map((c) => c.id)
+		return checks.map((c: { id: string }) => c.id)
 	},
 }

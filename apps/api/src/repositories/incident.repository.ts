@@ -81,7 +81,7 @@ export const incidentRepository = {
 		return {
 			...toIncidentModel(incident),
 			updates: incident.updates.map(toIncidentUpdateModel),
-			checkIds: incident.checks.map((c) => c.checkId),
+			checkIds: incident.checks.map((c: { checkId: string }) => c.checkId),
 		}
 	},
 

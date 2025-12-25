@@ -57,7 +57,7 @@ export const maintenanceRepository = {
 		if (!maintenance) return null
 		return {
 			...toMaintenanceModel(maintenance),
-			checkIds: maintenance.checks.map((c) => c.checkId),
+			checkIds: maintenance.checks.map((c: { checkId: string }) => c.checkId),
 		}
 	},
 
@@ -175,6 +175,6 @@ export const maintenanceRepository = {
 			where: { maintenanceId },
 			select: { checkId: true },
 		})
-		return checks.map((c) => c.checkId)
+		return checks.map((c: { checkId: string }) => c.checkId)
 	},
 }

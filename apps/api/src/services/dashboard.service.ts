@@ -53,7 +53,7 @@ export async function getDashboardStats(
 		dashboardRepository.countChecksByStatusForOrg(orgId),
 	])
 
-	const statusCounts = {
+	const statusCounts: Record<CheckStatus, number> = {
 		UP: 0,
 		DOWN: 0,
 		LATE: 0,

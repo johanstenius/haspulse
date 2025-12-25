@@ -116,7 +116,9 @@ export const organizationRepository = {
 			include: { org: true },
 			orderBy: { createdAt: "desc" },
 		})
-		return memberships.map((m) => toOrgModel(m.org))
+		return memberships.map((m: { org: Parameters<typeof toOrgModel>[0] }) =>
+			toOrgModel(m.org),
+		)
 	},
 
 	async update(id: string, input: UpdateOrgInput): Promise<OrgModel> {
