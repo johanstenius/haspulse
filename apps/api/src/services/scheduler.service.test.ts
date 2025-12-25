@@ -20,7 +20,9 @@ vi.mock("./stats.service.js", () => ({
 }))
 
 vi.mock("./pruning.service.js", () => ({
-	pruneAllPings: vi.fn().mockResolvedValue({ checksProcessed: 0, pingsDeleted: 0 }),
+	pruneAllPings: vi
+		.fn()
+		.mockResolvedValue({ checksProcessed: 0, pingsDeleted: 0 }),
 }))
 
 import { checkRepository } from "../repositories/check.repository.js"
