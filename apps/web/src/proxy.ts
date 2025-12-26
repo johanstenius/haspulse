@@ -33,8 +33,10 @@ export function proxy(request: NextRequest) {
 		return NextResponse.next()
 	}
 
-	// Check for BetterAuth session cookie
-	const sessionToken = request.cookies.get("better-auth.session_token")
+	// Check for BetterAuth session cookie (with or without __Secure- prefix)
+	const sessionToken =
+		request.cookies.get("__Secure-better-auth.session_token") ||
+		request.cookies.get("better-auth.session_token")
 
 	if (!sessionToken) {
 		const loginUrl = new URL("/login", request.url)
