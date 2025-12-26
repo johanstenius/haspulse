@@ -1,5 +1,12 @@
+import type { PingType } from "@haspulse/db"
 import type { ChannelModel } from "../services/channel.service.js"
 import type { CheckModel } from "../services/check.service.js"
+import type { SparklineSlot } from "../services/sparkline.service.js"
+
+export type RecentPing = {
+	type: PingType
+	createdAt: Date
+}
 import type {
 	IncidentModel,
 	IncidentUpdateModel,
@@ -55,6 +62,7 @@ export function toProjectResponse(project: ProjectModel): ProjectResponse {
 export function toCheckResponse(
 	check: CheckModel,
 	channelIds: string[],
+	sparkline: SparklineSlot[] = [],
 ): CheckResponse {
 	return {
 		id: check.id,
@@ -72,6 +80,7 @@ export function toCheckResponse(
 		alertOnRecovery: check.alertOnRecovery,
 		reminderIntervalHours: check.reminderIntervalHours,
 		channelIds,
+		sparkline,
 		createdAt: check.createdAt.toISOString(),
 		updatedAt: check.updatedAt.toISOString(),
 	}

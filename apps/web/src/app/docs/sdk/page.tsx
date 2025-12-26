@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
 	title: "SDK Reference",
 	description:
-		"TypeScript SDK for Haspulse cron monitoring. Full API reference with code examples.",
+		"TypeScript SDK for HasPulse cron monitoring. Full API reference with code examples.",
 	keywords: ["haspulse sdk", "typescript sdk", "cron monitoring api"],
 }
 
@@ -13,7 +13,7 @@ export default function SdkPage() {
 			<h1>SDK Reference</h1>
 
 			<p className="lead">
-				TypeScript SDK for Haspulse cron monitoring. Full type safety and
+				TypeScript SDK for HasPulse cron monitoring. Full type safety and
 				auto-completion.
 			</p>
 
@@ -53,7 +53,7 @@ await client.ping('check-id', { type: 'fail', body: 'Error: connection failed' }
 
 			<h2 id="pinging">Pinging</h2>
 
-			<p>The core of Haspulse - notify us when your job runs.</p>
+			<p>The core of HasPulse - notify us when your job runs.</p>
 
 			<pre>
 				<code>{`await client.ping('check-id');                              // Success

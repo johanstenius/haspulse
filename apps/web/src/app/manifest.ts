@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
 	return {
-		name: "Haspulse",
-		short_name: "Haspulse",
+		name: "HasPulse",
+		short_name: "HasPulse",
 		description: "Cron monitoring that just works",
 		start_url: "/",
 		display: "standalone",

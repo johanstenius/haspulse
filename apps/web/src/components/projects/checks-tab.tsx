@@ -8,14 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { isLimitExceeded } from "@/lib/api"
-import type { Check, CheckStatus, CreateCheckData } from "@/lib/api"
-import {
-	useBilling,
-	useChannels,
-	useChecks,
-	useCreateCheck,
-	useUpdateCheck,
-} from "@/lib/query"
+import type { CheckStatus, CreateCheckData } from "@/lib/api"
+import { useBilling, useChannels, useChecks, useCreateCheck } from "@/lib/query"
 import { Plus } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
@@ -81,10 +75,8 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 	const { data: channelsData } = useChannels(projectId)
 	const { data: billing } = useBilling()
 	const createCheck = useCreateCheck()
-	const updateCheck = useUpdateCheck()
 
 	const [showForm, setShowForm] = useState(false)
-	const [editingCheck, setEditingCheck] = useState<Check | undefined>()
 	const [showUpgrade, setShowUpgrade] = useState(false)
 
 	const checkLimit = billing?.usage.checks.limit ?? 10
@@ -105,20 +97,6 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 						toast.error(error.message)
 					}
 				},
-			},
-		)
-	}
-
-	function handleUpdate(formData: CreateCheckData & { channelIds?: string[] }) {
-		if (!editingCheck) return
-		updateCheck.mutate(
-			{ id: editingCheck.id, data: formData },
-			{
-				onSuccess: () => {
-					setEditingCheck(undefined)
-					toast.success("Check updated")
-				},
-				onError: (error) => toast.error(error.message),
 			},
 		)
 	}
@@ -160,7 +138,6 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 					<CheckTable
 						checks={data?.checks ?? []}
 						projectId={projectId}
-						onEdit={setEditingCheck}
 						onAdd={() => setShowForm(true)}
 					/>
 					{data && data.totalPages > 1 && (
@@ -179,15 +156,6 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 				onSubmit={handleCreate}
 				channels={channelsData?.channels}
 				isLoading={createCheck.isPending}
-			/>
-
-			<CheckForm
-				open={!!editingCheck}
-				onOpenChange={(open) => !open && setEditingCheck(undefined)}
-				onSubmit={handleUpdate}
-				check={editingCheck}
-				channels={channelsData?.channels}
-				isLoading={updateCheck.isPending}
 			/>
 
 			<UpgradeDialog

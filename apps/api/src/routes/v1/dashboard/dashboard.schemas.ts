@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi"
+import { sparklineSlotSchema } from "../checks/checks.schemas.js"
 import { errorResponseSchema } from "../shared/schemas.js"
 
 export { errorResponseSchema }
@@ -30,6 +31,7 @@ export const dashboardCheckSchema = z.object({
 	lastPingAt: z.string().nullable(),
 	projectId: z.string(),
 	projectName: z.string(),
+	sparkline: z.array(sparklineSlotSchema),
 })
 
 export const dashboardChecksResponseSchema = z

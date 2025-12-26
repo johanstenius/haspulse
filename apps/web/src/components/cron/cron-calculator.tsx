@@ -166,7 +166,7 @@ export function CronCalculator({
 					{/* curl command */}
 					<div className="space-y-2">
 						<span className="text-sm font-medium text-muted-foreground block">
-							Monitor with Haspulse
+							Monitor with HasPulse
 						</span>
 						<div className="bg-card border border-border rounded-lg p-4">
 							<div className="flex items-center justify-between gap-4">

@@ -293,6 +293,11 @@ export type PingOptions = {
 	body?: string
 }
 
+export type WrapOptions = {
+	/** Send START ping before execution to track duration. Default: false */
+	trackDuration?: boolean
+}
+
 // Pagination types
 export type PaginationParams = {
 	page?: number

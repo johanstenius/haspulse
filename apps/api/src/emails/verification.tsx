@@ -12,13 +12,13 @@ export function VerificationEmail({ url }: VerificationEmailProps) {
 				<Text style={heading}>Verify your email</Text>
 				<Text style={paragraph}>
 					Click the button below to verify your email address and complete your
-					Haspulse account setup.
+					HasPulse account setup.
 				</Text>
 				<Button style={button} href={url}>
 					Verify Email
 				</Button>
 				<Text style={note}>
-					If you didn't create a Haspulse account, you can ignore this email.
+					If you didn't create a HasPulse account, you can ignore this email.
 				</Text>
 			</Section>
 		</BaseEmail>

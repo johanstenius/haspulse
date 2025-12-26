@@ -19,6 +19,7 @@ export type DashboardCheckModel = {
 	status: CheckStatus
 	scheduleType: "PERIOD" | "CRON"
 	scheduleValue: string
+	timezone: string | null
 	lastPingAt: Date | null
 	projectId: string
 	projectName: string

@@ -161,7 +161,7 @@ export default function BillingPage() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<p className="text-muted-foreground">
-							Get more out of Haspulse with Pro features:
+							Get more out of HasPulse with Pro features:
 						</p>
 						<ul className="space-y-2 text-sm">
 							<li className="flex items-center gap-2">

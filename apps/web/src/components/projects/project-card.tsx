@@ -1,25 +1,32 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Check, Project } from "@/lib/api"
+import type { CheckStatus, Project } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { FolderKanban } from "lucide-react"
 import Link from "next/link"
 
+type CheckWithStatus = {
+	status: CheckStatus
+}
+
 type ProjectCardProps = {
 	project: Project
-	checks?: Check[]
+	checks?: CheckWithStatus[]
 }
 
 export function ProjectCard({ project, checks = [] }: ProjectCardProps) {
-	const upCount = checks.filter((c) => c.status === "UP").length
-	const downCount = checks.filter(
-		(c) => c.status === "DOWN" || c.status === "LATE",
-	).length
+	const counts = {
+		up: checks.filter((c) => c.status === "UP").length,
+		down: checks.filter((c) => c.status === "DOWN" || c.status === "LATE")
+			.length,
+		new: checks.filter((c) => c.status === "NEW").length,
+		paused: checks.filter((c) => c.status === "PAUSED").length,
+	}
 	const totalCount = checks.length
 
-	const hasIssues = downCount > 0
-	const allGood = totalCount > 0 && upCount === totalCount
+	const hasIssues = counts.down > 0
+	const allGood = totalCount > 0 && counts.up === totalCount
 
 	return (
 		<Link href={`/projects/${project.id}`}>
@@ -58,15 +65,18 @@ export function ProjectCard({ project, checks = [] }: ProjectCardProps) {
 						<p className="text-sm text-muted-foreground">No checks yet</p>
 					) : (
 						<div className="flex items-center gap-4 text-sm">
-							{upCount > 0 && (
-								<span className="text-success">{upCount} up</span>
+							{counts.up > 0 && (
+								<span className="text-primary">{counts.up} up</span>
 							)}
-							{downCount > 0 && (
-								<span className="text-destructive">{downCount} down</span>
+							{counts.down > 0 && (
+								<span className="text-destructive">{counts.down} down</span>
 							)}
-							{totalCount - upCount - downCount > 0 && (
+							{counts.new > 0 && (
+								<span className="text-chart-2">{counts.new} new</span>
+							)}
+							{counts.paused > 0 && (
 								<span className="text-muted-foreground">
-									{totalCount - upCount - downCount} other
+									{counts.paused} paused
 								</span>
 							)}
 						</div>

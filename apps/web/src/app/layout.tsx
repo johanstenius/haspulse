@@ -23,8 +23,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
 	title: {
-		default: "Haspulse — Cron monitoring that just works",
-		template: "%s | Haspulse",
+		default: "HasPulse — Cron monitoring that just works",
+		template: "%s | HasPulse",
 	},
 	description:
 		"Dead simple monitoring for cron jobs, scheduled tasks, and background workers. Get alerted before your users notice.",
@@ -37,16 +37,16 @@ export const metadata: Metadata = {
 		"dead mans switch",
 		"job scheduler monitoring",
 	],
-	authors: [{ name: "Haspulse" }],
-	creator: "Haspulse",
+	authors: [{ name: "HasPulse" }],
+	creator: "HasPulse",
 	metadataBase: new URL(
 		process.env.NEXT_PUBLIC_APP_URL ?? "https://haspulse.dev",
 	),
 	openGraph: {
 		type: "website",
 		locale: "en_US",
-		siteName: "Haspulse",
-		title: "Haspulse — Cron monitoring that just works",
+		siteName: "HasPulse",
+		title: "HasPulse — Cron monitoring that just works",
 		description:
 			"Dead simple monitoring for cron jobs, scheduled tasks, and background workers. Get alerted before your users notice.",
 		images: [
@@ -54,13 +54,13 @@ export const metadata: Metadata = {
 				url: "/og-default.png",
 				width: 1200,
 				height: 630,
-				alt: "Haspulse - Cron monitoring that just works",
+				alt: "HasPulse - Cron monitoring that just works",
 			},
 		],
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Haspulse — Cron monitoring that just works",
+		title: "HasPulse — Cron monitoring that just works",
 		description:
 			"Dead simple monitoring for cron jobs, scheduled tasks, and background workers.",
 		images: ["/og-default.png"],

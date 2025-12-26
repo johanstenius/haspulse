@@ -46,7 +46,7 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
 			</div>
 			{showText && (
 				<span className={cn("font-semibold text-foreground", textSizes[size])}>
-					Haspulse
+					HasPulse
 				</span>
 			)}
 		</Link>

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
-export const alt = "Haspulse — Cron monitoring that just works"
+export const alt = "HasPulse — Cron monitoring that just works"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
@@ -29,7 +29,7 @@ export default function OGImage() {
 			>
 				<svg
 					role="img"
-					aria-label="Haspulse logo"
+					aria-label="HasPulse logo"
 					width="64"
 					height="64"
 					viewBox="0 0 32 32"
@@ -53,7 +53,7 @@ export default function OGImage() {
 						letterSpacing: "-0.02em",
 					}}
 				>
-					Haspulse
+					HasPulse
 				</span>
 			</div>
 			<div

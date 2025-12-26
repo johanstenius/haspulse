@@ -6,7 +6,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
 	title: "Integrations",
 	description:
-		"Learn how to integrate Haspulse cron monitoring with your stack. Guides for Node.js, Python, Go, Laravel, Rails, Docker, and more.",
+		"Learn how to integrate HasPulse cron monitoring with your stack. Guides for Node.js, Python, Go, Laravel, Rails, Docker, and more.",
 	keywords: [
 		"cron monitoring integration",
 		"nodejs cron monitoring",

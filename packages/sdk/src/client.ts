@@ -1,4 +1,4 @@
-import { BadRequestError, HasPulseError } from "./errors.js"
+import { BadRequestError } from "./errors.js"
 import { fetchWithRetry, handleResponse } from "./http.js"
 import { ApiKeysClient } from "./resources/api-keys.js"
 import { ChannelsClient } from "./resources/channels.js"
@@ -7,7 +7,7 @@ import { IncidentsClient } from "./resources/incidents.js"
 import { MaintenanceClient } from "./resources/maintenance.js"
 import { OrganizationsClient } from "./resources/organizations.js"
 import { ProjectsClient } from "./resources/projects.js"
-import type { HasPulseConfig, PingOptions } from "./types.js"
+import type { HasPulseConfig, PingOptions, WrapOptions } from "./types.js"
 
 export class HasPulse {
 	private readonly baseUrl: string
@@ -82,40 +82,54 @@ export class HasPulse {
 		if (type === "start") path += "/start"
 		else if (type === "fail") path += "/fail"
 
-		const response = await fetchWithRetry(
-			`${this.baseUrl}${path}`,
-			{
-				method: body ? "POST" : "GET",
-				headers: {
-					Authorization: `Bearer ${this.apiKey}`,
+		try {
+			const response = await fetchWithRetry(
+				`${this.baseUrl}${path}`,
+				{
+					method: body ? "POST" : "GET",
+					headers: {
+						Authorization: `Bearer ${this.apiKey}`,
+					},
+					body: body ?? undefined,
 				},
-				body: body ?? undefined,
-			},
-			this.timeout,
-			this.retries,
-		)
+				this.timeout,
+				this.retries,
+			)
 
-		if (!response.ok) {
-			throw new HasPulseError("Ping failed", "PING_FAILED", response.status)
+			if (!response.ok) {
+				console.warn(`[haspulse] ping failed for "${slug}": ${response.status}`)
+			}
+		} catch (error) {
+			console.warn(
+				`[haspulse] ping failed for "${slug}": ${error instanceof Error ? error.message : "Unknown error"}`,
+			)
 		}
 	}
 
 	/**
-	 * Wraps an async function with start/success/fail pings.
-	 * Sends a start ping before execution, success on completion, fail on error.
+	 * Wraps an async function with success/fail pings.
+	 * Optionally sends a start ping before execution for duration tracking.
 	 * Rethrows the original error after sending fail ping.
 	 * If no apiKey configured, just runs the function without pings.
 	 */
-	async wrap<T>(slug: string, fn: () => Promise<T>): Promise<T> {
+	async wrap<T>(
+		slug: string,
+		fn: () => Promise<T>,
+		options: WrapOptions = {},
+	): Promise<T> {
 		if (!this.enabled) return fn()
 
-		await this.ping(slug, { type: "start" })
+		const { trackDuration = false } = options
+
+		if (trackDuration) {
+			await this.ping(slug, { type: "start" })
+		}
 		try {
 			const result = await fn()
 			await this.ping(slug, { type: "success" })
 			return result
 		} catch (error) {
-			await this.ping(slug, { type: "fail" }).catch(() => {})
+			await this.ping(slug, { type: "fail" })
 			throw error
 		}
 	}

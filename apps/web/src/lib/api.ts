@@ -74,6 +74,10 @@ export type CheckListResponse = {
 	totalPages: number
 }
 
+export type PingType = "SUCCESS" | "START" | "FAIL"
+
+export type SparklineSlot = "success" | "fail" | "missed" | "empty"
+
 export type Check = {
 	id: string
 	projectId: string
@@ -90,6 +94,7 @@ export type Check = {
 	alertOnRecovery: boolean
 	reminderIntervalHours: number | null
 	channelIds: string[]
+	sparkline: SparklineSlot[]
 	createdAt: string
 	updatedAt: string
 }
@@ -119,8 +124,6 @@ export type ApiKeyCreated = {
 	apiKey: ApiKey
 	fullKey: string
 }
-
-export type PingType = "SUCCESS" | "START" | "FAIL"
 
 export type Ping = {
 	id: string
@@ -296,6 +299,7 @@ export type DashboardCheck = {
 	lastPingAt: string | null
 	projectId: string
 	projectName: string
+	sparkline: SparklineSlot[]
 }
 
 export type CreateOrgData = {

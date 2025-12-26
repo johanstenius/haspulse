@@ -3,10 +3,8 @@
 import { Footer } from "@/components/footer"
 import { Nav } from "@/components/nav"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { BarChart3, Bell, Check, Clock, Code, Users, Zap } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 function StatusPill() {
@@ -19,21 +17,77 @@ function StatusPill() {
 }
 
 function CodeBlock() {
+	const [tab, setTab] = useState<"sdk" | "fetch">("sdk")
+
 	return (
 		<div className="bg-card border border-border rounded-xl overflow-hidden">
-			<div className="px-4 py-2 border-b border-border flex items-center justify-between">
-				<span className="text-xs font-mono text-muted-foreground">bash</span>
+			<div className="px-4 py-2 border-b border-border flex items-center gap-4">
+				<button
+					type="button"
+					onClick={() => setTab("sdk")}
+					className={`text-xs font-mono transition-colors ${
+						tab === "sdk"
+							? "text-foreground"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+				>
+					SDK
+				</button>
+				<button
+					type="button"
+					onClick={() => setTab("fetch")}
+					className={`text-xs font-mono transition-colors ${
+						tab === "fetch"
+							? "text-foreground"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+				>
+					fetch
+				</button>
 			</div>
-			<div className="p-6 font-mono text-sm">
-				<span className="text-muted-foreground">
-					# Add to end of your script
-				</span>
-				<br />
-				<span className="text-primary">curl</span>{" "}
-				<span className="text-foreground">
-					-fsS --retry 3 https://haspulse.dev/ping/
-				</span>
-				<span className="text-warning">abc123</span>
+			<div className="p-6 font-mono text-sm whitespace-pre">
+				{tab === "sdk" ? (
+					<>
+						<span className="text-muted-foreground">
+							{"// Wrap your job - auto success/fail"}
+						</span>
+						{"\n"}
+						<span className="text-primary">await</span>
+						<span className="text-foreground"> haspulse.</span>
+						<span className="text-primary">wrap</span>
+						<span className="text-foreground">(</span>
+						<span className="text-warning">&apos;db-backup&apos;</span>
+						<span className="text-foreground">, </span>
+						<span className="text-primary">async</span>
+						<span className="text-foreground"> () </span>
+						<span className="text-primary">=&gt;</span>
+						<span className="text-foreground">{" {"}</span>
+						{"\n  "}
+						<span className="text-primary">await</span>
+						<span className="text-foreground"> runBackup()</span>
+						{"\n"}
+						<span className="text-foreground">{"})"}</span>
+					</>
+				) : (
+					<>
+						<span className="text-primary">await</span>
+						<span className="text-foreground"> </span>
+						<span className="text-primary">fetch</span>
+						<span className="text-foreground">(</span>
+						<span className="text-warning">
+							&apos;https://api.haspulse.dev/ping/db-backup&apos;
+						</span>
+						<span className="text-foreground">{", {"}</span>
+						{"\n  "}
+						<span className="text-foreground">{"headers: { "}</span>
+						<span className="text-warning">Authorization</span>
+						<span className="text-foreground">: </span>
+						<span className="text-warning">{"`Bearer ${API_KEY}`"}</span>
+						<span className="text-foreground">{" }"}</span>
+						{"\n"}
+						<span className="text-foreground">{"})"}</span>
+					</>
+				)}
 			</div>
 		</div>
 	)
@@ -214,32 +268,16 @@ function DashboardPreview() {
 	)
 }
 
-function EmailSignupForm() {
-	const router = useRouter()
-	const [email, setEmail] = useState("")
-
-	function handleSubmit(e: React.FormEvent) {
-		e.preventDefault()
-		const params = email ? `?email=${encodeURIComponent(email)}` : ""
-		router.push(`/register${params}`)
-	}
-
+function CTAButtons() {
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="flex items-center justify-center gap-4"
-		>
-			<Input
-				type="email"
-				placeholder="you@example.com"
-				className="w-72"
-				value={email}
-				onChange={(e) => setEmail(e.target.value)}
-			/>
-			<Button size="lg" type="submit">
-				Get Started
+		<div className="flex items-center justify-center gap-4">
+			<Button size="lg" asChild>
+				<Link href="/register">Get Started</Link>
 			</Button>
-		</form>
+			<Button size="lg" variant="outline" asChild>
+				<Link href="/docs">View Docs</Link>
+			</Button>
+		</div>
 	)
 }
 
@@ -265,7 +303,7 @@ export default function LandingPage() {
 					</p>
 
 					<div className="mt-10">
-						<EmailSignupForm />
+						<CTAButtons />
 					</div>
 				</div>
 			</section>
@@ -307,7 +345,7 @@ export default function LandingPage() {
 						<FeatureCard
 							icon={Code}
 							title="Simple Integration"
-							description="One line of curl. Works with any language, any framework."
+							description="One HTTP request. Works with any language, any framework."
 						/>
 						<FeatureCard
 							icon={Users}
@@ -328,31 +366,26 @@ export default function LandingPage() {
 				<div className="max-w-4xl mx-auto px-6">
 					<div className="text-center mb-12">
 						<h2 className="text-3xl font-bold text-foreground mb-4">
-							One line to integrate
+							Simple to integrate
 						</h2>
-						<p className="text-muted-foreground">Add to your cron job, done.</p>
+						<p className="text-muted-foreground">
+							Add to your cron job, done.
+						</p>
 					</div>
 
 					<CodeBlock />
 
-					<div className="grid grid-cols-2 gap-4 mt-6">
-						<div className="bg-card border border-border rounded-xl p-4">
-							<div className="text-xs text-muted-foreground font-mono mb-2">
-								python
-							</div>
-							<code className="text-sm text-foreground font-mono">
-								requests.get(&quot;https://haspulse.dev/ping/abc123&quot;)
-							</code>
-						</div>
-						<div className="bg-card border border-border rounded-xl p-4">
-							<div className="text-xs text-muted-foreground font-mono mb-2">
-								node
-							</div>
-							<code className="text-sm text-foreground font-mono">
-								fetch(&quot;https://haspulse.dev/ping/abc123&quot;)
-							</code>
-						</div>
-					</div>
+					<p className="text-center text-sm text-muted-foreground mt-6">
+						Install with{" "}
+						<code className="text-foreground">npm i @haspulse/sdk</code>
+						{" · "}
+						<Link
+							href="/docs/sdk"
+							className="text-primary hover:underline underline-offset-4"
+						>
+							View docs
+						</Link>
+					</p>
 				</div>
 			</section>
 
@@ -407,7 +440,7 @@ export default function LandingPage() {
 						Start monitoring your scheduled tasks in minutes.
 					</p>
 
-					<EmailSignupForm />
+					<CTAButtons />
 				</div>
 			</section>
 

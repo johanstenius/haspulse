@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Fix: `ping()` and `wrap()` no longer throw on errors, log warning instead
+
 ## 0.2.1
 
 - Fix: add missing Authorization header to ping requests

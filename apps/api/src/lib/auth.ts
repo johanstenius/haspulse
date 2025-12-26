@@ -42,7 +42,7 @@ export const auth = betterAuth({
 			const resetUrl = `${config.appUrl}/auth/reset-password?token=${token}`
 			await sendTransactionalEmail({
 				to: user.email,
-				subject: "Reset your Haspulse password",
+				subject: "Reset your HasPulse password",
 				html: await renderPasswordResetEmail(resetUrl),
 			})
 		},
@@ -52,7 +52,7 @@ export const auth = betterAuth({
 			const verifyUrl = `${config.appUrl}/auth/verify-callback?token=${token}`
 			await sendTransactionalEmail({
 				to: user.email,
-				subject: "Verify your Haspulse email",
+				subject: "Verify your HasPulse email",
 				html: await renderVerificationEmail(verifyUrl),
 			})
 		},
@@ -77,7 +77,7 @@ export const auth = betterAuth({
 				const magicUrl = `${config.appUrl}/auth/magic-link?token=${token}`
 				await sendTransactionalEmail({
 					to: email,
-					subject: "Sign in to Haspulse",
+					subject: "Sign in to HasPulse",
 					html: await renderMagicLinkEmail(magicUrl),
 				})
 			},

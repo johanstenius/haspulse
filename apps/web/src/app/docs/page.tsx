@@ -7,7 +7,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
 	title: "Documentation",
 	description:
-		"Learn how to monitor your cron jobs with Haspulse. Simple integration, instant alerts, beautiful status pages.",
+		"Learn how to monitor your cron jobs with HasPulse. Simple integration, instant alerts, beautiful status pages.",
 	keywords: [
 		"haspulse documentation",
 		"cron monitoring docs",
@@ -21,7 +21,7 @@ export default function DocsPage() {
 			<h1>Introduction</h1>
 
 			<p className="lead">
-				Haspulse monitors your scheduled jobs and alerts you when they fail. One
+				HasPulse monitors your scheduled jobs and alerts you when they fail. One
 				line of code. Beautiful status pages included.
 			</p>
 

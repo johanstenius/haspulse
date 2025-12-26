@@ -30,7 +30,7 @@ export const integrations: Integration[] = [
 		slug: "node-js",
 		title: "Monitor Node.js Cron Jobs",
 		description:
-			"Learn how to monitor scheduled tasks in Node.js applications using the official Haspulse SDK or raw HTTP calls.",
+			"Learn how to monitor scheduled tasks in Node.js applications using the official HasPulse SDK or raw HTTP calls.",
 		icon: "nodejs",
 		keywords: [
 			"node.js cron",
@@ -294,7 +294,7 @@ func Ping(checkID string, status string) error {
 		slug: "laravel",
 		title: "Monitor Laravel Scheduler",
 		description:
-			"Learn how to monitor Laravel's task scheduler and Artisan commands with Haspulse.",
+			"Learn how to monitor Laravel's task scheduler and Artisan commands with HasPulse.",
 		icon: "laravel",
 		keywords: [
 			"laravel scheduler",
@@ -426,7 +426,7 @@ end`,
 		slug: "bash",
 		title: "Monitor Bash Cron Scripts",
 		description:
-			"Learn how to add Haspulse monitoring to shell scripts and system cron jobs.",
+			"Learn how to add HasPulse monitoring to shell scripts and system cron jobs.",
 		icon: "terminal",
 		keywords: [
 			"bash cron",
@@ -593,7 +593,7 @@ spec:
 		slug: "php",
 		title: "Monitor PHP Cron Scripts",
 		description:
-			"Learn how to monitor PHP scheduled tasks and cron scripts with Haspulse.",
+			"Learn how to monitor PHP scheduled tasks and cron scripts with HasPulse.",
 		icon: "php",
 		keywords: [
 			"php cron",
@@ -661,7 +661,7 @@ pingHaspulse('YOUR_CHECK_ID');`,
 		slug: "typescript",
 		title: "Monitor TypeScript Cron Jobs",
 		description:
-			"Learn how to monitor TypeScript scheduled tasks with full type safety using the official Haspulse SDK.",
+			"Learn how to monitor TypeScript scheduled tasks with full type safety using the official HasPulse SDK.",
 		icon: "typescript",
 		keywords: [
 			"typescript cron",
@@ -724,7 +724,7 @@ export const alertChannels: AlertChannel[] = [
 		slug: "slack",
 		title: "Set Up Slack Alerts",
 		description:
-			"Learn how to receive Haspulse alerts in Slack via webhook or the official Slack app.",
+			"Learn how to receive HasPulse alerts in Slack via webhook or the official Slack app.",
 		icon: "slack",
 		keywords: [
 			"slack alerts",
@@ -739,7 +739,7 @@ export const alertChannels: AlertChannel[] = [
 			"Recovery notifications",
 		],
 		setupSteps: [
-			"Go to your Haspulse project settings",
+			"Go to your HasPulse project settings",
 			"Click 'Add Channel' and select Slack",
 			"Choose webhook or OAuth app method",
 			"For webhook: Create incoming webhook in Slack and paste URL",
@@ -751,7 +751,7 @@ export const alertChannels: AlertChannel[] = [
 		slug: "discord",
 		title: "Set Up Discord Alerts",
 		description:
-			"Learn how to receive Haspulse alerts in Discord channels via webhooks.",
+			"Learn how to receive HasPulse alerts in Discord channels via webhooks.",
 		icon: "discord",
 		keywords: ["discord alerts", "discord webhook", "discord notifications"],
 		features: [
@@ -763,7 +763,7 @@ export const alertChannels: AlertChannel[] = [
 		setupSteps: [
 			"In Discord, go to Server Settings > Integrations > Webhooks",
 			"Click 'New Webhook' and copy the webhook URL",
-			"In Haspulse, go to project settings and click 'Add Channel'",
+			"In HasPulse, go to project settings and click 'Add Channel'",
 			"Select Discord and paste your webhook URL",
 			"Choose which checks should alert to this channel",
 		],
@@ -772,7 +772,7 @@ export const alertChannels: AlertChannel[] = [
 		slug: "pagerduty",
 		title: "Set Up PagerDuty Alerts",
 		description:
-			"Learn how to send Haspulse alerts to PagerDuty for on-call incident management.",
+			"Learn how to send HasPulse alerts to PagerDuty for on-call incident management.",
 		icon: "pagerduty",
 		keywords: [
 			"pagerduty alerts",
@@ -789,7 +789,7 @@ export const alertChannels: AlertChannel[] = [
 			"In PagerDuty, create a new service or use existing",
 			"Add an integration and select 'Events API v2'",
 			"Copy the Integration Key (routing key)",
-			"In Haspulse, add a PagerDuty channel with the routing key",
+			"In HasPulse, add a PagerDuty channel with the routing key",
 			"Configure severity levels for DOWN/LATE states",
 		],
 	},
@@ -797,7 +797,7 @@ export const alertChannels: AlertChannel[] = [
 		slug: "email",
 		title: "Set Up Email Alerts",
 		description:
-			"Learn how to configure email notifications for Haspulse alerts.",
+			"Learn how to configure email notifications for HasPulse alerts.",
 		icon: "email",
 		keywords: ["email alerts", "email notifications", "smtp alerts"],
 		features: [
@@ -807,7 +807,7 @@ export const alertChannels: AlertChannel[] = [
 			"Digest mode (batch alerts)",
 		],
 		setupSteps: [
-			"In Haspulse project settings, click 'Add Channel'",
+			"In HasPulse project settings, click 'Add Channel'",
 			"Select Email as the channel type",
 			"Enter one or more email addresses",
 			"Optionally enable digest mode to batch alerts",
@@ -818,7 +818,7 @@ export const alertChannels: AlertChannel[] = [
 		slug: "webhook",
 		title: "Set Up Webhook Alerts",
 		description:
-			"Learn how to send Haspulse alerts to custom webhook endpoints.",
+			"Learn how to send HasPulse alerts to custom webhook endpoints.",
 		icon: "webhook",
 		keywords: ["webhook alerts", "custom webhook", "api integration"],
 		features: [
@@ -829,7 +829,7 @@ export const alertChannels: AlertChannel[] = [
 		],
 		setupSteps: [
 			"Create an HTTP endpoint to receive POST requests",
-			"In Haspulse, add a Webhook channel",
+			"In HasPulse, add a Webhook channel",
 			"Enter your endpoint URL",
 			"Optionally add custom headers (e.g., Authorization)",
 			"Copy the signing secret for payload verification",

@@ -26,6 +26,12 @@ export function Nav() {
 					>
 						Docs
 					</Link>
+					<Link
+						href="/login"
+						className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+					>
+						Login
+					</Link>
 					<Button asChild>
 						<Link href="/register">Get Started</Link>
 					</Button>

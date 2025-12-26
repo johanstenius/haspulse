@@ -7,11 +7,11 @@ type MagicLinkEmailProps = {
 
 export function MagicLinkEmail({ url }: MagicLinkEmailProps) {
 	return (
-		<BaseEmail preview="Sign in to Haspulse">
+		<BaseEmail preview="Sign in to HasPulse">
 			<Section style={content}>
-				<Text style={heading}>Sign in to Haspulse</Text>
+				<Text style={heading}>Sign in to HasPulse</Text>
 				<Text style={paragraph}>
-					Click the button below to sign in to your Haspulse account.
+					Click the button below to sign in to your HasPulse account.
 				</Text>
 				<Button style={button} href={url}>
 					Sign In

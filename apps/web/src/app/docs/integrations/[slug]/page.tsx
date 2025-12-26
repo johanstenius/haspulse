@@ -97,7 +97,7 @@ export default async function IntegrationPage({ params }: Props) {
 						</span>
 						<div>
 							<div className="font-medium text-foreground">
-								Create a check in Haspulse
+								Create a check in HasPulse
 							</div>
 							<div className="text-sm text-muted-foreground">
 								Set your expected schedule (e.g., every 5 minutes)

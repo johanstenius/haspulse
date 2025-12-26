@@ -20,10 +20,10 @@ export function InvitationEmail({
 				<Text style={heading}>You're invited!</Text>
 				<Text style={paragraph}>
 					<strong>{inviterName}</strong> has invited you to join{" "}
-					<strong>{orgName}</strong> on Haspulse as a <strong>{role}</strong>.
+					<strong>{orgName}</strong> on HasPulse as a <strong>{role}</strong>.
 				</Text>
 				<Text style={paragraph}>
-					Haspulse is a monitoring service for cron jobs and scheduled tasks.
+					HasPulse is a monitoring service for cron jobs and scheduled tasks.
 					Accept this invitation to start collaborating.
 				</Text>
 				<Button style={button} href={url}>

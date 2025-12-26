@@ -6,7 +6,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
 	title: "Pricing",
 	description:
-		"Haspulse pricing plans. Start free, upgrade when you need more checks and features.",
+		"HasPulse pricing plans. Start free, upgrade when you need more checks and features.",
 	keywords: [
 		"haspulse pricing",
 		"cron monitoring pricing",

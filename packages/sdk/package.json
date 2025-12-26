@@ -1,7 +1,7 @@
 {
 	"name": "@haspulse/sdk",
-	"version": "0.3.0",
-	"description": "TypeScript SDK for Haspulse cron monitoring",
+	"version": "0.3.1",
+	"description": "TypeScript SDK for HasPulse cron monitoring",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",

@@ -43,10 +43,17 @@ vi.mock("../../../lib/limits.js", () => ({
 	checkCheckLimit: vi.fn(),
 }))
 
+vi.mock("../../../repositories/ping.repository.js", () => ({
+	pingRepository: {
+		findRecentByCheckIds: vi.fn(),
+	},
+}))
+
 import { createApp } from "../../../app.js"
 import { auth } from "../../../lib/auth.js"
 import { checkCheckLimit } from "../../../lib/limits.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
+import { pingRepository } from "../../../repositories/ping.repository.js"
 import {
 	createCheck,
 	getCheckById,
@@ -147,6 +154,7 @@ describe("Check Routes", () => {
 		vi.mocked(getEffectivePlan).mockResolvedValue("free")
 		vi.mocked(getCheckChannelIds).mockResolvedValue([])
 		vi.mocked(checkCheckLimit).mockResolvedValue({ allowed: true })
+		vi.mocked(pingRepository.findRecentByCheckIds).mockResolvedValue(new Map())
 	})
 
 	describe("with session auth", () => {

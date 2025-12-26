@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { isLimitExceeded } from "@/lib/api"
-import { useBilling, useCreateProject, useProjects } from "@/lib/query"
+import {
+	useBilling,
+	useCreateProject,
+	useDashboardChecks,
+	useProjects,
+} from "@/lib/query"
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts"
 import { FolderOpen, Plus } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
@@ -15,12 +20,23 @@ import { toast } from "sonner"
 
 export default function ProjectsPage() {
 	const { data, isLoading } = useProjects()
+	const { data: checksData } = useDashboardChecks()
 	const { data: billing } = useBilling()
 	const createProject = useCreateProject()
 	const [showForm, setShowForm] = useState(false)
 	const [showUpgrade, setShowUpgrade] = useState(false)
 
 	const projectLimit = billing?.usage.projects.limit ?? 2
+
+	const checksByProject = useMemo(() => {
+		const checks = checksData?.checks ?? []
+		const map = new Map<string, typeof checks>()
+		for (const check of checks) {
+			const existing = map.get(check.projectId) ?? []
+			map.set(check.projectId, [...existing, check])
+		}
+		return map
+	}, [checksData?.checks])
 
 	const openForm = useCallback(() => setShowForm(true), [])
 	const shortcuts = useMemo(() => ({ n: openForm }), [openForm])
@@ -81,7 +97,11 @@ export default function ProjectsPage() {
 			) : (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{data?.projects.map((project) => (
-						<ProjectCard key={project.id} project={project} />
+						<ProjectCard
+							key={project.id}
+							project={project}
+							checks={checksByProject.get(project.id)}
+						/>
 					))}
 				</div>
 			)}

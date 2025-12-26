@@ -7,7 +7,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
 	title: "Quickstart",
 	description:
-		"Get started with Haspulse cron monitoring in 5 minutes. Create your first check and start receiving alerts.",
+		"Get started with HasPulse cron monitoring in 5 minutes. Create your first check and start receiving alerts.",
 	keywords: ["haspulse quickstart", "cron monitoring setup", "getting started"],
 }
 
@@ -104,7 +104,7 @@ fi`}
 			<h2>6. You're done!</h2>
 
 			<p>
-				Haspulse will alert you if a ping doesn't arrive on time. View check
+				HasPulse will alert you if a ping doesn't arrive on time. View check
 				history, uptime stats, and run durations in your dashboard.
 			</p>
 

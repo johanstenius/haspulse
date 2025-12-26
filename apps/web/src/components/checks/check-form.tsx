@@ -28,9 +28,16 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { Channel, Check, CreateCheckData, ScheduleType } from "@/lib/api"
-import { Globe, Loader2, Mail, MessageSquare } from "lucide-react"
-import { useEffect } from "react"
+import { cn } from "@/lib/utils"
+import cronstrue from "cronstrue"
+import { Clock, Globe, Info, Loader2, Mail, MessageSquare } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
@@ -49,6 +56,72 @@ const checkFormSchema = z.object({
 })
 
 type CheckFormValues = z.infer<typeof checkFormSchema>
+
+const PERIOD_PRESETS = [
+	{ label: "1 min", seconds: 60 },
+	{ label: "5 min", seconds: 300 },
+	{ label: "15 min", seconds: 900 },
+	{ label: "1 hour", seconds: 3600 },
+	{ label: "12 hours", seconds: 43200 },
+	{ label: "1 day", seconds: 86400 },
+] as const
+
+const CRON_PRESETS = [
+	{ label: "Hourly", cron: "0 * * * *" },
+	{ label: "Daily (midnight)", cron: "0 0 * * *" },
+	{ label: "Daily (9am)", cron: "0 9 * * *" },
+	{ label: "Weekly (Mon)", cron: "0 9 * * 1" },
+	{ label: "Monthly", cron: "0 0 1 * *" },
+] as const
+
+const GRACE_PRESETS = [
+	{ label: "1 min", seconds: 60 },
+	{ label: "5 min", seconds: 300 },
+	{ label: "15 min", seconds: 900 },
+	{ label: "30 min", seconds: 1800 },
+	{ label: "1 hour", seconds: 3600 },
+] as const
+
+const DURATION_UNITS = [
+	{ label: "seconds", value: "seconds", multiplier: 1 },
+	{ label: "minutes", value: "minutes", multiplier: 60 },
+	{ label: "hours", value: "hours", multiplier: 3600 },
+	{ label: "days", value: "days", multiplier: 86400 },
+] as const
+
+type DurationUnit = (typeof DURATION_UNITS)[number]["value"]
+
+function secondsToUnit(seconds: number): { value: number; unit: DurationUnit } {
+	if (seconds <= 0) return { value: 0, unit: "minutes" }
+	if (seconds % 86400 === 0) return { value: seconds / 86400, unit: "days" }
+	if (seconds % 3600 === 0) return { value: seconds / 3600, unit: "hours" }
+	if (seconds % 60 === 0) return { value: seconds / 60, unit: "minutes" }
+	return { value: seconds, unit: "seconds" }
+}
+
+function unitToSeconds(value: number, unit: DurationUnit): number {
+	const unitDef = DURATION_UNITS.find((u) => u.value === unit)
+	return value * (unitDef?.multiplier ?? 1)
+}
+
+function formatDuration(seconds: number): string {
+	if (seconds < 60) return `${seconds}s`
+	if (seconds < 3600) return `${Math.floor(seconds / 60)} min`
+	if (seconds < 86400) {
+		const hours = Math.floor(seconds / 3600)
+		return hours === 1 ? "1 hour" : `${hours} hours`
+	}
+	const days = Math.floor(seconds / 86400)
+	return days === 1 ? "1 day" : `${days} days`
+}
+
+function parseCronDescription(cron: string): string | null {
+	try {
+		return cronstrue.toString(cron, { verbose: false })
+	} catch {
+		return null
+	}
+}
 
 type CheckFormProps = {
 	open: boolean
@@ -95,10 +168,62 @@ export function CheckForm({
 	const isEdit = !!check
 	const name = useWatch({ control: form.control, name: "name" })
 	const scheduleType = useWatch({ control: form.control, name: "scheduleType" })
+	const scheduleValue = useWatch({
+		control: form.control,
+		name: "scheduleValue",
+	})
+	const graceSeconds = useWatch({ control: form.control, name: "graceSeconds" })
 	const slug = useWatch({ control: form.control, name: "slug" })
+
+	const scheduleDescription = useMemo(() => {
+		if (scheduleType === "CRON") {
+			return parseCronDescription(scheduleValue)
+		}
+		const seconds = Number.parseInt(scheduleValue, 10)
+		if (Number.isNaN(seconds) || seconds <= 0) return null
+		return `Every ${formatDuration(seconds)}`
+	}, [scheduleType, scheduleValue])
+
+	const isCustomPeriod =
+		scheduleType === "PERIOD" &&
+		!PERIOD_PRESETS.some(
+			(p) => p.seconds === Number.parseInt(scheduleValue, 10),
+		)
+
+	const isCustomCron =
+		scheduleType === "CRON" &&
+		!CRON_PRESETS.some((p) => p.cron === scheduleValue)
+
+	const isCustomGrace = !GRACE_PRESETS.some((p) => p.seconds === graceSeconds)
+
+	// State for custom duration inputs (value + unit)
+	const [customPeriod, setCustomPeriod] = useState({
+		value: 1,
+		unit: "hours" as DurationUnit,
+	})
+	const [customGrace, setCustomGrace] = useState({
+		value: 5,
+		unit: "minutes" as DurationUnit,
+	})
 
 	useEffect(() => {
 		if (open) {
+			const periodSeconds = Number.parseInt(check?.scheduleValue ?? "86400", 10)
+			const graceSecondsVal = check?.graceSeconds ?? 300
+
+			// Set custom period state if it's a custom value
+			if (
+				check?.scheduleType === "PERIOD" &&
+				!PERIOD_PRESETS.some((p) => p.seconds === periodSeconds)
+			) {
+				setCustomPeriod(secondsToUnit(periodSeconds))
+			}
+
+			// Set custom grace state if it's a custom value
+			if (!GRACE_PRESETS.some((p) => p.seconds === graceSecondsVal)) {
+				setCustomGrace(secondsToUnit(graceSecondsVal))
+			}
+
 			form.reset({
 				name: check?.name ?? "",
 				slug: check?.slug ?? "",
@@ -140,7 +265,7 @@ export function CheckForm({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>{isEdit ? "Edit check" : "Create check"}</DialogTitle>
 					<DialogDescription>
@@ -151,7 +276,7 @@ export function CheckForm({
 				</DialogHeader>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)}>
-						<div className="space-y-4 py-4">
+						<div className="space-y-6 py-4">
 							<FormField
 								control={form.control}
 								name="name"
@@ -183,55 +308,232 @@ export function CheckForm({
 								)}
 							/>
 
-							<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-3">
 								<FormField
 									control={form.control}
 									name="scheduleType"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Schedule Type</FormLabel>
-											<Select
-												onValueChange={field.onChange}
-												defaultValue={field.value}
-												value={field.value}
-											>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													<SelectItem value="PERIOD">Period</SelectItem>
-													<SelectItem value="CRON">Cron</SelectItem>
-												</SelectContent>
-											</Select>
-											<FormMessage />
+											<div className="flex items-center gap-1.5">
+												<FormLabel>Schedule</FormLabel>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+													</TooltipTrigger>
+													<TooltipContent
+														side="right"
+														className="max-w-[220px]"
+													>
+														{field.value === "PERIOD"
+															? "Expects ping within interval from last ping. Use for jobs that run at fixed intervals."
+															: "Expects pings at specific times. Use for jobs scheduled via cron."}
+													</TooltipContent>
+												</Tooltip>
+											</div>
+											<div className="flex gap-2">
+												<Button
+													type="button"
+													variant={
+														field.value === "PERIOD" ? "default" : "outline"
+													}
+													size="sm"
+													onClick={() => {
+														field.onChange("PERIOD")
+														form.setValue("scheduleValue", "86400")
+													}}
+												>
+													Interval
+												</Button>
+												<Button
+													type="button"
+													variant={
+														field.value === "CRON" ? "default" : "outline"
+													}
+													size="sm"
+													onClick={() => {
+														field.onChange("CRON")
+														form.setValue("scheduleValue", "0 * * * *")
+													}}
+												>
+													Cron
+												</Button>
+											</div>
 										</FormItem>
 									)}
 								/>
 
-								<FormField
-									control={form.control}
-									name="scheduleValue"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>
-												{scheduleType === "PERIOD"
-													? "Interval (seconds)"
-													: "Cron Expression"}
-											</FormLabel>
-											<FormControl>
-												<Input
-													placeholder={
-														scheduleType === "PERIOD" ? "86400" : "0 3 * * *"
-													}
-													{...field}
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+								{scheduleType === "PERIOD" ? (
+									<FormField
+										control={form.control}
+										name="scheduleValue"
+										render={({ field }) => (
+											<FormItem>
+												<div className="flex flex-wrap gap-2">
+													{PERIOD_PRESETS.map((preset) => (
+														<Button
+															key={preset.seconds}
+															type="button"
+															variant={
+																field.value === String(preset.seconds)
+																	? "default"
+																	: "outline"
+															}
+															size="sm"
+															className="text-xs"
+															onClick={() =>
+																field.onChange(String(preset.seconds))
+															}
+														>
+															{preset.label}
+														</Button>
+													))}
+													<Button
+														type="button"
+														variant={isCustomPeriod ? "default" : "outline"}
+														size="sm"
+														className="text-xs"
+														onClick={() => {
+															const current = Number.parseInt(field.value, 10)
+															if (
+																!PERIOD_PRESETS.some(
+																	(p) => p.seconds === current,
+																)
+															) {
+																return
+															}
+															// Initialize custom state and set form value
+															setCustomPeriod({ value: 1, unit: "hours" })
+															field.onChange(String(unitToSeconds(1, "hours")))
+														}}
+													>
+														Custom
+													</Button>
+												</div>
+												{isCustomPeriod && (
+													<div className="flex gap-2 mt-2">
+														<FormControl>
+															<Input
+																type="number"
+																min="1"
+																value={customPeriod.value}
+																onChange={(e) => {
+																	const val =
+																		Number.parseInt(e.target.value, 10) || 0
+																	setCustomPeriod((prev) => ({
+																		...prev,
+																		value: val,
+																	}))
+																	field.onChange(
+																		String(
+																			unitToSeconds(val, customPeriod.unit),
+																		),
+																	)
+																}}
+																className="w-24"
+															/>
+														</FormControl>
+														<Select
+															value={customPeriod.unit}
+															onValueChange={(unit: DurationUnit) => {
+																setCustomPeriod((prev) => ({ ...prev, unit }))
+																field.onChange(
+																	String(
+																		unitToSeconds(customPeriod.value, unit),
+																	),
+																)
+															}}
+														>
+															<SelectTrigger className="w-28">
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																{DURATION_UNITS.map((u) => (
+																	<SelectItem key={u.value} value={u.value}>
+																		{u.label}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+													</div>
+												)}
+												{scheduleDescription && (
+													<div className="flex items-center gap-1.5 text-xs text-emerald-500 mt-2">
+														<Clock className="h-3 w-3" />
+														{scheduleDescription}
+													</div>
+												)}
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								) : (
+									<FormField
+										control={form.control}
+										name="scheduleValue"
+										render={({ field }) => (
+											<FormItem>
+												<div className="flex flex-wrap gap-2">
+													{CRON_PRESETS.map((preset) => (
+														<Button
+															key={preset.cron}
+															type="button"
+															variant={
+																field.value === preset.cron
+																	? "default"
+																	: "outline"
+															}
+															size="sm"
+															className="text-xs"
+															onClick={() => field.onChange(preset.cron)}
+														>
+															{preset.label}
+														</Button>
+													))}
+													<Button
+														type="button"
+														variant={isCustomCron ? "default" : "outline"}
+														size="sm"
+														className="text-xs"
+														onClick={() => {
+															if (
+																!CRON_PRESETS.some(
+																	(p) => p.cron === field.value,
+																)
+															) {
+																return
+															}
+															field.onChange("")
+														}}
+													>
+														Custom
+													</Button>
+												</div>
+												{isCustomCron && (
+													<FormControl>
+														<Input
+															placeholder="0 * * * *"
+															className="mt-2"
+															{...field}
+														/>
+													</FormControl>
+												)}
+												{scheduleDescription ? (
+													<div className="flex items-center gap-1.5 text-xs text-emerald-500 mt-2">
+														<Clock className="h-3 w-3" />
+														{scheduleDescription}
+													</div>
+												) : (
+													scheduleValue && (
+														<div className="text-xs text-destructive mt-2">
+															Invalid cron expression
+														</div>
+													)
+												)}
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								)}
 							</div>
 
 							<FormField
@@ -239,13 +541,98 @@ export function CheckForm({
 								name="graceSeconds"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Grace Period (seconds)</FormLabel>
-										<FormControl>
-											<Input type="number" min="0" max="86400" {...field} />
-										</FormControl>
-										<FormDescription>
-											Extra time before marking as late/down
-										</FormDescription>
+										<div className="flex items-center gap-1.5">
+											<FormLabel>Grace Period</FormLabel>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+												</TooltipTrigger>
+												<TooltipContent side="right" className="max-w-[200px]">
+													Extra time allowed before marking as late/down
+												</TooltipContent>
+											</Tooltip>
+										</div>
+										<div className="flex flex-wrap gap-2">
+											{GRACE_PRESETS.map((preset) => (
+												<Button
+													key={preset.seconds}
+													type="button"
+													variant={
+														field.value === preset.seconds
+															? "default"
+															: "outline"
+													}
+													size="sm"
+													className="text-xs"
+													onClick={() => field.onChange(preset.seconds)}
+												>
+													{preset.label}
+												</Button>
+											))}
+											<Button
+												type="button"
+												variant={isCustomGrace ? "default" : "outline"}
+												size="sm"
+												className="text-xs"
+												onClick={() => {
+													if (
+														!GRACE_PRESETS.some(
+															(p) => p.seconds === field.value,
+														)
+													) {
+														return
+													}
+													// Initialize custom state and set form value
+													setCustomGrace({ value: 10, unit: "minutes" })
+													field.onChange(unitToSeconds(10, "minutes"))
+												}}
+											>
+												Custom
+											</Button>
+										</div>
+										{isCustomGrace && (
+											<div className="flex gap-2 mt-2">
+												<FormControl>
+													<Input
+														type="number"
+														min="0"
+														value={customGrace.value}
+														onChange={(e) => {
+															const val =
+																Number.parseInt(e.target.value, 10) || 0
+															setCustomGrace((prev) => ({
+																...prev,
+																value: val,
+															}))
+															field.onChange(
+																unitToSeconds(val, customGrace.unit),
+															)
+														}}
+														className="w-24"
+													/>
+												</FormControl>
+												<Select
+													value={customGrace.unit}
+													onValueChange={(unit: DurationUnit) => {
+														setCustomGrace((prev) => ({ ...prev, unit }))
+														field.onChange(
+															unitToSeconds(customGrace.value, unit),
+														)
+													}}
+												>
+													<SelectTrigger className="w-28">
+														<SelectValue />
+													</SelectTrigger>
+													<SelectContent>
+														{DURATION_UNITS.map((u) => (
+															<SelectItem key={u.value} value={u.value}>
+																{u.label}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											</div>
+										)}
 										<FormMessage />
 									</FormItem>
 								)}
@@ -333,7 +720,7 @@ export function CheckForm({
 							)}
 						</div>
 
-						<DialogFooter>
+						<DialogFooter className="mt-6">
 							<Button
 								type="button"
 								variant="outline"

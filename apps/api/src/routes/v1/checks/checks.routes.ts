@@ -16,6 +16,7 @@ import {
 	requireAuth,
 } from "../../../middleware/auth.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
+import { pingRepository } from "../../../repositories/ping.repository.js"
 import {
 	type CheckModel,
 	createCheck,
@@ -34,6 +35,7 @@ import {
 	getProjectById,
 	getProjectForOrg,
 } from "../../../services/project.service.js"
+import { calculateSparkline } from "../../../services/sparkline.service.js"
 import {
 	checkIdParamSchema,
 	checkListQuerySchema,
@@ -289,20 +291,23 @@ projectCheckRoutes.openapi(listChecksRoute, async (c) => {
 		limit,
 		{ search, status },
 	)
-	const checksWithChannels = await Promise.all(
-		data.map(async (check) => {
-			const channelIds = await getCheckChannelIds(check.id)
-			return toCheckResponse(check, channelIds)
-		}),
-	)
+
+	const checkIds = data.map((check) => check.id)
+	const [channelIdsMap, pingsMap] = await Promise.all([
+		Promise.all(data.map((check) => getCheckChannelIds(check.id))).then(
+			(results) => new Map(data.map((check, i) => [check.id, results[i]])),
+		),
+		pingRepository.findRecentByCheckIds(checkIds, 20),
+	])
+
+	const checks = data.map((check) => {
+		const pings = pingsMap.get(check.id) ?? []
+		const sparkline = calculateSparkline(check, pings)
+		return toCheckResponse(check, channelIdsMap.get(check.id) ?? [], sparkline)
+	})
+
 	return c.json(
-		{
-			checks: checksWithChannels,
-			total,
-			page,
-			limit,
-			totalPages: Math.ceil(total / limit),
-		},
+		{ checks, total, page, limit, totalPages: Math.ceil(total / limit) },
 		200,
 	)
 })
@@ -359,8 +364,13 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 checkRoutes.openapi(getCheckRoute, async (c) => {
 	const { id } = c.req.valid("param")
 	const check = await getAuthorizedCheck(c, id)
-	const channelIds = await getCheckChannelIds(check.id)
-	return c.json(toCheckResponse(check, channelIds), 200)
+	const [channelIds, pingsMap] = await Promise.all([
+		getCheckChannelIds(check.id),
+		pingRepository.findRecentByCheckIds([check.id], 20),
+	])
+	const pings = pingsMap.get(check.id) ?? []
+	const sparkline = calculateSparkline(check, pings)
+	return c.json(toCheckResponse(check, channelIds, sparkline), 200)
 })
 
 checkRoutes.openapi(updateCheckRoute, async (c) => {
@@ -383,8 +393,13 @@ checkRoutes.openapi(updateCheckRoute, async (c) => {
 		await setCheckChannelIds(id, channelIds)
 	}
 
-	const finalChannelIds = await getCheckChannelIds(id)
-	return c.json(toCheckResponse(updated, finalChannelIds), 200)
+	const [finalChannelIds, pingsMap] = await Promise.all([
+		getCheckChannelIds(id),
+		pingRepository.findRecentByCheckIds([id], 20),
+	])
+	const pings = pingsMap.get(id) ?? []
+	const sparkline = calculateSparkline(updated, pings)
+	return c.json(toCheckResponse(updated, finalChannelIds, sparkline), 200)
 })
 
 checkRoutes.openapi(deleteCheckRoute, async (c) => {
@@ -398,16 +413,26 @@ checkRoutes.openapi(pauseCheckRoute, async (c) => {
 	const { id } = c.req.valid("param")
 	await getAuthorizedCheck(c, id)
 	const paused = await pauseCheck(id)
-	const channelIds = await getCheckChannelIds(id)
-	return c.json(toCheckResponse(paused, channelIds), 200)
+	const [channelIds, pingsMap] = await Promise.all([
+		getCheckChannelIds(id),
+		pingRepository.findRecentByCheckIds([id], 20),
+	])
+	const pings = pingsMap.get(id) ?? []
+	const sparkline = calculateSparkline(paused, pings)
+	return c.json(toCheckResponse(paused, channelIds, sparkline), 200)
 })
 
 checkRoutes.openapi(resumeCheckRoute, async (c) => {
 	const { id } = c.req.valid("param")
 	await getAuthorizedCheck(c, id)
 	const resumed = await resumeCheck(id)
-	const channelIds = await getCheckChannelIds(id)
-	return c.json(toCheckResponse(resumed, channelIds), 200)
+	const [channelIds, pingsMap] = await Promise.all([
+		getCheckChannelIds(id),
+		pingRepository.findRecentByCheckIds([id], 20),
+	])
+	const pings = pingsMap.get(id) ?? []
+	const sparkline = calculateSparkline(resumed, pings)
+	return c.json(toCheckResponse(resumed, channelIds, sparkline), 200)
 })
 
 export { checkRoutes, projectCheckRoutes }

@@ -22,12 +22,12 @@ export function BaseEmail({ preview, children }: BaseEmailProps) {
 			<Body style={body}>
 				<Container style={container}>
 					<Section style={header}>
-						<Text style={logo}>Haspulse</Text>
+						<Text style={logo}>HasPulse</Text>
 					</Section>
 					{children}
 					<Section style={footer}>
 						<Text style={footerText}>
-							Haspulse - Cron job and heartbeat monitoring
+							HasPulse - Cron job and heartbeat monitoring
 						</Text>
 					</Section>
 				</Container>

@@ -1,10 +1,12 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi"
 import type { AuthEnv } from "../../../middleware/auth.js"
 import { getRequiredOrg, requireAuth } from "../../../middleware/auth.js"
+import { pingRepository } from "../../../repositories/ping.repository.js"
 import {
 	getDashboardChecks,
 	getDashboardStats,
 } from "../../../services/dashboard.service.js"
+import { calculateSparkline } from "../../../services/sparkline.service.js"
 import {
 	dashboardChecksResponseSchema,
 	dashboardStatsResponseSchema,
@@ -61,18 +63,26 @@ dashboardRoutes.openapi(getChecksRoute, async (c) => {
 	const org = getRequiredOrg(c)
 	const checks = await getDashboardChecks(org.id)
 
+	const checkIds = checks.map((check) => check.id)
+	const pingsMap = await pingRepository.findRecentByCheckIds(checkIds, 20)
+
 	return c.json(
 		{
-			checks: checks.map((check) => ({
-				id: check.id,
-				name: check.name,
-				status: check.status,
-				scheduleType: check.scheduleType,
-				scheduleValue: check.scheduleValue,
-				lastPingAt: check.lastPingAt?.toISOString() ?? null,
-				projectId: check.projectId,
-				projectName: check.projectName,
-			})),
+			checks: checks.map((check) => {
+				const pings = pingsMap.get(check.id) ?? []
+				const sparkline = calculateSparkline(check, pings)
+				return {
+					id: check.id,
+					name: check.name,
+					status: check.status,
+					scheduleType: check.scheduleType,
+					scheduleValue: check.scheduleValue,
+					lastPingAt: check.lastPingAt?.toISOString() ?? null,
+					projectId: check.projectId,
+					projectName: check.projectName,
+					sparkline,
+				}
+			}),
 		},
 		200,
 	)

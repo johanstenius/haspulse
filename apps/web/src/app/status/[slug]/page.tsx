@@ -362,7 +362,7 @@ export default async function StatusPage({
 						href="https://haspulse.dev"
 						className="font-medium text-foreground hover:underline"
 					>
-						Haspulse
+						HasPulse
 					</a>
 				</footer>
 			</div>

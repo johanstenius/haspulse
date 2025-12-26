@@ -77,7 +77,7 @@ export async function createInvitation(
 
 	await sendTransactionalEmail({
 		to: normalizedEmail,
-		subject: `You've been invited to join ${org.name} on Haspulse`,
+		subject: `You've been invited to join ${org.name} on HasPulse`,
 		html,
 	})
 
@@ -191,7 +191,7 @@ export async function resendInvitation(
 
 	await sendTransactionalEmail({
 		to: invitation.email,
-		subject: `Reminder: You've been invited to join ${org.name} on Haspulse`,
+		subject: `Reminder: You've been invited to join ${org.name} on HasPulse`,
 		html,
 	})
 

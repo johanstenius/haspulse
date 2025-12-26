@@ -27,6 +27,14 @@ export type CheckListQuery = z.infer<typeof checkListQuerySchema>
 
 export const checkStatusSchema = z.enum(["NEW", "UP", "LATE", "DOWN", "PAUSED"])
 export const scheduleTypeSchema = z.enum(["PERIOD", "CRON"])
+export const pingTypeSchema = z.enum(["SUCCESS", "START", "FAIL"])
+
+export const sparklineSlotSchema = z.enum([
+	"success",
+	"fail",
+	"missed",
+	"empty",
+])
 
 export const checkResponseSchema = z
 	.object({
@@ -45,6 +53,7 @@ export const checkResponseSchema = z
 		alertOnRecovery: z.boolean(),
 		reminderIntervalHours: z.number().nullable(),
 		channelIds: z.array(z.string()),
+		sparkline: z.array(sparklineSlotSchema),
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
 	})

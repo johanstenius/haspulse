@@ -6,7 +6,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
 	title: "API Reference",
 	description:
-		"Haspulse REST API documentation. Authentication, endpoints, and examples.",
+		"HasPulse REST API documentation. Authentication, endpoints, and examples.",
 	keywords: [
 		"haspulse api",
 		"rest api",
@@ -21,7 +21,7 @@ export default function ApiPage() {
 			<h1>API Reference</h1>
 
 			<p className="lead">
-				The Haspulse REST API lets you manage checks, projects, and channels
+				The HasPulse REST API lets you manage checks, projects, and channels
 				programmatically.
 			</p>
 

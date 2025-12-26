@@ -22,7 +22,7 @@ export default function AuthLayout({
 				</div>
 
 				<p className="text-sm text-muted-foreground">
-					© 2025 Haspulse. All rights reserved.
+					© 2025 HasPulse. All rights reserved.
 				</p>
 			</div>
 

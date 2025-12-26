@@ -95,7 +95,7 @@ export function createApp() {
 	app.doc("/openapi.json", {
 		openapi: "3.1.0",
 		info: {
-			title: "Haspulse API",
+			title: "HasPulse API",
 			version: "1.0.0",
 			description: "Cron monitoring that just works",
 		},

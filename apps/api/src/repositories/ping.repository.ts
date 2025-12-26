@@ -75,4 +75,33 @@ export const pingRepository = {
 		})
 		return result.count
 	},
+
+	async findRecentByCheckIds(
+		checkIds: string[],
+		limit = 5,
+	): Promise<Map<string, { type: PingType; createdAt: Date }[]>> {
+		if (checkIds.length === 0) return new Map()
+
+		// Fetch recent pings for all checks at once
+		const pings = await prisma.ping.findMany({
+			where: { checkId: { in: checkIds } },
+			orderBy: { createdAt: "desc" },
+			select: { checkId: true, type: true, createdAt: true },
+		})
+
+		// Group by checkId and limit to N per check
+		const result = new Map<string, { type: PingType; createdAt: Date }[]>()
+		for (const checkId of checkIds) {
+			result.set(checkId, [])
+		}
+
+		for (const ping of pings) {
+			const arr = result.get(ping.checkId)
+			if (arr && arr.length < limit) {
+				arr.push({ type: ping.type, createdAt: ping.createdAt })
+			}
+		}
+
+		return result
+	},
 }

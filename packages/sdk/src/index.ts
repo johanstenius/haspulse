@@ -54,6 +54,7 @@ export type {
 	CreateApiKeyInput,
 	// Ping
 	PingOptions,
+	WrapOptions,
 	// Pagination
 	PaginationParams,
 	PaginatedResponse,

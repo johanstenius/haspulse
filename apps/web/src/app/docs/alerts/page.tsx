@@ -6,7 +6,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
 	title: "Alert Channels",
 	description:
-		"Set up alert channels for Haspulse. Get notified via Slack, Discord, PagerDuty, email, or webhooks when your cron jobs fail.",
+		"Set up alert channels for HasPulse. Get notified via Slack, Discord, PagerDuty, email, or webhooks when your cron jobs fail.",
 	keywords: [
 		"slack alerts",
 		"discord notifications",
