@@ -119,7 +119,7 @@ function DashboardPreview() {
 					</div>
 					<div className="bg-secondary/50 rounded-lg p-4 text-left">
 						<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-							Incidents
+							Issues
 						</div>
 						<div className="text-2xl font-semibold text-foreground">0</div>
 					</div>

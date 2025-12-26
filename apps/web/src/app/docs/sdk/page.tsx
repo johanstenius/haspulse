@@ -115,61 +115,13 @@ await client.channels.test('project-id', 'channel-id');
 await client.channels.delete('project-id', 'channel-id');`}</code>
 			</pre>
 
-			<h2>Incidents</h2>
-
-			<pre>
-				<code>{`// List incidents
-const incidents = await client.incidents.list('project-id');
-const incidents = await client.incidents.list('project-id', { status: 'INVESTIGATING' });
-
-// Create incident
-const incident = await client.incidents.create('project-id', {
-  title: 'API Degradation',
-  impact: 'MINOR',
-});
-
-// Update status
-await client.incidents.update('project-id', 'incident-id', { status: 'IDENTIFIED' });
-
-// Add status update
-await client.incidents.addUpdate('project-id', 'incident-id', {
-  status: 'MONITORING',
-  message: 'Fix deployed, monitoring for stability',
-});
-
-// Delete
-await client.incidents.delete('project-id', 'incident-id');`}</code>
-			</pre>
-
-			<h2>Maintenance Windows</h2>
-
-			<pre>
-				<code>{`// List windows
-const windows = await client.maintenance.list('project-id');
-const windows = await client.maintenance.list('project-id', { upcoming: true });
-
-// Create maintenance window
-const maintenance = await client.maintenance.create('project-id', {
-  title: 'Database Migration',
-  startsAt: '2024-01-15T03:00:00Z',
-  endsAt: '2024-01-15T05:00:00Z',
-  checkIds: ['check-1', 'check-2'],
-});
-
-// Update
-await client.maintenance.update('project-id', 'maintenance-id', { title: 'Updated' });
-
-// Delete
-await client.maintenance.delete('project-id', 'maintenance-id');`}</code>
-			</pre>
-
 			<h2>Organizations</h2>
 
 			<pre>
 				<code>{`const orgs = await client.organizations.list();
 const org = await client.organizations.get('org-id');
 const org = await client.organizations.create({ name: 'My Org', slug: 'my-org' });
-await client.organizations.update('org-id', { autoCreateIncidents: true });
+await client.organizations.update('org-id', { name: 'New Name' });
 await client.organizations.delete('org-id');`}</code>
 			</pre>
 
@@ -210,9 +162,6 @@ try {
   CheckStatus,
   Channel,
   ChannelType,
-  Incident,
-  IncidentStatus,
-  Maintenance,
   Organization,
   Project,
 } from 'haspulse';`}</code>

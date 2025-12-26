@@ -75,7 +75,6 @@ const mockOrg = {
 	stripeCustomerId: null,
 	stripeSubscriptionId: null,
 	trialEndsAt: null,
-	autoCreateIncidents: true,
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }
@@ -94,12 +93,6 @@ const mockProject = {
 	name: "Test Project",
 	slug: "test-project",
 	timezone: "UTC",
-	statusPageEnabled: false,
-	statusPageTitle: null,
-	statusPageLogoUrl: null,
-	customDomain: null,
-	domainVerified: false,
-	domainVerifyToken: null,
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }

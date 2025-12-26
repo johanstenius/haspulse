@@ -121,7 +121,7 @@ export default function DashboardPage() {
 		(stats?.checksByStatus.LATE ?? 0) +
 		(stats?.checksByStatus.NEW ?? 0)
 	const uptimePercent = totalActive > 0 ? (upCount / totalActive) * 100 : 100
-	const incidents =
+	const issues =
 		(stats?.checksByStatus.DOWN ?? 0) + (stats?.checksByStatus.LATE ?? 0)
 
 	return (
@@ -155,12 +155,12 @@ export default function DashboardPage() {
 						</div>
 						<div className="bg-secondary/50 rounded-lg p-4 text-left">
 							<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-								Incidents
+								Issues
 							</div>
 							<div
-								className={`text-2xl font-semibold ${incidents > 0 ? "text-warning" : "text-foreground"}`}
+								className={`text-2xl font-semibold ${issues > 0 ? "text-warning" : "text-foreground"}`}
 							>
-								{incidents}
+								{issues}
 							</div>
 						</div>
 						<div className="bg-secondary/50 rounded-lg p-4 text-left">

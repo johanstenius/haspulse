@@ -107,27 +107,6 @@ DELETE /v1/channels/:id              # Delete channel
 POST   /v1/channels/:id/test         # Send test notification`}</code>
 			</pre>
 
-			<h3>Incidents</h3>
-
-			<pre>
-				<code>{`GET    /v1/incidents                 # List incidents
-GET    /v1/incidents/:id             # Get incident
-POST   /v1/incidents                 # Create incident
-PATCH  /v1/incidents/:id             # Update incident
-DELETE /v1/incidents/:id             # Delete incident
-POST   /v1/incidents/:id/updates     # Add status update`}</code>
-			</pre>
-
-			<h3>Maintenance</h3>
-
-			<pre>
-				<code>{`GET    /v1/maintenance               # List maintenance windows
-GET    /v1/maintenance/:id           # Get maintenance window
-POST   /v1/maintenance               # Create maintenance window
-PATCH  /v1/maintenance/:id           # Update maintenance window
-DELETE /v1/maintenance/:id           # Delete maintenance window`}</code>
-			</pre>
-
 			<h3>Organizations</h3>
 
 			<pre>
