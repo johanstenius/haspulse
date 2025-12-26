@@ -22,14 +22,20 @@ This is a **critical positioning distinction**.
 | Multi-org + Teams | Complete | Roles (owner/admin/member), invitations |
 | Projects | Complete | Multiple per org, custom settings |
 | Billing (Stripe) | Complete | Free/Pro tiers, checkout, portal |
-| Status Pages | Complete | Public, custom domain support |
-| Incidents | Complete | Manual + auto-create, timeline updates |
-| Maintenance Windows | Complete | Scheduled suppression |
 | API Keys | Complete | Per-project scoped |
 | Badges | Complete | SVG embeddable |
 | Onboarding | Complete | 4-step wizard |
 | Documentation | Complete | API, SDK, integrations |
 | Cron Calculator | Complete | Public utility tool |
+
+### Removed (Simplification)
+
+| Feature | Status | Reason |
+|---------|--------|--------|
+| Status Pages | Removed | Cron jobs are internal - no need for public status |
+| Incidents | Removed | Manual incident management is a separate product |
+| Maintenance Windows | Removed | Complexity without clear use case for cron monitoring |
+| Custom Domains | Removed | Was only for status pages |
 
 ### Not Built (vs Competition)
 
@@ -64,12 +70,11 @@ This is a **critical positioning distinction**.
 | Self-hosted | No | Yes |
 | Start/Fail signals | Yes | Yes |
 | Ping body storage | Yes (100KB-1MB) | Yes |
-| Status pages | Yes | No |
-| Incidents | Yes | No |
-| Maintenance windows | Yes | No |
 | Teams/Orgs | Yes | Yes |
 | SMS/WhatsApp | No | Yes (paid) |
 | Phone calls | No | Yes (paid) |
+| Status pages | No | No |
+| Incidents | No | No |
 
 ### Full-Stack Competitors
 
@@ -145,17 +150,16 @@ This is a **critical positioning distinction**.
 
 ### Current Strengths
 
-1. **Status pages built-in** - Healthchecks.io lacks this
-2. **Incident management** - Healthchecks.io lacks this
-3. **Maintenance windows** - Healthchecks.io lacks this
-4. **Modern tech stack** - Clean codebase, good DX
-5. **Beautiful UI** - Modern shadcn/Radix components
-6. **Sparkline visualizations** - Nice touch for quick status
+1. **Modern tech stack** - Clean codebase, good DX
+2. **Beautiful UI** - Modern shadcn/Radix components
+3. **Sparkline visualizations** - Nice touch for quick status
+4. **Focused product** - Pure cron/heartbeat monitoring, no bloat
+5. **Dashboard = Status view** - All your checks in one place
 
 ### Opportunity Areas
 
-1. **"Healthchecks.io + Status Page + Incidents"**
-   - Position as the complete package vs Healthchecks.io
+1. **"Simple, beautiful cron monitoring"**
+   - Position as the modern, focused alternative
 
 2. **Developer experience**
    - Best-in-class SDK
@@ -181,9 +185,6 @@ This is a **critical positioning distinction**.
 ─────────────────────────────────────────────────────────────────────────
 Heartbeat/Cron        ✅            ✅              ✅             ✅
 Active HTTP           ❌            ❌              ✅             ✅
-Status Pages          ✅            ❌              ✅             ❌
-Incidents             ✅            ❌              ✅             ❌
-Maintenance           ✅            ❌              ✅             ❌
 SMS/Voice             ❌            ✅              ✅             ✅
 Self-hosted           ❌            ✅              ❌             ❌
 Free tier size        20            20              10             50
