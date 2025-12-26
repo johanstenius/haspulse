@@ -9,6 +9,7 @@ type SparklineCheck = {
 	scheduleType: ScheduleType
 	scheduleValue: string
 	timezone: string | null
+	createdAt: Date
 }
 
 export function calculateSparkline(
@@ -47,6 +48,8 @@ export function calculateSparkline(
 
 		if (ping) {
 			sparkline.push(ping.type === "SUCCESS" ? "success" : "fail")
+		} else if (windowStart < check.createdAt) {
+			sparkline.push("empty")
 		} else {
 			sparkline.push("missed")
 		}

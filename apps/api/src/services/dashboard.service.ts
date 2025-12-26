@@ -21,6 +21,7 @@ export type DashboardCheckModel = {
 	scheduleValue: string
 	timezone: string | null
 	lastPingAt: Date | null
+	createdAt: Date
 	projectId: string
 	projectName: string
 }
