@@ -27,7 +27,17 @@ export type AppEnv = {
 }
 
 export function createApp() {
-	const app = new OpenAPIHono<AppEnv>()
+	const app = new OpenAPIHono<AppEnv>({
+		defaultHook: (result, c) => {
+			if (!result.success) {
+				logger.warn(
+					{ status: 400, path: c.req.path, issues: result.error.issues },
+					"Validation error",
+				)
+				return c.json({ success: false, error: result.error }, 400)
+			}
+		},
+	})
 
 	// CORS
 	app.use(
@@ -102,6 +112,10 @@ export function createApp() {
 	// Error handler
 	app.onError((err, c) => {
 		if (err instanceof AppError) {
+			logger.warn(
+				{ status: err.status, code: err.code, path: c.req.path },
+				err.message,
+			)
 			return c.json(
 				{ error: { code: err.code, message: err.message } },
 				err.status as 400,
