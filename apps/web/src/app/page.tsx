@@ -368,9 +368,7 @@ export default function LandingPage() {
 						<h2 className="text-3xl font-bold text-foreground mb-4">
 							Simple to integrate
 						</h2>
-						<p className="text-muted-foreground">
-							Add to your cron job, done.
-						</p>
+						<p className="text-muted-foreground">Add to your cron job, done.</p>
 					</div>
 
 					<CodeBlock />

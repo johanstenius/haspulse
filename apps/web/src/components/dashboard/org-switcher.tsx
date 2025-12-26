@@ -67,16 +67,6 @@ export function OrgSwitcher() {
 						{org.id === currentOrg.id && <Check className="h-4 w-4 shrink-0" />}
 					</DropdownMenuItem>
 				))}
-				<DropdownMenuSeparator />
-				<DropdownMenuItem asChild>
-					<Link
-						href="/settings/organizations/new"
-						className="flex items-center gap-2"
-					>
-						<Plus className="h-4 w-4" />
-						Create organization
-					</Link>
-				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	)
