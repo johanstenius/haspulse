@@ -28,10 +28,10 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import type { Check, Project, ScheduleType } from "@/lib/api"
+import { type Check, type Project, type ScheduleType, api } from "@/lib/api"
 import { useSession } from "@/lib/auth-client"
 import { useCreateChannel, useCreateCheck, useCreateProject } from "@/lib/query"
-import { ArrowRight, Check as CheckIcon, Copy, Loader2 } from "lucide-react"
+import { ArrowRight, Check as CheckIcon, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
@@ -55,6 +55,7 @@ type ProjectFormValues = z.infer<typeof projectSchema>
 // Step 2: Check Form
 const checkSchema = z.object({
 	name: z.string().min(1, "Name is required"),
+	slug: z.string().min(1, "Slug is required"),
 	scheduleType: z.enum(["PERIOD", "CRON"]),
 	scheduleValue: z.string().min(1, "Schedule is required"),
 })
@@ -95,7 +96,7 @@ export default function OnboardingPage() {
 	const [step, setStep] = useState(1)
 	const [project, setProject] = useState<Project | null>(null)
 	const [check, setCheck] = useState<Check | null>(null)
-	const [copied, setCopied] = useState(false)
+	const [apiKey, setApiKey] = useState<string | null>(null)
 
 	const createProject = useCreateProject()
 	const createCheck = useCreateCheck()
@@ -111,10 +112,19 @@ export default function OnboardingPage() {
 	const checkForm = useForm<CheckFormValues>({
 		defaultValues: {
 			name: "",
+			slug: "",
 			scheduleType: "PERIOD",
 			scheduleValue: "86400",
 		},
 	})
+	const checkName = useWatch({ control: checkForm.control, name: "name" })
+
+	// Auto-generate slug from check name
+	useEffect(() => {
+		if (checkName) {
+			checkForm.setValue("slug", slugify(checkName))
+		}
+	}, [checkName, checkForm])
 	const scheduleType = useWatch({
 		control: checkForm.control,
 		name: "scheduleType",
@@ -135,6 +145,13 @@ export default function OnboardingPage() {
 				slug: slugify(result.data.name),
 			})
 			setProject(newProject)
+
+			// Auto-create API key for pings
+			const { fullKey } = await api.apiKeys.create(newProject.id, {
+				name: "Default",
+			})
+			setApiKey(fullKey)
+
 			setStep(2)
 		} catch {
 			toast.error("Failed to create project")
@@ -151,6 +168,7 @@ export default function OnboardingPage() {
 				projectId: project.id,
 				data: {
 					name: result.data.name,
+					slug: result.data.slug,
 					scheduleType: result.data.scheduleType as ScheduleType,
 					scheduleValue: result.data.scheduleValue,
 				},
@@ -196,14 +214,6 @@ export default function OnboardingPage() {
 			toast.error("Failed to set up alerts")
 			router.push("/dashboard")
 		}
-	}
-
-	async function copyPingUrl() {
-		if (!check) return
-		await navigator.clipboard.writeText(`https://haspulse.dev/ping/${check.id}`)
-		setCopied(true)
-		toast.success("Copied to clipboard")
-		setTimeout(() => setCopied(false), 2000)
 	}
 
 	function skipOnboarding() {
@@ -367,32 +377,12 @@ export default function OnboardingPage() {
 						)}
 
 						{/* Step 3: Test Ping */}
-						{step === 3 && check && (
+						{step === 3 && check?.slug && apiKey && (
 							<div className="space-y-6">
-								{/* Prominent ping URL */}
-								<div className="rounded-lg border-2 border-primary/50 bg-primary/5 p-4 space-y-2">
-									<p className="text-xs font-medium text-primary uppercase tracking-wide">
-										Your ping URL
-									</p>
-									<div className="flex items-center gap-2">
-										<code className="flex-1 text-sm font-mono bg-background rounded px-3 py-2 border">
-											https://haspulse.dev/ping/{check.id}
-										</code>
-										<Button variant="outline" size="icon" onClick={copyPingUrl}>
-											{copied ? (
-												<CheckIcon className="h-4 w-4 text-primary" />
-											) : (
-												<Copy className="h-4 w-4" />
-											)}
-										</Button>
-									</div>
-									<p className="text-xs text-muted-foreground">
-										Add this to your cron job or scheduled task
-									</p>
-								</div>
-
 								<PingTester
 									checkId={check.id}
+									slug={check.slug}
+									apiKey={apiKey}
 									onSuccess={handlePingSuccess}
 									onSkip={handlePingSkip}
 								/>

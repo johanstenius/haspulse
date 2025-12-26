@@ -72,19 +72,6 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 	return ping
 }
 
-export async function resolveCheckId(
-	identifier: { id: string } | { projectSlug: string; checkSlug: string },
-): Promise<string | null> {
-	if ("id" in identifier) {
-		const exists = await checkRepository.existsById(identifier.id)
-		return exists ? identifier.id : null
-	}
-	return checkRepository.findIdBySlug(
-		identifier.projectSlug,
-		identifier.checkSlug,
-	)
-}
-
 export async function listPingsByCheck(
 	checkId: string,
 	limit = 50,

@@ -1,24 +1,62 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { createApp } from "../../app.js"
 
-// Mock the services
+vi.mock("../../repositories/check.repository.js", () => ({
+	checkRepository: {
+		findIdBySlugInProject: vi.fn(),
+		updateOnPing: vi.fn(),
+	},
+}))
+
 vi.mock("../../services/ping.service.js", () => ({
-	resolveCheckId: vi.fn(),
 	recordPing: vi.fn(),
 }))
 
-import { recordPing, resolveCheckId } from "../../services/ping.service.js"
+vi.mock("../../services/api-key.service.js", () => ({
+	validateApiKey: vi.fn(),
+}))
+
+import { checkRepository } from "../../repositories/check.repository.js"
+import { validateApiKey } from "../../services/api-key.service.js"
+import { recordPing } from "../../services/ping.service.js"
 
 describe("Ping Routes", () => {
 	const app = createApp()
+	const apiKey = "hp_test123"
+	const projectId = "proj_123"
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		vi.mocked(validateApiKey).mockResolvedValue({
+			id: "key_123",
+			projectId,
+			name: "Test Key",
+			keyPrefix: "hp_test",
+			lastUsedAt: null,
+			createdAt: new Date(),
+		})
 	})
 
-	describe("GET /ping/{id}", () => {
-		it("returns 200 for valid check ID", async () => {
-			vi.mocked(resolveCheckId).mockResolvedValue("check123")
+	describe("GET /ping/{slug}", () => {
+		it("returns 401 without API key", async () => {
+			const res = await app.request("/ping/daily-backup")
+			expect(res.status).toBe(401)
+		})
+
+		it("returns 401 with invalid API key", async () => {
+			vi.mocked(validateApiKey).mockResolvedValue(null)
+
+			const res = await app.request("/ping/daily-backup", {
+				headers: { Authorization: `Bearer ${apiKey}` },
+			})
+
+			expect(res.status).toBe(401)
+		})
+
+		it("returns 200 for valid check slug", async () => {
+			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
+				"check123",
+			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
 				checkId: "check123",
@@ -28,30 +66,37 @@ describe("Ping Routes", () => {
 				createdAt: new Date(),
 			})
 
-			const res = await app.request("/ping/V1StGXR8_Z5jdHi6")
+			const res = await app.request("/ping/daily-backup", {
+				headers: { Authorization: `Bearer ${apiKey}` },
+			})
 
 			expect(res.status).toBe(200)
 			const json = await res.json()
 			expect(json).toEqual({ ok: true })
-			expect(resolveCheckId).toHaveBeenCalledWith({ id: "V1StGXR8_Z5jdHi6" })
+			expect(checkRepository.findIdBySlugInProject).toHaveBeenCalledWith(
+				projectId,
+				"daily-backup",
+			)
 			expect(recordPing).toHaveBeenCalled()
 		})
 
-		it("returns 200 for invalid check ID (silent fail)", async () => {
-			vi.mocked(resolveCheckId).mockResolvedValue(null)
+		it("returns 200 for unknown slug (silent fail)", async () => {
+			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(null)
 
-			const res = await app.request("/ping/invalid123")
+			const res = await app.request("/ping/unknown-check", {
+				headers: { Authorization: `Bearer ${apiKey}` },
+			})
 
 			expect(res.status).toBe(200)
-			const json = await res.json()
-			expect(json).toEqual({ ok: true })
 			expect(recordPing).not.toHaveBeenCalled()
 		})
 	})
 
-	describe("GET /ping/{id}/start", () => {
+	describe("GET /ping/{slug}/start", () => {
 		it("records start signal", async () => {
-			vi.mocked(resolveCheckId).mockResolvedValue("check123")
+			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
+				"check123",
+			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
 				checkId: "check123",
@@ -61,7 +106,9 @@ describe("Ping Routes", () => {
 				createdAt: new Date(),
 			})
 
-			const res = await app.request("/ping/V1StGXR8_Z5jdHi6/start")
+			const res = await app.request("/ping/daily-backup/start", {
+				headers: { Authorization: `Bearer ${apiKey}` },
+			})
 
 			expect(res.status).toBe(200)
 			expect(recordPing).toHaveBeenCalledWith(
@@ -70,9 +117,11 @@ describe("Ping Routes", () => {
 		})
 	})
 
-	describe("GET /ping/{id}/fail", () => {
+	describe("GET /ping/{slug}/fail", () => {
 		it("records fail signal", async () => {
-			vi.mocked(resolveCheckId).mockResolvedValue("check123")
+			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
+				"check123",
+			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
 				checkId: "check123",
@@ -82,7 +131,9 @@ describe("Ping Routes", () => {
 				createdAt: new Date(),
 			})
 
-			const res = await app.request("/ping/V1StGXR8_Z5jdHi6/fail")
+			const res = await app.request("/ping/daily-backup/fail", {
+				headers: { Authorization: `Bearer ${apiKey}` },
+			})
 
 			expect(res.status).toBe(200)
 			expect(recordPing).toHaveBeenCalledWith(
@@ -91,31 +142,11 @@ describe("Ping Routes", () => {
 		})
 	})
 
-	describe("GET /ping/{projectSlug}/{checkSlug}", () => {
-		it("resolves check by slug", async () => {
-			vi.mocked(resolveCheckId).mockResolvedValue("check123")
-			vi.mocked(recordPing).mockResolvedValue({
-				id: "ping123",
-				checkId: "check123",
-				type: "SUCCESS",
-				body: null,
-				sourceIp: "127.0.0.1",
-				createdAt: new Date(),
-			})
-
-			const res = await app.request("/ping/acme-prod/db-backup")
-
-			expect(res.status).toBe(200)
-			expect(resolveCheckId).toHaveBeenCalledWith({
-				projectSlug: "acme-prod",
-				checkSlug: "db-backup",
-			})
-		})
-	})
-
-	describe("POST /ping/{id}", () => {
+	describe("POST /ping/{slug}", () => {
 		it("captures request body", async () => {
-			vi.mocked(resolveCheckId).mockResolvedValue("check123")
+			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
+				"check123",
+			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
 				checkId: "check123",
@@ -125,8 +156,9 @@ describe("Ping Routes", () => {
 				createdAt: new Date(),
 			})
 
-			const res = await app.request("/ping/V1StGXR8_Z5jdHi6", {
+			const res = await app.request("/ping/daily-backup", {
 				method: "POST",
+				headers: { Authorization: `Bearer ${apiKey}` },
 				body: "job output",
 			})
 

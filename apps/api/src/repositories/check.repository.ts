@@ -142,6 +142,17 @@ export const checkRepository = {
 		return check?.id ?? null
 	},
 
+	async findIdBySlugInProject(
+		projectId: string,
+		slug: string,
+	): Promise<string | null> {
+		const check = await prisma.check.findFirst({
+			where: { projectId, slug },
+			select: { id: true },
+		})
+		return check?.id ?? null
+	},
+
 	async updateOnPing(
 		checkId: string,
 		data: UpdateOnPingData,

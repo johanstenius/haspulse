@@ -171,12 +171,12 @@ export function CheckForm({
 								name="slug"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Slug (optional)</FormLabel>
+										<FormLabel>Slug</FormLabel>
 										<FormControl>
 											<Input placeholder="daily-backup" {...field} />
 										</FormControl>
 										<FormDescription>
-											Ping URL: haspulse.dev/p/{slug || "<check-id>"}
+											Used for pings: /ping/{slug || "<slug>"}
 										</FormDescription>
 										<FormMessage />
 									</FormItem>

@@ -73,12 +73,12 @@ export class HasPulse {
 		return handleResponse<T>(response)
 	}
 
-	async ping(checkId: string, options: PingOptions = {}): Promise<void> {
+	async ping(slug: string, options: PingOptions = {}): Promise<void> {
 		if (!this.enabled) return
 
 		const { type = "success", body } = options
 
-		let path = `/ping/${checkId}`
+		let path = `/ping/${slug}`
 		if (type === "start") path += "/start"
 		else if (type === "fail") path += "/fail"
 
@@ -106,16 +106,16 @@ export class HasPulse {
 	 * Rethrows the original error after sending fail ping.
 	 * If no apiKey configured, just runs the function without pings.
 	 */
-	async wrap<T>(checkId: string, fn: () => Promise<T>): Promise<T> {
+	async wrap<T>(slug: string, fn: () => Promise<T>): Promise<T> {
 		if (!this.enabled) return fn()
 
-		await this.ping(checkId, { type: "start" })
+		await this.ping(slug, { type: "start" })
 		try {
 			const result = await fn()
-			await this.ping(checkId, { type: "success" })
+			await this.ping(slug, { type: "success" })
 			return result
 		} catch (error) {
-			await this.ping(checkId, { type: "fail" }).catch(() => {})
+			await this.ping(slug, { type: "fail" }).catch(() => {})
 			throw error
 		}
 	}

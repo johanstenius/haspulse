@@ -9,11 +9,19 @@ import { toast } from "sonner"
 
 type PingTesterProps = {
 	checkId: string
+	slug: string
+	apiKey: string
 	onSuccess: () => void
 	onSkip: () => void
 }
 
-export function PingTester({ checkId, onSuccess, onSkip }: PingTesterProps) {
+export function PingTester({
+	checkId,
+	slug,
+	apiKey,
+	onSuccess,
+	onSkip,
+}: PingTesterProps) {
 	const [pingReceived, setPingReceived] = useState(false)
 	const [copied, setCopied] = useState(false)
 	const initialLastPingAt = useRef<string | null>(null)
@@ -59,8 +67,7 @@ export function PingTester({ checkId, onSuccess, onSkip }: PingTesterProps) {
 		}
 	}, [pingReceived, onSuccess])
 
-	const pingUrl = `https://haspulse.dev/ping/${checkId}`
-	const curlCommand = `curl -fsS --retry 3 ${pingUrl}`
+	const curlCommand = `curl -H "Authorization: Bearer ${apiKey}" https://api.haspulse.dev/ping/${slug}`
 
 	async function copyToClipboard() {
 		await navigator.clipboard.writeText(curlCommand)
@@ -76,7 +83,7 @@ export function PingTester({ checkId, onSuccess, onSkip }: PingTesterProps) {
 					Run this command in your terminal
 				</p>
 				<div className="flex items-center gap-2">
-					<div className="flex-1 flex items-center gap-3 rounded-lg bg-zinc-950 border border-border px-4 py-3 font-mono text-sm">
+					<div className="flex-1 flex items-center gap-3 rounded-lg bg-zinc-950 border border-border px-4 py-3 font-mono text-xs">
 						<Terminal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 						<code className="text-foreground break-all">{curlCommand}</code>
 					</div>

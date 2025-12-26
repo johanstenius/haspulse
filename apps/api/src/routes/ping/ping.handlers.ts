@@ -1,7 +1,8 @@
 import type { PingType } from "@haspulse/db"
 import type { Context } from "hono"
 import { logger } from "../../lib/logger.js"
-import { recordPing, resolveCheckId } from "../../services/ping.service.js"
+import { checkRepository } from "../../repositories/check.repository.js"
+import { recordPing } from "../../services/ping.service.js"
 import type { PingResponse } from "./ping.schemas.js"
 
 function getClientIp(c: Context): string {
@@ -10,17 +11,6 @@ function getClientIp(c: Context): string {
 		c.req.header("x-real-ip") ||
 		"unknown"
 	)
-}
-
-function signalToPingType(signal?: string): PingType {
-	switch (signal) {
-		case "start":
-			return "START"
-		case "fail":
-			return "FAIL"
-		default:
-			return "SUCCESS"
-	}
 }
 
 async function getRequestBody(c: Context): Promise<string | null> {
@@ -34,43 +24,21 @@ async function getRequestBody(c: Context): Promise<string | null> {
 	}
 }
 
-export async function processPingById(
+export async function processPing(
 	c: Context,
-	id: string,
-	signal?: string,
+	projectId: string,
+	slug: string,
+	type: PingType,
 ): Promise<PingResponse> {
-	const checkId = await resolveCheckId({ id })
+	const checkId = await checkRepository.findIdBySlugInProject(projectId, slug)
 
 	if (!checkId) {
-		logger.warn({ id }, "Ping to unknown check ID")
+		logger.warn({ projectId, slug }, "Ping to unknown check")
 		return { ok: true }
 	}
 
 	const body = await getRequestBody(c)
 	const sourceIp = getClientIp(c)
-	const type = signalToPingType(signal)
-
-	await recordPing({ checkId, type, body, sourceIp })
-
-	return { ok: true }
-}
-
-export async function processPingBySlug(
-	c: Context,
-	projectSlug: string,
-	checkSlug: string,
-	signal?: string,
-): Promise<PingResponse> {
-	const checkId = await resolveCheckId({ projectSlug, checkSlug })
-
-	if (!checkId) {
-		logger.warn({ projectSlug, checkSlug }, "Ping to unknown check")
-		return { ok: true }
-	}
-
-	const body = await getRequestBody(c)
-	const sourceIp = getClientIp(c)
-	const type = signalToPingType(signal)
 
 	await recordPing({ checkId, type, body, sourceIp })
 

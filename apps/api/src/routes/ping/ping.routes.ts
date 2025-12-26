@@ -1,31 +1,38 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi"
+import type { AuthEnv } from "../../middleware/auth.js"
 import { pingRateLimit } from "../../middleware/rate-limit.js"
-import { processPingById, processPingBySlug } from "./ping.handlers.js"
-import {
-	pingByIdParamSchema,
-	pingBySlugParamSchema,
-	pingResponseSchema,
-} from "./ping.schemas.js"
+import { requireApiKey } from "../../middleware/require-api-key.js"
+import { processPing } from "./ping.handlers.js"
+import { pingParamSchema, pingResponseSchema } from "./ping.schemas.js"
 
-const pingRoutes = new OpenAPIHono()
+function getProjectId(c: { get: (key: "projectId") => string | null }): string {
+	const projectId = c.get("projectId")
+	if (!projectId) throw new Error("projectId not set")
+	return projectId
+}
 
-// Rate limit by check identifier extracted from URL
+const pingRoutes = new OpenAPIHono<AuthEnv>()
+
+// Require API key for all ping routes
+pingRoutes.use("/ping/*", requireApiKey)
+
+// Rate limit by check slug
 pingRoutes.use(
 	"/ping/*",
 	pingRateLimit((c) => {
+		const projectId = c.get("projectId")
 		const path = c.req.path
-		// Extract identifier: /ping/{id} or /ping/{project}/{check}
-		const match = path.match(/^\/ping\/([^/]+(?:\/[^/]+)?)/)
-		if (!match?.[1]) return null
-		return match[1].replace(/\/(start|fail)$/, "")
+		const match = path.match(/^\/ping\/([^/]+)/)
+		if (!match?.[1] || !projectId) return null
+		return `${projectId}:${match[1].replace(/\/(start|fail)$/, "")}`
 	}),
 )
 
-// Ping by ID - success
-const pingByIdRoute = createRoute({
+// Success ping
+const pingRoute = createRoute({
 	method: "get",
-	path: "/ping/{id}",
-	request: { params: pingByIdParamSchema },
+	path: "/ping/{slug}",
+	request: { params: pingParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: pingResponseSchema } },
@@ -33,13 +40,13 @@ const pingByIdRoute = createRoute({
 		},
 	},
 	tags: ["Ping"],
-	summary: "Record success ping by check ID",
+	summary: "Record success ping",
 })
 
-const pingByIdPostRoute = createRoute({
+const pingPostRoute = createRoute({
 	method: "post",
-	path: "/ping/{id}",
-	request: { params: pingByIdParamSchema },
+	path: "/ping/{slug}",
+	request: { params: pingParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: pingResponseSchema } },
@@ -47,14 +54,14 @@ const pingByIdPostRoute = createRoute({
 		},
 	},
 	tags: ["Ping"],
-	summary: "Record success ping by check ID (with body)",
+	summary: "Record success ping with body",
 })
 
-// Ping by ID - start
-const pingByIdStartRoute = createRoute({
+// Start signal
+const pingStartRoute = createRoute({
 	method: "get",
-	path: "/ping/{id}/start",
-	request: { params: pingByIdParamSchema },
+	path: "/ping/{slug}/start",
+	request: { params: pingParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: pingResponseSchema } },
@@ -62,13 +69,13 @@ const pingByIdStartRoute = createRoute({
 		},
 	},
 	tags: ["Ping"],
-	summary: "Record start signal by check ID",
+	summary: "Record start signal",
 })
 
-const pingByIdStartPostRoute = createRoute({
+const pingStartPostRoute = createRoute({
 	method: "post",
-	path: "/ping/{id}/start",
-	request: { params: pingByIdParamSchema },
+	path: "/ping/{slug}/start",
+	request: { params: pingParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: pingResponseSchema } },
@@ -76,14 +83,14 @@ const pingByIdStartPostRoute = createRoute({
 		},
 	},
 	tags: ["Ping"],
-	summary: "Record start signal by check ID (with body)",
+	summary: "Record start signal with body",
 })
 
-// Ping by ID - fail
-const pingByIdFailRoute = createRoute({
+// Fail signal
+const pingFailRoute = createRoute({
 	method: "get",
-	path: "/ping/{id}/fail",
-	request: { params: pingByIdParamSchema },
+	path: "/ping/{slug}/fail",
+	request: { params: pingParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: pingResponseSchema } },
@@ -91,13 +98,13 @@ const pingByIdFailRoute = createRoute({
 		},
 	},
 	tags: ["Ping"],
-	summary: "Record fail signal by check ID",
+	summary: "Record fail signal",
 })
 
-const pingByIdFailPostRoute = createRoute({
+const pingFailPostRoute = createRoute({
 	method: "post",
-	path: "/ping/{id}/fail",
-	request: { params: pingByIdParamSchema },
+	path: "/ping/{slug}/fail",
+	request: { params: pingParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: pingResponseSchema } },
@@ -105,166 +112,43 @@ const pingByIdFailPostRoute = createRoute({
 		},
 	},
 	tags: ["Ping"],
-	summary: "Record fail signal by check ID (with body)",
-})
-
-// Ping by slug - success
-const pingBySlugRoute = createRoute({
-	method: "get",
-	path: "/ping/{projectSlug}/{checkSlug}",
-	request: { params: pingBySlugParamSchema },
-	responses: {
-		200: {
-			content: { "application/json": { schema: pingResponseSchema } },
-			description: "Ping recorded",
-		},
-	},
-	tags: ["Ping"],
-	summary: "Record success ping by project/check slug",
-})
-
-const pingBySlugPostRoute = createRoute({
-	method: "post",
-	path: "/ping/{projectSlug}/{checkSlug}",
-	request: { params: pingBySlugParamSchema },
-	responses: {
-		200: {
-			content: { "application/json": { schema: pingResponseSchema } },
-			description: "Ping recorded",
-		},
-	},
-	tags: ["Ping"],
-	summary: "Record success ping by project/check slug (with body)",
-})
-
-// Ping by slug - start
-const pingBySlugStartRoute = createRoute({
-	method: "get",
-	path: "/ping/{projectSlug}/{checkSlug}/start",
-	request: { params: pingBySlugParamSchema },
-	responses: {
-		200: {
-			content: { "application/json": { schema: pingResponseSchema } },
-			description: "Start signal recorded",
-		},
-	},
-	tags: ["Ping"],
-	summary: "Record start signal by project/check slug",
-})
-
-const pingBySlugStartPostRoute = createRoute({
-	method: "post",
-	path: "/ping/{projectSlug}/{checkSlug}/start",
-	request: { params: pingBySlugParamSchema },
-	responses: {
-		200: {
-			content: { "application/json": { schema: pingResponseSchema } },
-			description: "Start signal recorded",
-		},
-	},
-	tags: ["Ping"],
-	summary: "Record start signal by project/check slug (with body)",
-})
-
-// Ping by slug - fail
-const pingBySlugFailRoute = createRoute({
-	method: "get",
-	path: "/ping/{projectSlug}/{checkSlug}/fail",
-	request: { params: pingBySlugParamSchema },
-	responses: {
-		200: {
-			content: { "application/json": { schema: pingResponseSchema } },
-			description: "Fail signal recorded",
-		},
-	},
-	tags: ["Ping"],
-	summary: "Record fail signal by project/check slug",
-})
-
-const pingBySlugFailPostRoute = createRoute({
-	method: "post",
-	path: "/ping/{projectSlug}/{checkSlug}/fail",
-	request: { params: pingBySlugParamSchema },
-	responses: {
-		200: {
-			content: { "application/json": { schema: pingResponseSchema } },
-			description: "Fail signal recorded",
-		},
-	},
-	tags: ["Ping"],
-	summary: "Record fail signal by project/check slug (with body)",
+	summary: "Record fail signal with body",
 })
 
 // Register handlers
-pingRoutes.openapi(pingByIdRoute, async (c) => {
-	const { id } = c.req.valid("param")
-	const result = await processPingById(c, id)
+pingRoutes.openapi(pingRoute, async (c) => {
+	const { slug } = c.req.valid("param")
+	const result = await processPing(c, getProjectId(c), slug, "SUCCESS")
 	return c.json(result, 200)
 })
 
-pingRoutes.openapi(pingByIdPostRoute, async (c) => {
-	const { id } = c.req.valid("param")
-	const result = await processPingById(c, id)
+pingRoutes.openapi(pingPostRoute, async (c) => {
+	const { slug } = c.req.valid("param")
+	const result = await processPing(c, getProjectId(c), slug, "SUCCESS")
 	return c.json(result, 200)
 })
 
-pingRoutes.openapi(pingByIdStartRoute, async (c) => {
-	const { id } = c.req.valid("param")
-	const result = await processPingById(c, id, "start")
+pingRoutes.openapi(pingStartRoute, async (c) => {
+	const { slug } = c.req.valid("param")
+	const result = await processPing(c, getProjectId(c), slug, "START")
 	return c.json(result, 200)
 })
 
-pingRoutes.openapi(pingByIdStartPostRoute, async (c) => {
-	const { id } = c.req.valid("param")
-	const result = await processPingById(c, id, "start")
+pingRoutes.openapi(pingStartPostRoute, async (c) => {
+	const { slug } = c.req.valid("param")
+	const result = await processPing(c, getProjectId(c), slug, "START")
 	return c.json(result, 200)
 })
 
-pingRoutes.openapi(pingByIdFailRoute, async (c) => {
-	const { id } = c.req.valid("param")
-	const result = await processPingById(c, id, "fail")
+pingRoutes.openapi(pingFailRoute, async (c) => {
+	const { slug } = c.req.valid("param")
+	const result = await processPing(c, getProjectId(c), slug, "FAIL")
 	return c.json(result, 200)
 })
 
-pingRoutes.openapi(pingByIdFailPostRoute, async (c) => {
-	const { id } = c.req.valid("param")
-	const result = await processPingById(c, id, "fail")
-	return c.json(result, 200)
-})
-
-pingRoutes.openapi(pingBySlugRoute, async (c) => {
-	const { projectSlug, checkSlug } = c.req.valid("param")
-	const result = await processPingBySlug(c, projectSlug, checkSlug)
-	return c.json(result, 200)
-})
-
-pingRoutes.openapi(pingBySlugPostRoute, async (c) => {
-	const { projectSlug, checkSlug } = c.req.valid("param")
-	const result = await processPingBySlug(c, projectSlug, checkSlug)
-	return c.json(result, 200)
-})
-
-pingRoutes.openapi(pingBySlugStartRoute, async (c) => {
-	const { projectSlug, checkSlug } = c.req.valid("param")
-	const result = await processPingBySlug(c, projectSlug, checkSlug, "start")
-	return c.json(result, 200)
-})
-
-pingRoutes.openapi(pingBySlugStartPostRoute, async (c) => {
-	const { projectSlug, checkSlug } = c.req.valid("param")
-	const result = await processPingBySlug(c, projectSlug, checkSlug, "start")
-	return c.json(result, 200)
-})
-
-pingRoutes.openapi(pingBySlugFailRoute, async (c) => {
-	const { projectSlug, checkSlug } = c.req.valid("param")
-	const result = await processPingBySlug(c, projectSlug, checkSlug, "fail")
-	return c.json(result, 200)
-})
-
-pingRoutes.openapi(pingBySlugFailPostRoute, async (c) => {
-	const { projectSlug, checkSlug } = c.req.valid("param")
-	const result = await processPingBySlug(c, projectSlug, checkSlug, "fail")
+pingRoutes.openapi(pingFailPostRoute, async (c) => {
+	const { slug } = c.req.valid("param")
+	const result = await processPing(c, getProjectId(c), slug, "FAIL")
 	return c.json(result, 200)
 })
 
