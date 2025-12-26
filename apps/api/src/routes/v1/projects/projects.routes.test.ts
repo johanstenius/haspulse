@@ -9,6 +9,7 @@ vi.mock("../../../services/project.service.js", () => ({
 	updateProject: vi.fn(),
 	deleteProject: vi.fn(),
 	slugExists: vi.fn(),
+	generateUniqueSlug: vi.fn(),
 }))
 
 vi.mock("../../../lib/auth.js", () => ({
@@ -42,6 +43,7 @@ import { getEffectivePlan } from "../../../services/organization.service.js"
 import {
 	createProject,
 	deleteProject,
+	generateUniqueSlug,
 	getProjectForOrg,
 	listProjectsByOrgPaginated,
 	slugExists,
@@ -156,7 +158,7 @@ describe("Project Routes", () => {
 
 	describe("POST /v1/projects", () => {
 		it("creates a new project", async () => {
-			vi.mocked(slugExists).mockResolvedValue(false)
+			vi.mocked(generateUniqueSlug).mockResolvedValue("test-project")
 			vi.mocked(createProject).mockResolvedValue(mockProject)
 
 			const res = await app.request("/v1/projects", {
@@ -170,8 +172,12 @@ describe("Project Routes", () => {
 			expect(json.id).toBe("proj123")
 		})
 
-		it("returns 409 when slug exists", async () => {
-			vi.mocked(slugExists).mockResolvedValue(true)
+		it("auto-generates unique slug when slug exists", async () => {
+			vi.mocked(generateUniqueSlug).mockResolvedValue("existing-slug-2")
+			vi.mocked(createProject).mockResolvedValue({
+				...mockProject,
+				slug: "existing-slug-2",
+			})
 
 			const res = await app.request("/v1/projects", {
 				method: "POST",
@@ -179,7 +185,9 @@ describe("Project Routes", () => {
 				body: JSON.stringify({ name: "Test Project", slug: "existing-slug" }),
 			})
 
-			expect(res.status).toBe(409)
+			expect(res.status).toBe(201)
+			const json = await res.json()
+			expect(json.slug).toBe("existing-slug-2")
 		})
 	})
 

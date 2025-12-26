@@ -7,6 +7,7 @@ import { getRequiredOrg, requireAuth } from "../../../middleware/auth.js"
 import {
 	createProject,
 	deleteProject,
+	generateUniqueSlug,
 	getProjectForOrg,
 	listProjectsByOrgPaginated,
 	slugExists,
@@ -60,10 +61,6 @@ const createProjectRoute = createRoute({
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
 			description: "Unauthorized",
-		},
-		409: {
-			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Slug already exists",
 		},
 	},
 	tags: ["Projects"],
@@ -171,14 +168,12 @@ projectRoutes.openapi(createProjectRoute, async (c) => {
 		)
 	}
 
-	if (await slugExists(body.slug)) {
-		throw conflict("Slug already exists")
-	}
+	const slug = await generateUniqueSlug(body.slug)
 
 	const project = await createProject({
 		orgId: org.id,
 		name: body.name,
-		slug: body.slug,
+		slug,
 		timezone: body.timezone,
 	})
 

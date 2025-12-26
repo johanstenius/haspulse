@@ -92,6 +92,25 @@ export async function slugExists(slug: string): Promise<boolean> {
 	return projectRepository.slugExists(slug)
 }
 
+export async function generateUniqueSlug(baseSlug: string): Promise<string> {
+	if (!(await projectRepository.slugExists(baseSlug))) {
+		return baseSlug
+	}
+
+	let suffix = 2
+	while (suffix <= 100) {
+		const candidate = `${baseSlug}-${suffix}`
+		if (!(await projectRepository.slugExists(candidate))) {
+			return candidate
+		}
+		suffix++
+	}
+
+	// Fallback: append random string
+	const random = Math.random().toString(36).substring(2, 8)
+	return `${baseSlug}-${random}`
+}
+
 export async function countProjectsByOrg(orgId: string): Promise<number> {
 	return projectRepository.countByOrgId(orgId)
 }
