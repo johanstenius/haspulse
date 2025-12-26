@@ -1,12 +1,7 @@
 import { CheckStatus } from "@haspulse/db"
 import { logger } from "../lib/logger.js"
 import { checkRepository } from "../repositories/check.repository.js"
-import { organizationRepository } from "../repositories/organization.repository.js"
 import { triggerAlert } from "./alert.service.js"
-import {
-	createIncident,
-	findActiveIncidentForCheck,
-} from "./incident.service.js"
 import { pruneAllPings } from "./pruning.service.js"
 import { recordCheckStatus } from "./stats.service.js"
 
@@ -49,24 +44,6 @@ export async function runSchedulerTick(): Promise<void> {
 			}
 		} catch (err) {
 			logger.error({ err, checkId: check.id }, "Alert failed")
-		}
-
-		try {
-			const org = await organizationRepository.findByCheckId(check.id)
-			if (org?.autoCreateIncidents) {
-				const existingIncident = await findActiveIncidentForCheck(check.id)
-				if (!existingIncident) {
-					await createIncident({
-						projectId: check.projectId,
-						title: `${check.name} is down`,
-						impact: "MAJOR",
-						autoCreated: true,
-						checkIds: [check.id],
-					})
-				}
-			}
-		} catch (err) {
-			logger.error({ err, checkId: check.id }, "Auto-incident failed")
 		}
 	}
 

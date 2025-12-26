@@ -16,7 +16,6 @@ export type CreateOrgInput = {
 export type UpdateOrgInput = {
 	name?: string
 	slug?: string
-	autoCreateIncidents?: boolean
 }
 
 function generateSlug(name: string): string {

@@ -7,16 +7,7 @@ export type RecentPing = {
 	type: PingType
 	createdAt: Date
 }
-import type {
-	IncidentModel,
-	IncidentUpdateModel,
-	IncidentWithUpdatesModel,
-} from "../services/incident.service.js"
 import type { InvitationModel } from "../services/invitation.service.js"
-import type {
-	MaintenanceModel,
-	MaintenanceWithChecksModel,
-} from "../services/maintenance.service.js"
 import type {
 	OrgMemberModel,
 	OrgModel,
@@ -25,16 +16,7 @@ import type { ProjectModel } from "../services/project.service.js"
 
 import type { ChannelResponse } from "../routes/v1/channels/channels.schemas.js"
 import type { CheckResponse } from "../routes/v1/checks/checks.schemas.js"
-import type {
-	IncidentResponse,
-	IncidentUpdateResponse,
-	IncidentWithUpdatesResponse,
-} from "../routes/v1/incidents/incidents.schemas.js"
 import type { InvitationResponse } from "../routes/v1/invitations/invitations.schemas.js"
-import type {
-	MaintenanceResponse,
-	MaintenanceWithChecksResponse,
-} from "../routes/v1/maintenance/maintenance.schemas.js"
 import type {
 	OrgMemberResponse,
 	OrgResponse,
@@ -51,9 +33,6 @@ export function toProjectResponse(project: ProjectModel): ProjectResponse {
 		name: project.name,
 		slug: project.slug,
 		timezone: project.timezone,
-		statusPageEnabled: project.statusPageEnabled,
-		statusPageTitle: project.statusPageTitle,
-		statusPageLogoUrl: project.statusPageLogoUrl,
 		createdAt: project.createdAt.toISOString(),
 		updatedAt: project.updatedAt.toISOString(),
 	}
@@ -98,66 +77,6 @@ export function toChannelResponse(channel: ChannelModel): ChannelResponse {
 	}
 }
 
-export function toIncidentResponse(incident: IncidentModel): IncidentResponse {
-	return {
-		id: incident.id,
-		projectId: incident.projectId,
-		title: incident.title,
-		status: incident.status,
-		impact: incident.impact,
-		autoCreated: incident.autoCreated,
-		resolvedAt: toISOStringOrNull(incident.resolvedAt),
-		createdAt: incident.createdAt.toISOString(),
-		updatedAt: incident.updatedAt.toISOString(),
-	}
-}
-
-export function toIncidentUpdateResponse(
-	update: IncidentUpdateModel,
-): IncidentUpdateResponse {
-	return {
-		id: update.id,
-		incidentId: update.incidentId,
-		status: update.status,
-		message: update.message,
-		createdAt: update.createdAt.toISOString(),
-	}
-}
-
-export function toIncidentWithUpdatesResponse(
-	incident: IncidentWithUpdatesModel,
-): IncidentWithUpdatesResponse {
-	return {
-		...toIncidentResponse(incident),
-		updates: incident.updates.map(toIncidentUpdateResponse),
-		checkIds: incident.checkIds,
-	}
-}
-
-export function toMaintenanceResponse(
-	maintenance: MaintenanceModel,
-): MaintenanceResponse {
-	return {
-		id: maintenance.id,
-		projectId: maintenance.projectId,
-		title: maintenance.title,
-		description: maintenance.description,
-		startsAt: maintenance.startsAt.toISOString(),
-		endsAt: maintenance.endsAt.toISOString(),
-		createdAt: maintenance.createdAt.toISOString(),
-		updatedAt: maintenance.updatedAt.toISOString(),
-	}
-}
-
-export function toMaintenanceWithChecksResponse(
-	maintenance: MaintenanceWithChecksModel,
-): MaintenanceWithChecksResponse {
-	return {
-		...toMaintenanceResponse(maintenance),
-		checkIds: maintenance.checkIds,
-	}
-}
-
 export function toOrgResponse(org: OrgModel): OrgResponse {
 	return {
 		id: org.id,
@@ -165,7 +84,6 @@ export function toOrgResponse(org: OrgModel): OrgResponse {
 		slug: org.slug,
 		plan: org.plan,
 		trialEndsAt: toISOStringOrNull(org.trialEndsAt),
-		autoCreateIncidents: org.autoCreateIncidents,
 		createdAt: org.createdAt.toISOString(),
 		updatedAt: org.updatedAt.toISOString(),
 	}

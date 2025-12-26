@@ -13,9 +13,6 @@ export type Project = {
 	slug: string
 	orgId: string
 	timezone: string
-	statusPageEnabled: boolean
-	statusPageTitle: string | null
-	statusPageLogoUrl: string | null
 	createdAt: string
 	updatedAt: string
 }
@@ -30,9 +27,6 @@ export type CreateProjectInput = {
 export type UpdateProjectInput = {
 	name?: string
 	timezone?: string
-	statusPageEnabled?: boolean
-	statusPageTitle?: string | null
-	statusPageLogoUrl?: string | null
 }
 
 // Check types
@@ -150,89 +144,6 @@ export type UpdateChannelInput = {
 	config?: ChannelConfig
 }
 
-// Incident types
-export type IncidentStatus =
-	| "INVESTIGATING"
-	| "IDENTIFIED"
-	| "MONITORING"
-	| "RESOLVED"
-export type IncidentImpact = "NONE" | "MINOR" | "MAJOR" | "CRITICAL"
-
-export type IncidentUpdate = {
-	id: string
-	incidentId: string
-	status: IncidentStatus
-	message: string
-	createdAt: string
-}
-
-export type Incident = {
-	id: string
-	projectId: string
-	title: string
-	status: IncidentStatus
-	impact: IncidentImpact
-	autoCreated: boolean
-	resolvedAt: string | null
-	createdAt: string
-	updatedAt: string
-}
-
-export type IncidentWithUpdates = Incident & {
-	updates: IncidentUpdate[]
-	checkIds: string[]
-}
-
-export type CreateIncidentInput = {
-	title: string
-	status?: IncidentStatus
-	impact?: IncidentImpact
-	checkIds?: string[]
-}
-
-export type UpdateIncidentInput = {
-	title?: string
-	status?: IncidentStatus
-	impact?: IncidentImpact
-}
-
-export type CreateIncidentUpdateInput = {
-	status: IncidentStatus
-	message: string
-}
-
-// Maintenance types
-export type Maintenance = {
-	id: string
-	projectId: string
-	title: string
-	description: string | null
-	startsAt: string
-	endsAt: string
-	createdAt: string
-	updatedAt: string
-}
-
-export type MaintenanceWithChecks = Maintenance & {
-	checkIds: string[]
-}
-
-export type CreateMaintenanceInput = {
-	title: string
-	description?: string
-	startsAt: string
-	endsAt: string
-	checkIds?: string[]
-}
-
-export type UpdateMaintenanceInput = {
-	title?: string
-	description?: string | null
-	startsAt?: string
-	endsAt?: string
-	checkIds?: string[]
-}
-
 // Organization types
 export type Organization = {
 	id: string
@@ -240,7 +151,6 @@ export type Organization = {
 	slug: string
 	plan: string
 	trialEndsAt: string | null
-	autoCreateIncidents: boolean
 	createdAt: string
 	updatedAt: string
 }
@@ -252,7 +162,6 @@ export type CreateOrganizationInput = {
 
 export type UpdateOrganizationInput = {
 	name?: string
-	autoCreateIncidents?: boolean
 }
 
 // API Key types

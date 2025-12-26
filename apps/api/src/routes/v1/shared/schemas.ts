@@ -61,34 +61,6 @@ export const projectAndChannelIdParamSchema = z.object({
 	channelId: channelIdParam,
 })
 
-// Incident params
-export const incidentIdParam = z
-	.string()
-	.min(1)
-	.openapi({
-		param: { name: "incidentId", in: "path" },
-		example: "X3UtIZT0_B7lgJk8",
-	})
-
-export const projectAndIncidentIdParamSchema = z.object({
-	projectId: projectIdParam,
-	incidentId: incidentIdParam,
-})
-
-// Maintenance params
-export const maintenanceIdParam = z
-	.string()
-	.min(1)
-	.openapi({
-		param: { name: "maintenanceId", in: "path" },
-		example: "Y4VuJAU1_C8mhKl9",
-	})
-
-export const projectAndMaintenanceIdParamSchema = z.object({
-	projectId: projectIdParam,
-	maintenanceId: maintenanceIdParam,
-})
-
 // API Key params
 export const apiKeyIdParam = z
 	.string()

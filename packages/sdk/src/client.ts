@@ -3,8 +3,6 @@ import { fetchWithRetry, handleResponse } from "./http.js"
 import { ApiKeysClient } from "./resources/api-keys.js"
 import { ChannelsClient } from "./resources/channels.js"
 import { ChecksClient } from "./resources/checks.js"
-import { IncidentsClient } from "./resources/incidents.js"
-import { MaintenanceClient } from "./resources/maintenance.js"
 import { OrganizationsClient } from "./resources/organizations.js"
 import { ProjectsClient } from "./resources/projects.js"
 import type { HasPulseConfig, PingOptions, WrapOptions } from "./types.js"
@@ -19,8 +17,6 @@ export class HasPulse {
 	readonly projects: ProjectsClient
 	readonly checks: ChecksClient
 	readonly channels: ChannelsClient
-	readonly incidents: IncidentsClient
-	readonly maintenance: MaintenanceClient
 	readonly organizations: OrganizationsClient
 	readonly apiKeys: ApiKeysClient
 
@@ -41,8 +37,6 @@ export class HasPulse {
 		this.projects = new ProjectsClient(request)
 		this.checks = new ChecksClient(request)
 		this.channels = new ChannelsClient(request)
-		this.incidents = new IncidentsClient(request)
-		this.maintenance = new MaintenanceClient(request)
 		this.organizations = new OrganizationsClient(request)
 		this.apiKeys = new ApiKeysClient(request)
 	}

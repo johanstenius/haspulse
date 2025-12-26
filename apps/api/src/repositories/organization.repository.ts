@@ -8,7 +8,6 @@ export type OrgModel = {
 	stripeCustomerId: string | null
 	stripeSubscriptionId: string | null
 	trialEndsAt: Date | null
-	autoCreateIncidents: boolean
 	createdAt: Date
 	updatedAt: Date
 }
@@ -35,7 +34,6 @@ export type UpdateOrgInput = {
 	stripeCustomerId?: string | null
 	stripeSubscriptionId?: string | null
 	trialEndsAt?: Date | null
-	autoCreateIncidents?: boolean
 }
 
 function toOrgModel(org: {
@@ -46,7 +44,6 @@ function toOrgModel(org: {
 	stripeCustomerId: string | null
 	stripeSubscriptionId: string | null
 	trialEndsAt: Date | null
-	autoCreateIncidents: boolean
 	createdAt: Date
 	updatedAt: Date
 }): OrgModel {
@@ -58,7 +55,6 @@ function toOrgModel(org: {
 		stripeCustomerId: org.stripeCustomerId,
 		stripeSubscriptionId: org.stripeSubscriptionId,
 		trialEndsAt: org.trialEndsAt,
-		autoCreateIncidents: org.autoCreateIncidents,
 		createdAt: org.createdAt,
 		updatedAt: org.updatedAt,
 	}

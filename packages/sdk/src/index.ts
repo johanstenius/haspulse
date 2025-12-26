@@ -30,20 +30,6 @@ export type {
 	WebhookChannelConfig,
 	CreateChannelInput,
 	UpdateChannelInput,
-	// Incidents
-	Incident,
-	IncidentWithUpdates,
-	IncidentUpdate,
-	IncidentStatus,
-	IncidentImpact,
-	CreateIncidentInput,
-	UpdateIncidentInput,
-	CreateIncidentUpdateInput,
-	// Maintenance
-	Maintenance,
-	MaintenanceWithChecks,
-	CreateMaintenanceInput,
-	UpdateMaintenanceInput,
 	// Organizations
 	Organization,
 	CreateOrganizationInput,
@@ -76,7 +62,5 @@ export {
 export { ProjectsClient } from "./resources/projects.js"
 export { ChecksClient } from "./resources/checks.js"
 export { ChannelsClient } from "./resources/channels.js"
-export { IncidentsClient } from "./resources/incidents.js"
-export { MaintenanceClient } from "./resources/maintenance.js"
 export { OrganizationsClient } from "./resources/organizations.js"
 export { ApiKeysClient } from "./resources/api-keys.js"

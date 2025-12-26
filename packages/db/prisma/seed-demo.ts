@@ -25,8 +25,6 @@ async function main() {
 				name: "Production API",
 				slug: "production-api",
 				timezone: "UTC",
-				statusPageEnabled: true,
-				statusPageTitle: "Production API Status",
 			},
 		}),
 		prisma.project.upsert({

@@ -3,10 +3,6 @@ import { logger } from "../lib/logger.js"
 import { checkRepository } from "../repositories/check.repository.js"
 import { pingRepository } from "../repositories/ping.repository.js"
 import { triggerAlert } from "./alert.service.js"
-import {
-	createIncidentUpdate,
-	findActiveIncidentForCheck,
-} from "./incident.service.js"
 
 export type PingModel = {
 	id: string
@@ -37,34 +33,16 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 		timestamp: ping.createdAt,
 	})
 
-	if (wasDown && input.type !== "START") {
-		if (check.alertOnRecovery) {
-			try {
-				const result = await triggerAlert("check.up", check)
-				if (result.sent) {
-					await checkRepository.updateLastAlertAt(check.id, ping.createdAt)
-				}
-			} catch (err) {
-				logger.error(
-					{ err, checkId: check.id },
-					"Failed to trigger recovery alert",
-				)
-			}
-		}
-
+	if (wasDown && input.type !== "START" && check.alertOnRecovery) {
 		try {
-			const activeIncident = await findActiveIncidentForCheck(input.checkId)
-			if (activeIncident?.autoCreated) {
-				await createIncidentUpdate({
-					incidentId: activeIncident.id,
-					status: "RESOLVED",
-					message: `${check.name} has recovered`,
-				})
+			const result = await triggerAlert("check.up", check)
+			if (result.sent) {
+				await checkRepository.updateLastAlertAt(check.id, ping.createdAt)
 			}
 		} catch (err) {
 			logger.error(
-				{ err, checkId: input.checkId },
-				"Failed to auto-resolve incident",
+				{ err, checkId: check.id },
+				"Failed to trigger recovery alert",
 			)
 		}
 	}

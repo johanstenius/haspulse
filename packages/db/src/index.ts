@@ -6,8 +6,6 @@ export {
 	PingType,
 	ScheduleType,
 	ChannelType,
-	IncidentStatus,
-	IncidentImpact,
 	type User,
 	type Session,
 	type Account,
@@ -18,9 +16,4 @@ export {
 	type Channel,
 	type CheckChannel,
 	type ApiKey,
-	type Incident,
-	type IncidentUpdate,
-	type IncidentCheck,
-	type Maintenance,
-	type MaintenanceCheck,
 } from "../generated/prisma/index.js"

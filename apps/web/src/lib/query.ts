@@ -8,35 +8,19 @@ import {
 import {
 	type AcceptInvitationResult,
 	type ApiKeyCreated,
-	type BillingInfo,
 	type Channel,
 	type Check,
 	type CheckListParams,
 	type CreateApiKeyData,
 	type CreateChannelData,
 	type CreateCheckData,
-	type CreateIncidentData,
-	type CreateIncidentUpdateData,
 	type CreateInvitationData,
-	type CreateMaintenanceData,
 	type CreateProjectData,
-	type DashboardCheck,
-	type DashboardStats,
-	type Incident,
-	type IncidentListParams,
-	type IncidentUpdate,
-	type IncidentWithUpdates,
 	type Invitation,
-	type Maintenance,
-	type MaintenanceListParams,
-	type MaintenanceWithChecks,
-	type OrgMember,
 	type Organization,
 	type Project,
 	type UpdateChannelData,
 	type UpdateCheckData,
-	type UpdateIncidentData,
-	type UpdateMaintenanceData,
 	type UpdateOrgData,
 	type UpdateProjectData,
 	api,
@@ -76,18 +60,6 @@ export const queryKeys = {
 	},
 	members: {
 		list: (orgId: string) => ["members", orgId] as const,
-	},
-	incidents: {
-		list: (projectId: string, params?: IncidentListParams) =>
-			["incidents", projectId, params] as const,
-		detail: (projectId: string, incidentId: string) =>
-			["incidents", projectId, incidentId] as const,
-	},
-	maintenance: {
-		list: (projectId: string, params?: MaintenanceListParams) =>
-			["maintenance", projectId, params] as const,
-		detail: (projectId: string, maintenanceId: string) =>
-			["maintenance", projectId, maintenanceId] as const,
 	},
 }
 
@@ -566,224 +538,6 @@ export function useAcceptInvitation(
 ) {
 	return useMutation({
 		mutationFn: (token: string) => api.invitations.accept(token),
-		...options,
-	})
-}
-
-// Incidents
-export function useIncidents(projectId: string, params?: IncidentListParams) {
-	return useQuery({
-		queryKey: queryKeys.incidents.list(projectId, params),
-		queryFn: () => api.incidents.list(projectId, params),
-		enabled: !!projectId,
-		placeholderData: keepPreviousData,
-	})
-}
-
-export function useIncident(projectId: string, incidentId: string) {
-	return useQuery({
-		queryKey: queryKeys.incidents.detail(projectId, incidentId),
-		queryFn: () => api.incidents.get(projectId, incidentId),
-		enabled: !!projectId && !!incidentId,
-	})
-}
-
-export function useCreateIncident(
-	options?: UseMutationOptions<
-		Incident,
-		Error,
-		{ projectId: string; data: CreateIncidentData }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			data,
-		}: { projectId: string; data: CreateIncidentData }) =>
-			api.incidents.create(projectId, data),
-		onSuccess: (_, { projectId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["incidents", projectId],
-			})
-		},
-		...options,
-	})
-}
-
-export function useUpdateIncident(
-	options?: UseMutationOptions<
-		Incident,
-		Error,
-		{ projectId: string; incidentId: string; data: UpdateIncidentData }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			incidentId,
-			data,
-		}: { projectId: string; incidentId: string; data: UpdateIncidentData }) =>
-			api.incidents.update(projectId, incidentId, data),
-		onSuccess: (_, { projectId, incidentId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["incidents", projectId],
-			})
-			queryClient.invalidateQueries({
-				queryKey: queryKeys.incidents.detail(projectId, incidentId),
-			})
-		},
-		...options,
-	})
-}
-
-export function useDeleteIncident(
-	options?: UseMutationOptions<
-		void,
-		Error,
-		{ projectId: string; incidentId: string }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			incidentId,
-		}: { projectId: string; incidentId: string }) =>
-			api.incidents.delete(projectId, incidentId),
-		onSuccess: (_, { projectId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["incidents", projectId],
-			})
-		},
-		...options,
-	})
-}
-
-export function useAddIncidentUpdate(
-	options?: UseMutationOptions<
-		IncidentUpdate,
-		Error,
-		{ projectId: string; incidentId: string; data: CreateIncidentUpdateData }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			incidentId,
-			data,
-		}: {
-			projectId: string
-			incidentId: string
-			data: CreateIncidentUpdateData
-		}) => api.incidents.addUpdate(projectId, incidentId, data),
-		onSuccess: (_, { projectId, incidentId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["incidents", projectId],
-			})
-			queryClient.invalidateQueries({
-				queryKey: queryKeys.incidents.detail(projectId, incidentId),
-			})
-		},
-		...options,
-	})
-}
-
-// Maintenance
-export function useMaintenance(
-	projectId: string,
-	params?: MaintenanceListParams,
-) {
-	return useQuery({
-		queryKey: queryKeys.maintenance.list(projectId, params),
-		queryFn: () => api.maintenance.list(projectId, params),
-		enabled: !!projectId,
-		placeholderData: keepPreviousData,
-	})
-}
-
-export function useMaintenanceDetail(projectId: string, maintenanceId: string) {
-	return useQuery({
-		queryKey: queryKeys.maintenance.detail(projectId, maintenanceId),
-		queryFn: () => api.maintenance.get(projectId, maintenanceId),
-		enabled: !!projectId && !!maintenanceId,
-	})
-}
-
-export function useCreateMaintenance(
-	options?: UseMutationOptions<
-		Maintenance,
-		Error,
-		{ projectId: string; data: CreateMaintenanceData }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			data,
-		}: { projectId: string; data: CreateMaintenanceData }) =>
-			api.maintenance.create(projectId, data),
-		onSuccess: (_, { projectId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["maintenance", projectId],
-			})
-		},
-		...options,
-	})
-}
-
-export function useUpdateMaintenance(
-	options?: UseMutationOptions<
-		Maintenance,
-		Error,
-		{ projectId: string; maintenanceId: string; data: UpdateMaintenanceData }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			maintenanceId,
-			data,
-		}: {
-			projectId: string
-			maintenanceId: string
-			data: UpdateMaintenanceData
-		}) => api.maintenance.update(projectId, maintenanceId, data),
-		onSuccess: (_, { projectId, maintenanceId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["maintenance", projectId],
-			})
-			queryClient.invalidateQueries({
-				queryKey: queryKeys.maintenance.detail(projectId, maintenanceId),
-			})
-		},
-		...options,
-	})
-}
-
-export function useDeleteMaintenance(
-	options?: UseMutationOptions<
-		void,
-		Error,
-		{ projectId: string; maintenanceId: string }
-	>,
-) {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({
-			projectId,
-			maintenanceId,
-		}: { projectId: string; maintenanceId: string }) =>
-			api.maintenance.delete(projectId, maintenanceId),
-		onSuccess: (_, { projectId }) => {
-			queryClient.invalidateQueries({
-				queryKey: ["maintenance", projectId],
-			})
-		},
 		...options,
 	})
 }

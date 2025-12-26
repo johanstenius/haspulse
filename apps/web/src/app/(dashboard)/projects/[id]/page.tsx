@@ -3,8 +3,6 @@
 import { ApiKeysTab } from "@/components/projects/api-keys-tab"
 import { ChannelsTab } from "@/components/projects/channels-tab"
 import { ChecksTab } from "@/components/projects/checks-tab"
-import { IncidentsTab } from "@/components/projects/incidents-tab"
-import { MaintenanceTab } from "@/components/projects/maintenance-tab"
 import { SettingsTab } from "@/components/projects/settings-tab"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -61,8 +59,6 @@ export default function ProjectDetailPage({
 			<Tabs defaultValue="checks">
 				<TabsList>
 					<TabsTrigger value="checks">Checks</TabsTrigger>
-					<TabsTrigger value="incidents">Incidents</TabsTrigger>
-					<TabsTrigger value="maintenance">Maintenance</TabsTrigger>
 					<TabsTrigger value="channels">Channels</TabsTrigger>
 					<TabsTrigger value="api-keys">API Keys</TabsTrigger>
 					<TabsTrigger value="settings">Settings</TabsTrigger>
@@ -70,14 +66,6 @@ export default function ProjectDetailPage({
 
 				<TabsContent value="checks" className="mt-6">
 					<ChecksTab projectId={id} />
-				</TabsContent>
-
-				<TabsContent value="incidents" className="mt-6">
-					<IncidentsTab projectId={id} />
-				</TabsContent>
-
-				<TabsContent value="maintenance" className="mt-6">
-					<MaintenanceTab projectId={id} />
 				</TabsContent>
 
 				<TabsContent value="channels" className="mt-6">

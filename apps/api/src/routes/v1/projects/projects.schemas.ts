@@ -17,9 +17,6 @@ export const projectResponseSchema = z
 		name: z.string(),
 		slug: z.string(),
 		timezone: z.string(),
-		statusPageEnabled: z.boolean(),
-		statusPageTitle: z.string().nullable(),
-		statusPageLogoUrl: z.string().nullable(),
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
 	})
@@ -63,9 +60,6 @@ export const updateProjectBodySchema = z
 			.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes")
 			.optional(),
 		timezone: z.string().optional(),
-		statusPageEnabled: z.boolean().optional(),
-		statusPageTitle: z.string().max(200).nullable().optional(),
-		statusPageLogoUrl: z.string().url().nullable().optional(),
 	})
 	.openapi("UpdateProjectRequest")
 

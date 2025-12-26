@@ -1,4 +1,5 @@
 import { Providers } from "@/components/providers"
+import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next"
 import { IBM_Plex_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google"
 import "./globals.css"
@@ -86,6 +87,7 @@ export default function RootLayout({
 				className={`${plusJakarta.variable} ${inter.variable} ${ibmPlexMono.variable} font-sans antialiased`}
 			>
 				<Providers>{children}</Providers>
+				<Analytics />
 			</body>
 		</html>
 	)

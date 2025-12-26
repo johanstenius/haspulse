@@ -7,12 +7,6 @@ export type ProjectModel = {
 	name: string
 	slug: string
 	timezone: string
-	statusPageEnabled: boolean
-	statusPageTitle: string | null
-	statusPageLogoUrl: string | null
-	customDomain: string | null
-	domainVerified: boolean
-	domainVerifyToken: string | null
 	createdAt: Date
 	updatedAt: Date
 }
@@ -28,9 +22,6 @@ export type UpdateProjectInput = {
 	name?: string
 	slug?: string
 	timezone?: string
-	statusPageEnabled?: boolean
-	statusPageTitle?: string | null
-	statusPageLogoUrl?: string | null
 }
 
 export async function createProject(

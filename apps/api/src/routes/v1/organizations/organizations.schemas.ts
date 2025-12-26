@@ -10,7 +10,6 @@ export const orgResponseSchema = z
 		slug: z.string(),
 		plan: z.string(),
 		trialEndsAt: z.string().datetime().nullable(),
-		autoCreateIncidents: z.boolean(),
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
 	})
@@ -65,7 +64,6 @@ export const updateOrgBodySchema = z
 			.max(64)
 			.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes")
 			.optional(),
-		autoCreateIncidents: z.boolean().optional(),
 	})
 	.openapi("UpdateOrganizationRequest")
 

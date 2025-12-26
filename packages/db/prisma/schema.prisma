@@ -33,7 +33,6 @@ model Organization {
   stripeCustomerId     String?   @unique @map("stripe_customer_id")
   stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
   trialEndsAt          DateTime? @map("trial_ends_at")
-  autoCreateIncidents  Boolean   @default(true) @map("auto_create_incidents")
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
@@ -129,26 +128,18 @@ model Verification {
 
 // Haspulse models
 model Project {
-  id                  String   @id @default(dbgenerated("nanoid(16)"))
-  orgId               String   @map("org_id")
-  name                String
-  slug                String   @unique
-  timezone            String   @default("UTC")
-  statusPageEnabled   Boolean  @default(false) @map("status_page_enabled")
-  statusPageTitle     String?  @map("status_page_title")
-  statusPageLogoUrl   String?  @map("status_page_logo_url")
-  customDomain        String?  @unique @map("custom_domain")
-  domainVerified      Boolean  @default(false) @map("domain_verified")
-  domainVerifyToken   String?  @map("domain_verify_token")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(dbgenerated("nanoid(16)"))
+  orgId     String   @map("org_id")
+  name      String
+  slug      String   @unique
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  checks      Check[]
-  channels    Channel[]
-  apiKeys     ApiKey[]
-  incidents   Incident[]
-  maintenance Maintenance[]
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  checks   Check[]
+  channels Channel[]
+  apiKeys  ApiKey[]
 
   @@index([orgId])
   @@map("projects")
@@ -173,13 +164,11 @@ model Check {
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
 
-  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  pings             Ping[]
-  checkChannels     CheckChannel[]
-  alerts            Alert[]
-  incidentChecks    IncidentCheck[]
-  maintenanceChecks MaintenanceCheck[]
-  dailyStats        CheckDailyStat[]
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pings         Ping[]
+  checkChannels CheckChannel[]
+  alerts        Alert[]
+  dailyStats    CheckDailyStat[]
 
   @@unique([projectId, slug])
   @@index([status])
@@ -311,92 +300,3 @@ enum ChannelType {
   @@map("channel_type")
 }
 
-enum IncidentStatus {
-  INVESTIGATING
-  IDENTIFIED
-  MONITORING
-  RESOLVED
-
-  @@map("incident_status")
-}
-
-enum IncidentImpact {
-  NONE
-  MINOR
-  MAJOR
-  CRITICAL
-
-  @@map("incident_impact")
-}
-
-model Incident {
-  id          String         @id @default(dbgenerated("nanoid(16)"))
-  projectId   String         @map("project_id")
-  title       String
-  status      IncidentStatus @default(INVESTIGATING)
-  impact      IncidentImpact @default(MINOR)
-  autoCreated Boolean        @default(false) @map("auto_created")
-  resolvedAt  DateTime?      @map("resolved_at")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
-
-  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  updates IncidentUpdate[]
-  checks  IncidentCheck[]
-
-  @@index([projectId, createdAt(sort: Desc)])
-  @@index([projectId, status])
-  @@map("incidents")
-}
-
-model IncidentUpdate {
-  id         String         @id @default(dbgenerated("nanoid(16)"))
-  incidentId String         @map("incident_id")
-  status     IncidentStatus
-  message    String
-  createdAt  DateTime       @default(now()) @map("created_at")
-
-  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-
-  @@index([incidentId, createdAt(sort: Desc)])
-  @@map("incident_updates")
-}
-
-model IncidentCheck {
-  incidentId String @map("incident_id")
-  checkId    String @map("check_id")
-
-  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  check    Check    @relation(fields: [checkId], references: [id], onDelete: Cascade)
-
-  @@id([incidentId, checkId])
-  @@map("incident_checks")
-}
-
-model Maintenance {
-  id          String   @id @default(dbgenerated("nanoid(16)"))
-  projectId   String   @map("project_id")
-  title       String
-  description String?
-  startsAt    DateTime @map("starts_at")
-  endsAt      DateTime @map("ends_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  project Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  checks  MaintenanceCheck[]
-
-  @@index([projectId, startsAt])
-  @@map("maintenance")
-}
-
-model MaintenanceCheck {
-  maintenanceId String @map("maintenance_id")
-  checkId       String @map("check_id")
-
-  maintenance Maintenance @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
-  check       Check       @relation(fields: [checkId], references: [id], onDelete: Cascade)
-
-  @@id([maintenanceId, checkId])
-  @@map("maintenance_checks")
-}

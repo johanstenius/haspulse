@@ -4,8 +4,6 @@ import { ProjectForm } from "@/components/projects/project-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import type { Project } from "@/lib/api"
 import { useDeleteProject, useUpdateProject } from "@/lib/query"
 import { Trash2 } from "lucide-react"
@@ -37,19 +35,6 @@ export function SettingsTab({ project }: SettingsTabProps) {
 					setShowForm(false)
 					toast.success("Project updated")
 				},
-				onError: (error) => toast.error(error.message),
-			},
-		)
-	}
-
-	function handleToggleStatusPage(enabled: boolean) {
-		updateProject.mutate(
-			{ id: project.id, data: { statusPageEnabled: enabled } },
-			{
-				onSuccess: () =>
-					toast.success(
-						enabled ? "Status page enabled" : "Status page disabled",
-					),
 				onError: (error) => toast.error(error.message),
 			},
 		)
@@ -90,26 +75,6 @@ export function SettingsTab({ project }: SettingsTabProps) {
 						<Button variant="outline" onClick={() => setShowForm(true)}>
 							Edit project
 						</Button>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>Status Page</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="flex items-center justify-between">
-							<div className="space-y-0.5">
-								<Label>Enable public status page</Label>
-								<p className="text-sm text-muted-foreground">
-									haspulse.dev/status/{project.slug}
-								</p>
-							</div>
-							<Switch
-								checked={project.statusPageEnabled}
-								onCheckedChange={handleToggleStatusPage}
-							/>
-						</div>
 					</CardContent>
 				</Card>
 
