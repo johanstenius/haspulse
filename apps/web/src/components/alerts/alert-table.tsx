@@ -110,7 +110,8 @@ function DurationBar({
 						className={cn(
 							"w-3 rounded-sm transition-all",
 							isAboveAvg ? "bg-amber-500" : "bg-primary",
-							isLatest && "ring-1 ring-primary ring-offset-1 ring-offset-background",
+							isLatest &&
+								"ring-1 ring-primary ring-offset-1 ring-offset-background",
 						)}
 						style={{ height: `${Math.max(height, 15)}%` }}
 						title={formatDuration(d)}
@@ -122,12 +123,11 @@ function DurationBar({
 }
 
 function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
-	const ctx = alert.context
-	const hasDuration = ctx?.duration
-	const hasError = ctx?.errorPattern
-	const hasCorrelation = ctx?.correlation?.relatedFailures?.length
+	const duration = alert.context?.duration
+	const errorPattern = alert.context?.errorPattern
+	const relatedFailures = alert.context?.correlation?.relatedFailures
 
-	if (!hasDuration && !hasError && !hasCorrelation && !alert.error) {
+	if (!duration && !errorPattern && !relatedFailures?.length && !alert.error) {
 		return (
 			<p className="text-xs text-muted-foreground py-2">
 				No additional context
@@ -138,15 +138,15 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 	return (
 		<div className="flex flex-wrap gap-6 py-3">
 			{/* Duration context */}
-			{hasDuration && (
+			{duration && (
 				<div className="space-y-2">
 					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
 						<Clock className="size-3" />
 						<span>Duration</span>
-						{ctx.duration.isAnomaly && (
+						{duration.isAnomaly && (
 							<Badge variant="destructive" className="text-[10px] px-1 py-0">
-								{ctx.duration.anomalyType === "zscore"
-									? `z=${ctx.duration.zScore?.toFixed(1)}`
+								{duration.anomalyType === "zscore"
+									? `z=${duration.zScore?.toFixed(1)}`
 									: "drift"}
 							</Badge>
 						)}
@@ -156,25 +156,25 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 							<div className="flex items-center gap-2">
 								<span className="text-muted-foreground">Last:</span>
 								<span className="font-mono font-medium">
-									{ctx.duration.lastDurationMs !== null
-										? formatDuration(ctx.duration.lastDurationMs)
+									{duration.lastDurationMs !== null
+										? formatDuration(duration.lastDurationMs)
 										: "—"}
 								</span>
 							</div>
 							<div className="flex items-center gap-2">
 								<span className="text-muted-foreground">Avg:</span>
 								<span className="font-mono">
-									{ctx.duration.avgDurationMs !== null
-										? formatDuration(ctx.duration.avgDurationMs)
+									{duration.avgDurationMs !== null
+										? formatDuration(duration.avgDurationMs)
 										: "—"}
 								</span>
-								<TrendIcon direction={ctx.duration.trendDirection} />
+								<TrendIcon direction={duration.trendDirection} />
 							</div>
 						</div>
-						{ctx.duration.last5Durations.length > 0 && (
+						{duration.last5Durations.length > 0 && (
 							<DurationBar
-								durations={ctx.duration.last5Durations}
-								avgMs={ctx.duration.avgDurationMs}
+								durations={duration.last5Durations}
+								avgMs={duration.avgDurationMs}
 							/>
 						)}
 					</div>
@@ -182,35 +182,35 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 			)}
 
 			{/* Error context */}
-			{hasError && ctx.errorPattern.lastErrorSnippet && (
+			{errorPattern?.lastErrorSnippet && (
 				<div className="space-y-2 max-w-xs">
 					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
 						<AlertTriangle className="size-3" />
 						<span>Last Error</span>
-						{ctx.errorPattern.errorCount24h > 0 && (
+						{errorPattern.errorCount24h > 0 && (
 							<Badge variant="secondary" className="text-[10px] px-1 py-0">
-								{ctx.errorPattern.errorCount24h} in 24h
+								{errorPattern.errorCount24h} in 24h
 							</Badge>
 						)}
 					</div>
 					<pre className="text-[10px] bg-muted p-2 rounded-md overflow-hidden text-ellipsis whitespace-nowrap max-w-full">
-						{ctx.errorPattern.lastErrorSnippet}
+						{errorPattern.lastErrorSnippet}
 					</pre>
 				</div>
 			)}
 
 			{/* Correlation context */}
-			{hasCorrelation && (
+			{relatedFailures && relatedFailures.length > 0 && (
 				<div className="space-y-2">
 					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
 						<Link2 className="size-3" />
 						<span>Related</span>
 						<Badge variant="secondary" className="text-[10px] px-1 py-0">
-							{ctx.correlation.relatedFailures.length}
+							{relatedFailures.length}
 						</Badge>
 					</div>
 					<div className="flex flex-wrap gap-1">
-						{ctx.correlation.relatedFailures.slice(0, 3).map((f) => (
+						{relatedFailures.slice(0, 3).map((f) => (
 							<Link
 								key={f.checkId}
 								href={`/checks/${f.checkId}`}
@@ -300,10 +300,7 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 									}
 								}}
 							>
-								<td
-									className="py-3 px-4"
-									colSpan={showCheckColumn ? 6 : 5}
-								>
+								<td className="py-3 px-4" colSpan={showCheckColumn ? 6 : 5}>
 									<div className="flex items-center gap-4">
 										{/* Event badge */}
 										<div

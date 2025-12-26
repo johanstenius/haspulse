@@ -123,7 +123,11 @@ export class HasPulse {
 			await this.ping(slug, { type: "success" })
 			return result
 		} catch (error) {
-			await this.ping(slug, { type: "fail" })
+			const errorMessage =
+				error instanceof Error
+					? `${error.name}: ${error.message}`
+					: String(error)
+			await this.ping(slug, { type: "fail", body: errorMessage })
 			throw error
 		}
 	}
