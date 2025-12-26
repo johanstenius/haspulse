@@ -1,6 +1,6 @@
 // Config
 export type HasPulseConfig = {
-	apiKey: string
+	apiKey?: string
 	baseUrl?: string
 	timeout?: number
 	retries?: number

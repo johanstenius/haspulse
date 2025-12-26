@@ -1,28 +1,50 @@
-# haspulse
+# @haspulse/sdk
 
 TypeScript SDK for HasPulse cron monitoring.
 
 ## Installation
 
 ```bash
-npm install haspulse
+npm install @haspulse/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { HasPulse } from "haspulse"
+import { HasPulse } from "@haspulse/sdk"
 
 const client = new HasPulse({ apiKey: "hp_..." })
 
-// Send a ping
-await client.ping("check-id")
+// Wrap your cron job - automatically tracks start/success/fail
+await client.wrap("check-id", async () => {
+  await myDatabaseBackup()
+})
+```
 
-// Send a start signal
-await client.ping("check-id", { type: "start" })
+## Usage
 
-// Send a fail signal with output
-await client.ping("check-id", { type: "fail", body: "Error: connection failed" })
+### Wrapping Jobs (Recommended)
+
+The `wrap()` method automatically sends start/success/fail signals:
+
+```typescript
+await client.wrap("check-id", async () => {
+  // Your job logic here
+  await syncUsers()
+  await sendReports()
+})
+// Sends "start" → runs function → sends "success" (or "fail" if error thrown)
+```
+
+### Manual Pinging
+
+For more control, use `ping()` directly:
+
+```typescript
+await client.ping("check-id")                              // Success
+await client.ping("check-id", { type: "start" })           // Job started
+await client.ping("check-id", { type: "fail" })            // Job failed
+await client.ping("check-id", { type: "fail", body: "Error details" })
 ```
 
 ## Configuration
@@ -30,11 +52,25 @@ await client.ping("check-id", { type: "fail", body: "Error: connection failed" }
 ```typescript
 const client = new HasPulse({
   apiKey: "hp_...",
-  baseUrl: "https://api.haspulse.io", // optional
-  timeout: 30000,                      // optional, default 30s
-  retries: 2,                          // optional, default 2 retries with exponential backoff
+  timeout: 30000, // optional, default 30s
+  retries: 2,     // optional, default 2 retries with exponential backoff
 })
 ```
+
+### Development Mode (No-op)
+
+When `apiKey` is undefined, `ping()` and `wrap()` silently no-op. This allows running in development without setting up monitoring:
+
+```typescript
+const client = new HasPulse({ apiKey: process.env.HASPULSE_API_KEY })
+
+// Works in dev (no-op) and prod (sends pings)
+await client.wrap("check-id", async () => {
+  await myJob()
+})
+```
+
+Management APIs (projects, checks, etc.) still require an API key and will throw if accessed without one.
 
 ## API Reference
 
@@ -139,19 +175,10 @@ console.log(newKey.key) // Full key shown only once
 await client.apiKeys.delete("project-id", "key-id")
 ```
 
-### Pinging
-
-```typescript
-await client.ping("check-id")                              // Success
-await client.ping("check-id", { type: "start" })           // Job started
-await client.ping("check-id", { type: "fail" })            // Job failed
-await client.ping("check-id", { type: "fail", body: "Error details" })
-```
-
 ## Error Handling
 
 ```typescript
-import { HasPulseError, NotFoundError, UnauthorizedError } from "haspulse"
+import { HasPulseError, NotFoundError, UnauthorizedError } from "@haspulse/sdk"
 
 try {
   await client.checks.get("invalid-id")
@@ -181,7 +208,7 @@ import type {
   Maintenance,
   Organization,
   Project,
-} from "haspulse"
+} from "@haspulse/sdk"
 ```
 
 ## License
