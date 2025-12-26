@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js"
 import { type TierName, getTierLimits } from "../lib/tiers.js"
 import { checkRepository } from "../repositories/check.repository.js"
 import { organizationRepository } from "../repositories/organization.repository.js"
@@ -17,7 +18,7 @@ export async function pruneAllPings(): Promise<PruneResult> {
 			const deleted = await pruneCheckPings(checkId)
 			totalDeleted += deleted
 		} catch (err) {
-			console.error(`[pruning] Failed for check ${checkId}:`, err)
+			logger.error({ err, checkId }, "Pruning failed for check")
 		}
 	}
 

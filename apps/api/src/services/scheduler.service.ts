@@ -1,4 +1,5 @@
 import { CheckStatus } from "@haspulse/db"
+import { logger } from "../lib/logger.js"
 import { checkRepository } from "../repositories/check.repository.js"
 import { organizationRepository } from "../repositories/organization.repository.js"
 import { triggerAlert } from "./alert.service.js"
@@ -31,7 +32,7 @@ export async function runSchedulerTick(): Promise<void> {
 				await checkRepository.updateLastAlertAt(check.id, now)
 			}
 		} catch (err) {
-			console.error(`[scheduler] Alert failed for ${check.id}:`, err)
+			logger.error({ err, checkId: check.id }, "Alert failed")
 		}
 
 		try {
@@ -49,7 +50,7 @@ export async function runSchedulerTick(): Promise<void> {
 				}
 			}
 		} catch (err) {
-			console.error(`[scheduler] Auto-incident failed for ${check.id}:`, err)
+			logger.error({ err, checkId: check.id }, "Auto-incident failed")
 		}
 	}
 
@@ -61,7 +62,7 @@ export async function runSchedulerTick(): Promise<void> {
 				await checkRepository.updateLastAlertAt(check.id, now)
 			}
 		} catch (err) {
-			console.error(`[scheduler] Reminder failed for ${check.id}:`, err)
+			logger.error({ err, checkId: check.id }, "Reminder failed")
 		}
 	}
 
@@ -73,12 +74,16 @@ export async function runSchedulerTick(): Promise<void> {
 	if (nowMs - lastPruneRun > PRUNE_INTERVAL_MS) {
 		try {
 			const result = await pruneAllPings()
-			console.log(
-				`[pruning] Deleted ${result.pingsDeleted} pings from ${result.checksProcessed} checks`,
+			logger.info(
+				{
+					pingsDeleted: result.pingsDeleted,
+					checksProcessed: result.checksProcessed,
+				},
+				"Pruning complete",
 			)
 			lastPruneRun = nowMs
 		} catch (err) {
-			console.error("[pruning] Failed:", err)
+			logger.error({ err }, "Pruning failed")
 		}
 	}
 }
@@ -90,7 +95,7 @@ async function recordUptimeStats(): Promise<void> {
 		try {
 			await recordCheckStatus(check.id, check.status)
 		} catch (err) {
-			console.error(`[scheduler] Stats recording failed for ${check.id}:`, err)
+			logger.error({ err, checkId: check.id }, "Stats recording failed")
 		}
 	}
 }

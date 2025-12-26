@@ -1,4 +1,5 @@
 import { Hono } from "hono"
+import { logger } from "../../lib/logger.js"
 import { handleWebhook } from "../../services/billing.service.js"
 
 const stripeWebhookRoutes = new Hono()
@@ -15,7 +16,7 @@ stripeWebhookRoutes.post("/stripe", async (c) => {
 		await handleWebhook(payload, signature)
 		return c.json({ received: true })
 	} catch (err) {
-		console.error("Stripe webhook error:", err)
+		logger.error({ err }, "Stripe webhook error")
 		return c.json({ error: "Webhook processing failed" }, 400)
 	}
 })

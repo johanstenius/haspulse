@@ -1,4 +1,5 @@
 import type { PingType } from "@haspulse/db"
+import { logger } from "../lib/logger.js"
 import { checkRepository } from "../repositories/check.repository.js"
 import { pingRepository } from "../repositories/ping.repository.js"
 import { triggerAlert } from "./alert.service.js"
@@ -44,7 +45,10 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 					await checkRepository.updateLastAlertAt(check.id, ping.createdAt)
 				}
 			} catch (err) {
-				console.error("Failed to trigger recovery alert:", err)
+				logger.error(
+					{ err, checkId: check.id },
+					"Failed to trigger recovery alert",
+				)
 			}
 		}
 
@@ -58,7 +62,10 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 				})
 			}
 		} catch (err) {
-			console.error("[ping] Failed to auto-resolve incident:", err)
+			logger.error(
+				{ err, checkId: input.checkId },
+				"Failed to auto-resolve incident",
+			)
 		}
 	}
 

@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js"
 import { alertRepository } from "../repositories/alert.repository.js"
 import { type AlertEvent, sendToChannel } from "./channel-sender.service.js"
 import { listChannelsByCheck } from "./channel.service.js"
@@ -20,7 +21,7 @@ export async function triggerAlert(
 
 	const project = await getProjectById(check.projectId)
 	if (!project) {
-		console.error(`[alert] Project not found: ${check.projectId}`)
+		logger.error({ projectId: check.projectId }, "Project not found for alert")
 		return { sent: false, success: false }
 	}
 

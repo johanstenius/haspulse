@@ -1,5 +1,6 @@
 import type { PingType } from "@haspulse/db"
 import type { Context } from "hono"
+import { logger } from "../../lib/logger.js"
 import { recordPing, resolveCheckId } from "../../services/ping.service.js"
 import type { PingResponse } from "./ping.schemas.js"
 
@@ -41,7 +42,7 @@ export async function processPingById(
 	const checkId = await resolveCheckId({ id })
 
 	if (!checkId) {
-		console.warn(`Ping to unknown check ID: ${id}`)
+		logger.warn({ id }, "Ping to unknown check ID")
 		return { ok: true }
 	}
 
@@ -63,7 +64,7 @@ export async function processPingBySlug(
 	const checkId = await resolveCheckId({ projectSlug, checkSlug })
 
 	if (!checkId) {
-		console.warn(`Ping to unknown check: ${projectSlug}/${checkSlug}`)
+		logger.warn({ projectSlug, checkSlug }, "Ping to unknown check")
 		return { ok: true }
 	}
 

@@ -1,3 +1,4 @@
+import { logger } from "./lib/logger.js"
 import { runSchedulerTick } from "./services/scheduler.service.js"
 
 const INTERVAL_MS = 60_000
@@ -7,20 +8,19 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function main(): Promise<void> {
-	console.log("[worker] Starting scheduler worker...")
-	console.log(`[worker] Interval: ${INTERVAL_MS / 1000}s`)
+	logger.info({ intervalMs: INTERVAL_MS }, "Starting scheduler worker")
 
 	while (true) {
 		try {
 			await runSchedulerTick()
 		} catch (err) {
-			console.error("[worker] Scheduler tick failed:", err)
+			logger.error({ err }, "Scheduler tick failed")
 		}
 		await sleep(INTERVAL_MS)
 	}
 }
 
 main().catch((err) => {
-	console.error("[worker] Fatal error:", err)
+	logger.fatal({ err }, "Worker fatal error")
 	process.exit(1)
 })

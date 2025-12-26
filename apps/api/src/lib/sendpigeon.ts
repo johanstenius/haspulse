@@ -1,5 +1,6 @@
 import { SendPigeon } from "sendpigeon"
 import { config } from "../env.js"
+import { logger } from "./logger.js"
 
 type SendEmailParams = {
 	to: string
@@ -23,8 +24,9 @@ async function send(
 	params: SendEmailParams,
 ): Promise<SendResult> {
 	if (!client) {
-		console.log(
-			`[email] SendPigeon not configured. Would send to ${params.to}: ${params.subject}`,
+		logger.debug(
+			{ to: params.to, subject: params.subject },
+			"SendPigeon not configured",
 		)
 		return { success: true }
 	}
@@ -38,7 +40,7 @@ async function send(
 	})
 
 	if (result.error) {
-		console.error(`[email] SendPigeon error: ${result.error.message}`)
+		logger.error({ error: result.error.message }, "SendPigeon error")
 		return { success: false, error: result.error.message }
 	}
 
