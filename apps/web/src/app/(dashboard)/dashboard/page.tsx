@@ -3,14 +3,39 @@
 import { PingSparkline } from "@/components/checks/ping-sparkline"
 import { StatusBadge, statusColors } from "@/components/checks/status-badge"
 import { EmptyState } from "@/components/empty-state"
+import { PageHeader } from "@/components/page-header"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table"
 import type { DashboardCheck } from "@/lib/api"
 import { formatRelativeCompactAgo } from "@/lib/format"
 import { useDashboardChecks, useDashboardStats } from "@/lib/query"
 import { cn } from "@/lib/utils"
+import cronstrue from "cronstrue"
 import { ChevronRight, Zap } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+
+function formatSchedule(scheduleType: string, scheduleValue: string): string {
+	if (scheduleType === "CRON") {
+		try {
+			return cronstrue.toString(scheduleValue, { verbose: false })
+		} catch {
+			return scheduleValue
+		}
+	}
+	const seconds = Number.parseInt(scheduleValue, 10)
+	if (seconds < 60) return `${seconds}s`
+	if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
+	if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`
+	return `${Math.floor(seconds / 86400)}d`
+}
 
 function getRowClassName(status: DashboardCheck["status"]): string {
 	switch (status) {
@@ -29,45 +54,38 @@ function CheckRow({ check }: { check: DashboardCheck }) {
 	const isOverdue = check.status === "LATE" || check.status === "DOWN"
 
 	return (
-		<tr
-			className={cn(
-				"cursor-pointer transition-colors",
-				getRowClassName(check.status),
-			)}
-		>
-			<td className="py-3 px-4">
+		<TableRow className={cn("cursor-pointer", getRowClassName(check.status))}>
+			<TableCell className="py-3">
 				<Link href={`/checks/${check.id}`} className="block">
 					<p className="font-medium text-foreground">{check.name}</p>
 					<p className="text-xs text-muted-foreground">{check.projectName}</p>
 				</Link>
-			</td>
-			<td className="py-3 px-4">
+			</TableCell>
+			<TableCell className="py-3">
 				<StatusBadge status={check.status} />
-			</td>
-			<td className="py-3 px-4 font-mono text-xs text-muted-foreground">
-				{check.scheduleType === "CRON"
-					? check.scheduleValue
-					: `${check.scheduleValue}s`}
-			</td>
-			<td
+			</TableCell>
+			<TableCell className="py-3 text-xs text-muted-foreground">
+				{formatSchedule(check.scheduleType, check.scheduleValue)}
+			</TableCell>
+			<TableCell
 				className={cn(
-					"py-3 px-4",
+					"py-3",
 					isOverdue ? statusColors[check.status] : "text-muted-foreground",
 				)}
 			>
 				{check.lastPingAt
 					? formatRelativeCompactAgo(check.lastPingAt)
 					: "Never"}
-			</td>
-			<td className="py-3 px-4">
+			</TableCell>
+			<TableCell className="py-3">
 				<PingSparkline sparkline={check.sparkline} />
-			</td>
-			<td className="py-3 px-4">
+			</TableCell>
+			<TableCell className="py-3 w-10">
 				<Link href={`/checks/${check.id}`}>
 					<ChevronRight className="h-4 w-4 text-muted-foreground" />
 				</Link>
-			</td>
-		</tr>
+			</TableCell>
+		</TableRow>
 	)
 }
 
@@ -81,7 +99,7 @@ export default function DashboardPage() {
 	if (isLoading) {
 		return (
 			<div className="p-6">
-				<h1 className="font-display text-2xl font-semibold mb-6">Dashboard</h1>
+				<PageHeader title="Dashboard" />
 				<div className="bg-card border border-border rounded-xl overflow-hidden">
 					<div className="p-6">
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -108,7 +126,7 @@ export default function DashboardPage() {
 
 	return (
 		<div className="p-6">
-			<h1 className="font-display text-2xl font-semibold mb-6">Dashboard</h1>
+			<PageHeader title="Dashboard" />
 
 			<div className="bg-card border border-border rounded-xl overflow-hidden shadow-2xl shadow-black/20">
 				<div className="px-4 py-3 border-b border-border flex items-center gap-2">
@@ -158,25 +176,33 @@ export default function DashboardPage() {
 					{/* Checks Table */}
 					{checksData?.checks && checksData.checks.length > 0 ? (
 						<div className="bg-card border border-border rounded-xl overflow-hidden">
-							<table className="w-full text-sm text-left">
-								<thead>
-									<tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
-										<th className="py-3 px-4 font-medium">Check</th>
-										<th className="py-3 px-4 font-medium">Status</th>
-										<th className="py-3 px-4 font-medium font-mono">
+							<Table>
+								<TableHeader>
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="text-xs uppercase tracking-wide">
+											Check
+										</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide">
+											Status
+										</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide">
 											Schedule
-										</th>
-										<th className="py-3 px-4 font-medium">Last ping</th>
-										<th className="py-3 px-4 font-medium">Recent</th>
-										<th className="py-3 px-4 w-10" />
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-border/50">
+										</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide">
+											Last ping
+										</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide">
+											Recent
+										</TableHead>
+										<TableHead className="w-10" />
+									</TableRow>
+								</TableHeader>
+								<TableBody>
 									{checksData.checks.map((check) => (
 										<CheckRow key={check.id} check={check} />
 									))}
-								</tbody>
-							</table>
+								</TableBody>
+							</Table>
 						</div>
 					) : (
 						<EmptyState

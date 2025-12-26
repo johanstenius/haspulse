@@ -1,5 +1,6 @@
 "use client"
 
+import { PageHeader } from "@/components/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -57,12 +58,10 @@ export default function BillingPage() {
 	if (isLoading) {
 		return (
 			<div className="p-6 max-w-2xl space-y-6">
-				<div>
-					<h1 className="text-2xl font-semibold">Billing</h1>
-					<p className="text-muted-foreground">
-						Manage your subscription and usage
-					</p>
-				</div>
+				<PageHeader
+					title="Billing"
+					description="Manage your subscription and usage"
+				/>
 				<Card>
 					<CardHeader>
 						<Skeleton className="h-6 w-32" />
@@ -84,12 +83,10 @@ export default function BillingPage() {
 
 	return (
 		<div className="p-6 max-w-2xl space-y-6">
-			<div>
-				<h1 className="text-2xl font-semibold">Billing</h1>
-				<p className="text-muted-foreground">
-					Manage your subscription and usage
-				</p>
-			</div>
+			<PageHeader
+				title="Billing"
+				description="Manage your subscription and usage"
+			/>
 
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between">

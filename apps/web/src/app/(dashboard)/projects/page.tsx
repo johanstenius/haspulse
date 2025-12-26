@@ -1,6 +1,7 @@
 "use client"
 
 import { EmptyState } from "@/components/empty-state"
+import { PageHeader } from "@/components/page-header"
 import { ProjectCard } from "@/components/projects/project-card"
 import { ProjectForm } from "@/components/projects/project-form"
 import { Button } from "@/components/ui/button"
@@ -65,18 +66,16 @@ export default function ProjectsPage() {
 
 	return (
 		<div className="p-6">
-			<div className="flex items-center justify-between mb-6">
-				<div>
-					<h1 className="font-display text-2xl font-semibold">Projects</h1>
-					<p className="text-muted-foreground">
-						Organize your checks into projects
-					</p>
-				</div>
-				<Button onClick={() => setShowForm(true)}>
-					<Plus className="h-4 w-4 mr-2" />
-					New project
-				</Button>
-			</div>
+			<PageHeader
+				title="Projects"
+				description="Organize your checks into projects"
+				action={
+					<Button onClick={() => setShowForm(true)}>
+						<Plus className="h-4 w-4 mr-2" />
+						New project
+					</Button>
+				}
+			/>
 
 			{isLoading ? (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

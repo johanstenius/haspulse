@@ -1,5 +1,6 @@
 "use client"
 
+import { PageHeader } from "@/components/page-header"
 import { InviteForm } from "@/components/team/invite-form"
 import {
 	AlertDialog,
@@ -142,132 +143,128 @@ export default function TeamSettingsPage() {
 	}
 
 	return (
-		<div className="p-6 max-w-4xl">
-			<div className="mb-6 flex items-center justify-between">
-				<div>
-					<h1 className="font-display text-2xl font-semibold">Team</h1>
-					<p className="text-muted-foreground">
-						Manage members and invitations for {currentOrg.name}
-					</p>
-				</div>
-				{canManageTeam && (
-					<Button onClick={() => setInviteOpen(true)}>
-						<UserPlus className="mr-2 h-4 w-4" />
-						Invite Member
-					</Button>
-				)}
-			</div>
+		<div className="p-6 max-w-4xl space-y-6">
+			<PageHeader
+				title="Team"
+				description={`Manage members and invitations for ${currentOrg.name}`}
+				action={
+					canManageTeam ? (
+						<Button onClick={() => setInviteOpen(true)}>
+							<UserPlus className="mr-2 h-4 w-4" />
+							Invite member
+						</Button>
+					) : undefined
+				}
+			/>
 
-			<div className="space-y-6">
+			<Card>
+				<CardHeader>
+					<CardTitle>Members</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>User</TableHead>
+								<TableHead>Role</TableHead>
+								<TableHead>Joined</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{membersData?.members.map((member) => (
+								<TableRow key={member.id}>
+									<TableCell>
+										<span className="font-medium">
+											{member.userId === session?.user?.id
+												? "You"
+												: `User ${member.userId.slice(0, 8)}...`}
+										</span>
+									</TableCell>
+									<TableCell>
+										<Badge variant={getRoleBadgeVariant(member.role)}>
+											{member.role}
+										</Badge>
+									</TableCell>
+									<TableCell className="text-muted-foreground">
+										{formatDistanceToNow(new Date(member.createdAt), {
+											addSuffix: true,
+										})}
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</CardContent>
+			</Card>
+
+			{canManageTeam && (
 				<Card>
 					<CardHeader>
-						<CardTitle>Members</CardTitle>
+						<CardTitle>Pending Invitations</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>User</TableHead>
-									<TableHead>Role</TableHead>
-									<TableHead>Joined</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{membersData?.members.map((member) => (
-									<TableRow key={member.id}>
-										<TableCell>
-											<span className="font-medium">
-												{member.userId === session?.user?.id
-													? "You"
-													: `User ${member.userId.slice(0, 8)}...`}
-											</span>
-										</TableCell>
-										<TableCell>
-											<Badge variant={getRoleBadgeVariant(member.role)}>
-												{member.role}
-											</Badge>
-										</TableCell>
-										<TableCell className="text-muted-foreground">
-											{formatDistanceToNow(new Date(member.createdAt), {
-												addSuffix: true,
-											})}
-										</TableCell>
+						{!invitesData?.invitations.length ? (
+							<p className="text-muted-foreground text-sm py-4 text-center">
+								No pending invitations
+							</p>
+						) : (
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Email</TableHead>
+										<TableHead>Role</TableHead>
+										<TableHead>Expires</TableHead>
+										<TableHead className="w-10" />
 									</TableRow>
-								))}
-							</TableBody>
-						</Table>
+								</TableHeader>
+								<TableBody>
+									{invitesData.invitations.map((invite) => (
+										<TableRow key={invite.id}>
+											<TableCell className="font-medium">
+												{invite.email}
+											</TableCell>
+											<TableCell>
+												<Badge variant={getRoleBadgeVariant(invite.role)}>
+													{invite.role}
+												</Badge>
+											</TableCell>
+											<TableCell className="text-muted-foreground">
+												{formatDistanceToNow(new Date(invite.expiresAt), {
+													addSuffix: true,
+												})}
+											</TableCell>
+											<TableCell>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="ghost" size="icon">
+															<MoreHorizontal className="h-4 w-4" />
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end">
+														<DropdownMenuItem
+															onClick={() => handleResendInvite(invite.id)}
+														>
+															<RefreshCw className="mr-2 h-4 w-4" />
+															Resend
+														</DropdownMenuItem>
+														<DropdownMenuItem
+															onClick={() => setCancelId(invite.id)}
+															className="text-destructive"
+														>
+															<Trash2 className="mr-2 h-4 w-4" />
+															Cancel
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						)}
 					</CardContent>
 				</Card>
-
-				{canManageTeam && (
-					<Card>
-						<CardHeader>
-							<CardTitle>Pending Invitations</CardTitle>
-						</CardHeader>
-						<CardContent>
-							{!invitesData?.invitations.length ? (
-								<p className="text-muted-foreground text-sm py-4 text-center">
-									No pending invitations
-								</p>
-							) : (
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Email</TableHead>
-											<TableHead>Role</TableHead>
-											<TableHead>Expires</TableHead>
-											<TableHead className="w-10" />
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{invitesData.invitations.map((invite) => (
-											<TableRow key={invite.id}>
-												<TableCell className="font-medium">
-													{invite.email}
-												</TableCell>
-												<TableCell>
-													<Badge variant={getRoleBadgeVariant(invite.role)}>
-														{invite.role}
-													</Badge>
-												</TableCell>
-												<TableCell className="text-muted-foreground">
-													{formatDistanceToNow(new Date(invite.expiresAt), {
-														addSuffix: true,
-													})}
-												</TableCell>
-												<TableCell>
-													<DropdownMenu>
-														<DropdownMenuTrigger asChild>
-															<Button variant="ghost" size="icon">
-																<MoreHorizontal className="h-4 w-4" />
-															</Button>
-														</DropdownMenuTrigger>
-														<DropdownMenuContent align="end">
-															<DropdownMenuItem
-																onClick={() => handleResendInvite(invite.id)}
-															>
-																<RefreshCw className="mr-2 h-4 w-4" />
-																Resend
-															</DropdownMenuItem>
-															<DropdownMenuItem
-																onClick={() => setCancelId(invite.id)}
-																className="text-destructive"
-															>
-																<Trash2 className="mr-2 h-4 w-4" />
-																Cancel
-															</DropdownMenuItem>
-														</DropdownMenuContent>
-													</DropdownMenu>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							)}
-						</CardContent>
-					</Card>
-				)}
-			</div>
+			)}
 
 			<InviteForm
 				orgId={currentOrg.id}
