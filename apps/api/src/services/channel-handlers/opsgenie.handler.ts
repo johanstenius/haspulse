@@ -45,17 +45,51 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		}
 	}
 
+	const details: Record<string, string> = {
+		checkId: ctx.check.id,
+		projectSlug: ctx.project.slug,
+		event: ctx.event,
+	}
+
+	if (
+		ctx.richContext?.duration?.lastDurationMs !== null &&
+		ctx.richContext?.duration?.lastDurationMs !== undefined
+	) {
+		details.durationMs = String(ctx.richContext.duration.lastDurationMs)
+		if (ctx.richContext.duration.avgDurationMs) {
+			details.avgDurationMs = String(
+				Math.round(ctx.richContext.duration.avgDurationMs),
+			)
+		}
+		if (ctx.richContext.duration.isAnomaly) {
+			details.isAnomaly = "true"
+		}
+	}
+
+	if (ctx.richContext?.errorPattern?.lastErrorSnippet) {
+		details.lastError = ctx.richContext.errorPattern.lastErrorSnippet.slice(
+			0,
+			500,
+		)
+	}
+
+	if (
+		ctx.richContext?.correlation?.relatedFailures &&
+		ctx.richContext.correlation.relatedFailures.length > 0
+	) {
+		details.relatedFailures = ctx.richContext.correlation.relatedFailures
+			.slice(0, 5)
+			.map((f) => f.checkName)
+			.join(", ")
+	}
+
 	const alert = {
 		message: `${ctx.check.name} is ${eventDisplayName(ctx.event)}`,
 		alias,
 		priority: "P1",
 		source: "Haspulse",
 		tags: ["haspulse", ctx.project.slug],
-		details: {
-			checkId: ctx.check.id,
-			projectSlug: ctx.project.slug,
-			event: ctx.event,
-		},
+		details,
 	}
 
 	try {

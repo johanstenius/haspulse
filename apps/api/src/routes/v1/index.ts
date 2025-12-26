@@ -1,5 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi"
 import type { AppEnv } from "../../app.js"
+import { alertRoutes, checkAlertRoutes } from "./alerts/alerts.routes.js"
 import { apiKeyRoutes } from "./api-keys/api-keys.routes.js"
 import { billingRoutes } from "./billing/billing.routes.js"
 import { channelRoutes } from "./channels/channels.routes.js"
@@ -22,6 +23,8 @@ v1Routes.route("/projects", apiKeyRoutes)
 v1Routes.route("/checks", checkRoutes) // get/update/delete/pause/resume by check id
 v1Routes.route("/checks", pingHistoryRoutes)
 v1Routes.route("/checks", statsRoutes)
+v1Routes.route("/checks", checkAlertRoutes) // alerts for specific check
+v1Routes.route("/alerts", alertRoutes) // org-wide alerts
 v1Routes.route("/dashboard", dashboardRoutes)
 v1Routes.route("/billing", billingRoutes)
 v1Routes.route("/integrations/slack", slackRoutes)

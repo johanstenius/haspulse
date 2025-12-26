@@ -63,6 +63,8 @@ describe("Ping Routes", () => {
 				type: "SUCCESS",
 				body: null,
 				sourceIp: "127.0.0.1",
+				durationMs: null,
+				startPingId: null,
 				createdAt: new Date(),
 			})
 
@@ -103,6 +105,8 @@ describe("Ping Routes", () => {
 				type: "START",
 				body: null,
 				sourceIp: "127.0.0.1",
+				durationMs: null,
+				startPingId: null,
 				createdAt: new Date(),
 			})
 
@@ -128,6 +132,8 @@ describe("Ping Routes", () => {
 				type: "FAIL",
 				body: null,
 				sourceIp: "127.0.0.1",
+				durationMs: null,
+				startPingId: null,
 				createdAt: new Date(),
 			})
 
@@ -153,6 +159,8 @@ describe("Ping Routes", () => {
 				type: "SUCCESS",
 				body: "job output",
 				sourceIp: "127.0.0.1",
+				durationMs: null,
+				startPingId: null,
 				createdAt: new Date(),
 			})
 

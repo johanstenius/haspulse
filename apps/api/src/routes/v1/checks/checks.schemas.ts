@@ -28,6 +28,7 @@ export type CheckListQuery = z.infer<typeof checkListQuerySchema>
 export const checkStatusSchema = z.enum(["NEW", "UP", "LATE", "DOWN", "PAUSED"])
 export const scheduleTypeSchema = z.enum(["PERIOD", "CRON"])
 export const pingTypeSchema = z.enum(["SUCCESS", "START", "FAIL"])
+export const anomalySensitivitySchema = z.enum(["LOW", "NORMAL", "HIGH"])
 
 export const sparklineSlotSchema = z.enum([
 	"success",
@@ -52,6 +53,7 @@ export const checkResponseSchema = z
 		nextExpectedAt: z.string().datetime().nullable(),
 		alertOnRecovery: z.boolean(),
 		reminderIntervalHours: z.number().nullable(),
+		anomalySensitivity: anomalySensitivitySchema,
 		channelIds: z.array(z.string()),
 		sparkline: z.array(sparklineSlotSchema),
 		createdAt: z.string().datetime(),
@@ -88,6 +90,7 @@ export const createCheckBodySchema = z
 		timezone: z.string().optional(),
 		alertOnRecovery: z.boolean().optional().default(true),
 		reminderIntervalHours: z.number().min(1).max(168).optional(),
+		anomalySensitivity: anomalySensitivitySchema.optional().default("NORMAL"),
 	})
 	.openapi("CreateCheckRequest")
 
@@ -109,8 +112,30 @@ export const updateCheckBodySchema = z
 		timezone: z.string().nullable().optional(),
 		alertOnRecovery: z.boolean().optional(),
 		reminderIntervalHours: z.number().min(1).max(168).nullable().optional(),
+		anomalySensitivity: anomalySensitivitySchema.optional(),
 		channelIds: z.array(z.string()).optional(),
 	})
 	.openapi("UpdateCheckRequest")
 
 export type UpdateCheckBody = z.infer<typeof updateCheckBodySchema>
+
+export const durationStatsResponseSchema = z
+	.object({
+		current: z
+			.object({
+				avgMs: z.number().nullable(),
+				p50Ms: z.number().nullable(),
+				p95Ms: z.number().nullable(),
+				p99Ms: z.number().nullable(),
+				sampleCount: z.number(),
+			})
+			.nullable(),
+		trend: z.object({
+			last5: z.array(z.number()),
+			direction: z.enum(["increasing", "decreasing", "stable", "unknown"]),
+		}),
+		isAnomaly: z.boolean(),
+	})
+	.openapi("DurationStats")
+
+export type DurationStatsResponse = z.infer<typeof durationStatsResponseSchema>

@@ -1,3 +1,4 @@
+import type { AlertContext } from "./alert-context.service.js"
 import {
 	type AlertEvent,
 	type SendResult,
@@ -18,12 +19,13 @@ export async function sendToChannel(
 	event: AlertEvent,
 	check: CheckModel,
 	project: ProjectModel,
+	richContext?: AlertContext,
 ): Promise<SendResult> {
 	const handler = getHandler(channel.type)
 	if (!handler) {
 		return { success: false, error: `Unknown channel type: ${channel.type}` }
 	}
-	return handler.send({ channel, event, check, project })
+	return handler.send({ channel, event, check, project, richContext })
 }
 
 export async function testChannel(
@@ -46,6 +48,7 @@ export async function testChannel(
 		lastAlertAt: null,
 		alertOnRecovery: true,
 		reminderIntervalHours: null,
+		anomalySensitivity: "NORMAL",
 		createdAt: new Date(),
 		updatedAt: new Date(),
 	}

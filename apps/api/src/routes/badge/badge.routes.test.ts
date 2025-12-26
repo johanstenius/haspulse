@@ -46,6 +46,7 @@ function makeCheck(overrides = {}) {
 		lastAlertAt: null,
 		alertOnRecovery: true,
 		reminderIntervalHours: null,
+		anomalySensitivity: "NORMAL" as const,
 		createdAt: new Date(),
 		updatedAt: new Date(),
 		...overrides,

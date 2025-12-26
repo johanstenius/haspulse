@@ -33,7 +33,13 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { Channel, Check, CreateCheckData, ScheduleType } from "@/lib/api"
+import type {
+	AnomalySensitivity,
+	Channel,
+	Check,
+	CreateCheckData,
+	ScheduleType,
+} from "@/lib/api"
 import { cn } from "@/lib/utils"
 import cronstrue from "cronstrue"
 import { Clock, Globe, Info, Loader2, Mail, MessageSquare } from "lucide-react"
@@ -52,6 +58,7 @@ const checkFormSchema = z.object({
 	scheduleValue: z.string().min(1, "Schedule value is required"),
 	graceSeconds: z.coerce.number().min(0).max(86400),
 	alertOnRecovery: z.boolean(),
+	anomalySensitivity: z.enum(["LOW", "NORMAL", "HIGH"]),
 	channelIds: z.array(z.string()),
 })
 
@@ -161,6 +168,7 @@ export function CheckForm({
 			scheduleValue: "86400",
 			graceSeconds: 300,
 			alertOnRecovery: true,
+			anomalySensitivity: "NORMAL",
 			channelIds: [],
 		},
 	})
@@ -231,6 +239,7 @@ export function CheckForm({
 				scheduleValue: check?.scheduleValue ?? "86400",
 				graceSeconds: check?.graceSeconds ?? 300,
 				alertOnRecovery: check?.alertOnRecovery ?? true,
+				anomalySensitivity: check?.anomalySensitivity ?? "NORMAL",
 				channelIds: check?.channelIds ?? [],
 			})
 		}
@@ -259,6 +268,7 @@ export function CheckForm({
 			scheduleValue: result.data.scheduleValue,
 			graceSeconds: result.data.graceSeconds,
 			alertOnRecovery: result.data.alertOnRecovery,
+			anomalySensitivity: result.data.anomalySensitivity as AnomalySensitivity,
 			channelIds: result.data.channelIds,
 		})
 	}
@@ -655,6 +665,51 @@ export function CheckForm({
 												onCheckedChange={field.onChange}
 											/>
 										</FormControl>
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="anomalySensitivity"
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center gap-1.5">
+											<FormLabel>Anomaly Sensitivity</FormLabel>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+												</TooltipTrigger>
+												<TooltipContent side="right" className="max-w-[280px]">
+													<p className="font-medium mb-1">
+														Duration anomaly detection
+													</p>
+													<p className="text-xs text-muted-foreground">
+														Alerts when job duration deviates significantly from
+														the 7-day baseline. Requires START + SUCCESS pings.
+													</p>
+												</TooltipContent>
+											</Tooltip>
+										</div>
+										<Select value={field.value} onValueChange={field.onChange}>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												<SelectItem value="LOW">
+													Low - Only major anomalies
+												</SelectItem>
+												<SelectItem value="NORMAL">
+													Normal - Significant deviations
+												</SelectItem>
+												<SelectItem value="HIGH">
+													High - Small deviations
+												</SelectItem>
+											</SelectContent>
+										</Select>
+										<FormMessage />
 									</FormItem>
 								)}
 							/>

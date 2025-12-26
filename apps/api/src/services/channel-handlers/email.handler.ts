@@ -27,6 +27,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		projectName: ctx.project.name,
 		status: status as "DOWN" | "RECOVERED" | "STILL DOWN",
 		lastPingAt: ctx.check.lastPingAt?.toISOString() ?? null,
+		context: ctx.richContext,
 	})
 
 	return sendAlertEmail({

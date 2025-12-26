@@ -54,6 +54,7 @@ export type Project = {
 
 export type CheckStatus = "NEW" | "UP" | "LATE" | "DOWN" | "PAUSED"
 export type ScheduleType = "PERIOD" | "CRON"
+export type AnomalySensitivity = "LOW" | "NORMAL" | "HIGH"
 
 export type CheckListParams = {
 	page?: number
@@ -89,6 +90,7 @@ export type Check = {
 	nextExpectedAt: string | null
 	alertOnRecovery: boolean
 	reminderIntervalHours: number | null
+	anomalySensitivity: AnomalySensitivity
 	channelIds: string[]
 	sparkline: SparklineSlot[]
 	createdAt: string
@@ -242,6 +244,7 @@ export type CreateCheckData = {
 	timezone?: string
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number
+	anomalySensitivity?: AnomalySensitivity
 }
 
 export type UpdateCheckData = {
@@ -253,6 +256,7 @@ export type UpdateCheckData = {
 	timezone?: string | null
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number | null
+	anomalySensitivity?: AnomalySensitivity
 	channelIds?: string[]
 }
 
@@ -281,6 +285,23 @@ export type DashboardStats = {
 		NEW: number
 		PAUSED: number
 	}
+}
+
+export type TrendDirection = "increasing" | "decreasing" | "stable" | "unknown"
+
+export type DurationStats = {
+	current: {
+		avgMs: number | null
+		p50Ms: number | null
+		p95Ms: number | null
+		p99Ms: number | null
+		sampleCount: number
+	} | null
+	trend: {
+		last5: number[]
+		direction: TrendDirection
+	}
+	isAnomaly: boolean
 }
 
 export type DashboardCheck = {
@@ -322,6 +343,90 @@ export type CreateInvitationData = {
 export type AcceptInvitationResult = {
 	orgId: string
 	role: string
+}
+
+// Alert types
+export type AlertEvent = "check.down" | "check.up" | "check.still_down"
+
+export type AlertChannel = {
+	id: string
+	name: string
+	type: string
+}
+
+export type DurationContext = {
+	lastDurationMs: number | null
+	last5Durations: number[]
+	avgDurationMs: number | null
+	trendDirection: TrendDirection
+	isAnomaly: boolean
+	anomalyType?: "zscore" | "drift"
+	zScore?: number
+}
+
+export type ErrorPatternContext = {
+	lastErrorSnippet: string | null
+	errorCount24h: number
+}
+
+export type CorrelationContext = {
+	relatedFailures: Array<{
+		checkId: string
+		checkName: string
+		failedAt: string
+	}>
+}
+
+export type AlertContext = {
+	duration?: DurationContext
+	errorPattern?: ErrorPatternContext
+	correlation?: CorrelationContext
+}
+
+export type Alert = {
+	id: string
+	checkId: string
+	event: AlertEvent
+	channels: AlertChannel[]
+	context: AlertContext | null
+	success: boolean
+	error: string | null
+	createdAt: string
+}
+
+export type AlertWithCheck = Alert & {
+	checkName: string
+	projectId: string
+	projectName: string
+}
+
+export type AlertFiltersParams = {
+	page?: number
+	limit?: number
+	event?: AlertEvent
+	fromDate?: string
+	toDate?: string
+}
+
+export type AlertOrgFiltersParams = AlertFiltersParams & {
+	projectId?: string
+	checkId?: string
+}
+
+export type CheckAlertsListResponse = {
+	alerts: Alert[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
+export type AlertsListResponse = {
+	alerts: AlertWithCheck[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
 }
 
 export const api = {
@@ -374,6 +479,8 @@ export const api = {
 		delete: (id: string) => del(`/v1/checks/${id}`),
 		pause: (id: string) => post<Check>(`/v1/checks/${id}/pause`, {}),
 		resume: (id: string) => post<Check>(`/v1/checks/${id}/resume`, {}),
+		durationStats: (id: string) =>
+			get<DurationStats>(`/v1/checks/${id}/duration-stats`),
 	},
 	channels: {
 		list: (projectId: string) =>
@@ -405,6 +512,32 @@ export const api = {
 			get<{ pings: Ping[] }>(
 				`/v1/checks/${checkId}/pings${limit ? `?limit=${limit}` : ""}`,
 			),
+	},
+	alerts: {
+		listByCheck: (checkId: string, params?: AlertFiltersParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			if (params?.event) searchParams.set("event", params.event)
+			if (params?.fromDate) searchParams.set("fromDate", params.fromDate)
+			if (params?.toDate) searchParams.set("toDate", params.toDate)
+			const query = searchParams.toString()
+			return get<CheckAlertsListResponse>(
+				`/v1/checks/${checkId}/alerts${query ? `?${query}` : ""}`,
+			)
+		},
+		list: (params?: AlertOrgFiltersParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			if (params?.event) searchParams.set("event", params.event)
+			if (params?.fromDate) searchParams.set("fromDate", params.fromDate)
+			if (params?.toDate) searchParams.set("toDate", params.toDate)
+			if (params?.projectId) searchParams.set("projectId", params.projectId)
+			if (params?.checkId) searchParams.set("checkId", params.checkId)
+			const query = searchParams.toString()
+			return get<AlertsListResponse>(`/v1/alerts${query ? `?${query}` : ""}`)
+		},
 	},
 	invitations: {
 		list: (orgId: string) =>

@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query"
 import {
 	type AcceptInvitationResult,
+	type AlertFiltersParams,
+	type AlertOrgFiltersParams,
 	type ApiKeyCreated,
 	type Channel,
 	type Check,
@@ -45,6 +47,7 @@ export const queryKeys = {
 		list: (projectId: string, params?: CheckListParams) =>
 			["checks", projectId, params] as const,
 		detail: (id: string) => ["checks", "detail", id] as const,
+		durationStats: (id: string) => ["checks", "durationStats", id] as const,
 	},
 	channels: {
 		list: (projectId: string) => ["channels", projectId] as const,
@@ -54,6 +57,12 @@ export const queryKeys = {
 	},
 	pings: {
 		list: (checkId: string) => ["pings", checkId] as const,
+	},
+	alerts: {
+		listByCheck: (checkId: string, params?: AlertFiltersParams) =>
+			["alerts", "check", checkId, params] as const,
+		list: (params?: AlertOrgFiltersParams) =>
+			["alerts", "org", params] as const,
 	},
 	invitations: {
 		list: (orgId: string) => ["invitations", orgId] as const,
@@ -281,6 +290,14 @@ export function useResumeCheck(
 			})
 		},
 		...options,
+	})
+}
+
+export function useDurationStats(checkId: string) {
+	return useQuery({
+		queryKey: queryKeys.checks.durationStats(checkId),
+		queryFn: () => api.checks.durationStats(checkId),
+		enabled: !!checkId,
 	})
 }
 
@@ -539,5 +556,23 @@ export function useAcceptInvitation(
 	return useMutation({
 		mutationFn: (token: string) => api.invitations.accept(token),
 		...options,
+	})
+}
+
+// Alerts
+export function useCheckAlerts(checkId: string, params?: AlertFiltersParams) {
+	return useQuery({
+		queryKey: queryKeys.alerts.listByCheck(checkId, params),
+		queryFn: () => api.alerts.listByCheck(checkId, params),
+		enabled: !!checkId,
+		placeholderData: keepPreviousData,
+	})
+}
+
+export function useAlerts(params?: AlertOrgFiltersParams) {
+	return useQuery({
+		queryKey: queryKeys.alerts.list(params),
+		queryFn: () => api.alerts.list(params),
+		placeholderData: keepPreviousData,
 	})
 }

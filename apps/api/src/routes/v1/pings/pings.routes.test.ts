@@ -111,6 +111,7 @@ const mockCheck = {
 	lastAlertAt: null,
 	alertOnRecovery: true,
 	reminderIntervalHours: null,
+	anomalySensitivity: "NORMAL" as const,
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }
@@ -121,6 +122,8 @@ const mockPing = {
 	type: "SUCCESS" as const,
 	body: null,
 	sourceIp: "127.0.0.1",
+	durationMs: null,
+	startPingId: null,
 	createdAt: new Date("2025-01-01T12:00:00Z"),
 }
 

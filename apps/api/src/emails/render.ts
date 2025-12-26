@@ -18,11 +18,35 @@ export async function renderMagicLinkEmail(url: string): Promise<string> {
 	return render(createElement(MagicLinkEmail, { url }))
 }
 
+type AlertContext = {
+	duration?: {
+		lastDurationMs: number | null
+		last5Durations: number[]
+		avgDurationMs: number | null
+		trendDirection: "increasing" | "decreasing" | "stable" | "unknown"
+		isAnomaly: boolean
+		anomalyType?: "zscore" | "drift"
+		zScore?: number
+	}
+	errorPattern?: {
+		lastErrorSnippet: string | null
+		errorCount24h: number
+	}
+	correlation?: {
+		relatedFailures: Array<{
+			checkId: string
+			checkName: string
+			failedAt: string
+		}>
+	}
+}
+
 type AlertEmailParams = {
 	checkName: string
 	projectName: string
 	status: "DOWN" | "RECOVERED" | "STILL DOWN"
 	lastPingAt: string | null
+	context?: AlertContext
 }
 
 export async function renderAlertEmail(

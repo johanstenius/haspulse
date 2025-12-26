@@ -2,6 +2,7 @@ export { prisma } from "./client.js"
 export {
 	PrismaClient,
 	Prisma,
+	AnomalySensitivity,
 	CheckStatus,
 	PingType,
 	ScheduleType,

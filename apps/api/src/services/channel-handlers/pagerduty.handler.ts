@@ -18,7 +18,12 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		ctx.channel.config,
 		"PAGERDUTY",
 	)
-	const payload = buildPayload(ctx.event, ctx.check, ctx.project)
+	const payload = buildPayload(
+		ctx.event,
+		ctx.check,
+		ctx.project,
+		ctx.richContext,
+	)
 
 	const pdEvent = {
 		routing_key: config.routingKey,

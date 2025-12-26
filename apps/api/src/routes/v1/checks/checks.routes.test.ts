@@ -129,6 +129,7 @@ const mockCheck = {
 	lastAlertAt: null,
 	alertOnRecovery: true,
 	reminderIntervalHours: null,
+	anomalySensitivity: "NORMAL" as const,
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }

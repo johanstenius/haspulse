@@ -17,7 +17,12 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		ctx.channel.config,
 		"WEBHOOK",
 	)
-	const payload = buildPayload(ctx.event, ctx.check, ctx.project)
+	const payload = buildPayload(
+		ctx.event,
+		ctx.check,
+		ctx.project,
+		ctx.richContext,
+	)
 
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",

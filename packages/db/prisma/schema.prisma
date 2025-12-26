@@ -146,29 +146,31 @@ model Project {
 }
 
 model Check {
-  id                    String       @id @default(dbgenerated("nanoid(16)"))
-  projectId             String       @map("project_id")
+  id                    String             @id @default(dbgenerated("nanoid(16)"))
+  projectId             String             @map("project_id")
   name                  String
   slug                  String?
-  scheduleType          ScheduleType @map("schedule_type")
-  scheduleValue         String       @map("schedule_value")
-  graceSeconds          Int          @default(300) @map("grace_seconds")
+  scheduleType          ScheduleType       @map("schedule_type")
+  scheduleValue         String             @map("schedule_value")
+  graceSeconds          Int                @default(300) @map("grace_seconds")
   timezone              String?
-  status                CheckStatus  @default(NEW)
-  lastPingAt            DateTime?    @map("last_ping_at")
-  lastStartedAt         DateTime?    @map("last_started_at")
-  nextExpectedAt        DateTime?    @map("next_expected_at")
-  lastAlertAt           DateTime?    @map("last_alert_at")
-  alertOnRecovery       Boolean      @default(true) @map("alert_on_recovery")
-  reminderIntervalHours Int?         @map("reminder_interval_hours")
-  createdAt             DateTime     @default(now()) @map("created_at")
-  updatedAt             DateTime     @updatedAt @map("updated_at")
+  status                CheckStatus        @default(NEW)
+  lastPingAt            DateTime?          @map("last_ping_at")
+  lastStartedAt         DateTime?          @map("last_started_at")
+  nextExpectedAt        DateTime?          @map("next_expected_at")
+  lastAlertAt           DateTime?          @map("last_alert_at")
+  alertOnRecovery       Boolean            @default(true) @map("alert_on_recovery")
+  reminderIntervalHours Int?               @map("reminder_interval_hours")
+  anomalySensitivity    AnomalySensitivity @default(NORMAL) @map("anomaly_sensitivity")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
 
-  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   pings         Ping[]
   checkChannels CheckChannel[]
   alerts        Alert[]
   dailyStats    CheckDailyStat[]
+  durationStats CheckDurationStat[]
 
   @@unique([projectId, slug])
   @@index([status])
@@ -177,12 +179,14 @@ model Check {
 }
 
 model Ping {
-  id        String   @id @default(dbgenerated("nanoid(16)"))
-  checkId   String   @map("check_id")
-  type      PingType
-  body      String?
-  sourceIp  String   @map("source_ip")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(dbgenerated("nanoid(16)"))
+  checkId     String   @map("check_id")
+  type        PingType
+  body        String?
+  sourceIp    String   @map("source_ip")
+  durationMs  Int?     @map("duration_ms")
+  startPingId String?  @map("start_ping_id")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
 
@@ -206,6 +210,29 @@ model CheckDailyStat {
   @@unique([checkId, date])
   @@index([checkId, date])
   @@map("check_daily_stats")
+}
+
+model CheckDurationStat {
+  id            String   @id @default(dbgenerated("nanoid(16)"))
+  checkId       String   @map("check_id")
+  windowStart   DateTime @map("window_start")
+  windowEnd     DateTime @map("window_end")
+  sampleCount   Int      @default(0) @map("sample_count")
+  avgDurationMs Float?   @map("avg_duration_ms")
+  p50DurationMs Int?     @map("p50_duration_ms")
+  p95DurationMs Int?     @map("p95_duration_ms")
+  p99DurationMs Int?     @map("p99_duration_ms")
+  stdDevMs      Float?   @map("std_dev_ms")
+  minDurationMs Int?     @map("min_duration_ms")
+  maxDurationMs Int?     @map("max_duration_ms")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@unique([checkId, windowStart])
+  @@index([checkId])
+  @@map("check_duration_stats")
 }
 
 model Channel {
@@ -239,6 +266,7 @@ model Alert {
   checkId   String   @map("check_id")
   event     String
   channels  Json
+  context   Json?
   success   Boolean
   error     String?
   createdAt DateTime @default(now()) @map("created_at")
@@ -298,5 +326,13 @@ enum ChannelType {
   WEBHOOK
 
   @@map("channel_type")
+}
+
+enum AnomalySensitivity {
+  LOW
+  NORMAL
+  HIGH
+
+  @@map("anomaly_sensitivity")
 }
 

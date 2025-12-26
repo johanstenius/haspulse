@@ -2,7 +2,10 @@ import {
 	type SlackAppConfig,
 	slackAppConfigSchema,
 } from "../../routes/v1/channels/channels.schemas.js"
-import { slackWebhookHandler } from "./slack-webhook.handler.js"
+import {
+	formatContextBlocks,
+	slackWebhookHandler,
+} from "./slack-webhook.handler.js"
 import {
 	type AlertContext,
 	type ChannelHandler,
@@ -54,6 +57,22 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	const status = eventDisplayName(ctx.event)
 	const emoji = ctx.event === "check.up" ? ":white_check_mark:" : ":x:"
 
+	const blocks: Array<{
+		type: string
+		text: { type: string; text: string }
+	}> = [
+		{
+			type: "section",
+			text: {
+				type: "mrkdwn",
+				text: `${emoji} *${ctx.check.name}* is ${status}\nProject: ${ctx.project.name}`,
+			},
+		},
+	]
+
+	const contextBlocks = formatContextBlocks(ctx.richContext)
+	blocks.push(...contextBlocks)
+
 	try {
 		const response = await fetch("https://slack.com/api/chat.postMessage", {
 			method: "POST",
@@ -64,15 +83,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			body: JSON.stringify({
 				channel: config.channelId,
 				text: `${emoji} *${ctx.check.name}* is ${status}`,
-				blocks: [
-					{
-						type: "section",
-						text: {
-							type: "mrkdwn",
-							text: `${emoji} *${ctx.check.name}* is ${status}\nProject: ${ctx.project.name}`,
-						},
-					},
-				],
+				blocks,
 			}),
 		})
 

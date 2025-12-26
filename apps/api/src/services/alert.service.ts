@@ -1,9 +1,19 @@
 import { logger } from "../lib/logger.js"
-import { alertRepository } from "../repositories/alert.repository.js"
+import {
+	type AlertFilters,
+	type AlertModel,
+	type AlertModelWithCheck,
+	type AlertOrgFilters,
+	alertRepository,
+} from "../repositories/alert.repository.js"
+import { createPaginatedResult } from "../routes/v1/shared/schemas.js"
+import { buildAlertContext } from "./alert-context.service.js"
 import { type AlertEvent, sendToChannel } from "./channel-sender.service.js"
 import { listChannelsByCheck } from "./channel.service.js"
 import type { CheckModel } from "./check.service.js"
 import { getProjectById } from "./project.service.js"
+
+export type { AlertModel, AlertModelWithCheck }
 
 export type AlertResult = {
 	sent: boolean
@@ -25,8 +35,12 @@ export async function triggerAlert(
 		return { sent: false, success: false }
 	}
 
+	const context = await buildAlertContext(check, event)
+
 	const results = await Promise.allSettled(
-		channels.map((channel) => sendToChannel(channel, event, check, project)),
+		channels.map((channel) =>
+			sendToChannel(channel, event, check, project, context),
+		),
 	)
 
 	const channelSnapshots = channels.map((c) => ({
@@ -56,9 +70,40 @@ export async function triggerAlert(
 		checkId: check.id,
 		event,
 		channels: channelSnapshots,
+		context,
 		success: allSuccess,
 		error: errors.length > 0 ? errors.join("; ") : null,
 	})
 
 	return { sent: true, success: allSuccess }
+}
+
+export async function getCheckAlertsPaginated(
+	checkId: string,
+	page: number,
+	limit: number,
+	filters?: AlertFilters,
+) {
+	const result = await alertRepository.findByCheckIdPaginated(
+		checkId,
+		page,
+		limit,
+		filters,
+	)
+	return createPaginatedResult(result.data, result.total, page, limit)
+}
+
+export async function getOrgAlertsPaginated(
+	orgId: string,
+	page: number,
+	limit: number,
+	filters?: AlertOrgFilters,
+) {
+	const result = await alertRepository.findByOrgIdPaginated(
+		orgId,
+		page,
+		limit,
+		filters,
+	)
+	return createPaginatedResult(result.data, result.total, page, limit)
 }

@@ -12,6 +12,8 @@ export type {
 	AlertContext,
 	AlertEvent,
 	AlertPayload,
+	AlertPayloadContext,
+	RichAlertContext,
 	SendResult,
 } from "./types.js"
 

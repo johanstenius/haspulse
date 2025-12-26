@@ -1,5 +1,6 @@
 "use client"
 
+import { CheckAlertsTab } from "@/components/checks/check-alerts-tab"
 import { CheckForm } from "@/components/checks/check-form"
 import { PingSparkline } from "@/components/checks/ping-sparkline"
 import { StatusBadge } from "@/components/checks/status-badge"
@@ -31,6 +32,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
 	Tooltip,
 	TooltipContent,
@@ -41,7 +43,9 @@ import { formatRelativeCompactAgo } from "@/lib/format"
 import {
 	useChannels,
 	useCheck,
+	useCheckAlerts,
 	useDeleteCheck,
+	useDurationStats,
 	usePauseCheck,
 	usePings,
 	useResumeCheck,
@@ -51,16 +55,22 @@ import { cn } from "@/lib/utils"
 import cronstrue from "cronstrue"
 import { formatDistanceToNow } from "date-fns"
 import {
+	AlertTriangle,
 	ArrowLeft,
+	Bell,
 	Check,
 	Clock,
 	Copy,
 	Loader2,
+	Minus,
 	MoreHorizontal,
 	Pause,
 	Pencil,
 	Play,
+	Timer,
 	Trash2,
+	TrendingDown,
+	TrendingUp,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -104,6 +114,43 @@ function formatGrace(seconds: number): string {
 	return `${Math.floor(seconds / 3600)}h`
 }
 
+function formatDurationMs(ms: number | null): string {
+	if (ms === null) return "—"
+	if (ms < 1000) return `${Math.round(ms)}ms`
+	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+	if (ms < 3600000)
+		return `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`
+	const hours = Math.floor(ms / 3600000)
+	const mins = Math.floor((ms % 3600000) / 60000)
+	return `${hours}h ${mins}m`
+}
+
+function StatCell({ label, value }: { label: string; value: string }) {
+	return (
+		<div className="p-4">
+			<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+				{label}
+			</div>
+			<div className="font-medium text-foreground">{value}</div>
+		</div>
+	)
+}
+
+const trendConfig = {
+	increasing: {
+		icon: TrendingUp,
+		label: "Increasing",
+		className: "text-amber-500",
+	},
+	decreasing: {
+		icon: TrendingDown,
+		label: "Decreasing",
+		className: "text-emerald-500",
+	},
+	stable: { icon: Minus, label: "Stable", className: "text-muted-foreground" },
+	unknown: { icon: null, label: "—", className: "text-muted-foreground" },
+} as const
+
 export default function CheckDetailPage({
 	params,
 }: { params: Promise<{ id: string }> }) {
@@ -112,6 +159,9 @@ export default function CheckDetailPage({
 	const { data: check, isLoading } = useCheck(id)
 	const { data: pingsData, isLoading: pingsLoading } = usePings(id, 50)
 	const { data: channelsData } = useChannels(check?.projectId ?? "")
+	const { data: durationStats, isLoading: durationLoading } =
+		useDurationStats(id)
+	const { data: alertsData } = useCheckAlerts(id, { page: 1, limit: 1 })
 
 	const [showEdit, setShowEdit] = useState(false)
 	const [showDelete, setShowDelete] = useState(false)
@@ -274,144 +324,288 @@ export default function CheckDetailPage({
 				</DropdownMenu>
 			</div>
 
-			{/* Stats Panel */}
-			<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10 mb-6">
-				<div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
-					<div className="p-4">
-						<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-							Schedule
+			<Tabs defaultValue="overview" className="w-full">
+				<TabsList className="mb-6">
+					<TabsTrigger value="overview">
+						<Clock className="h-4 w-4" />
+						Overview
+					</TabsTrigger>
+					<TabsTrigger value="alerts" className="gap-2">
+						<Bell className="h-4 w-4" />
+						Alerts
+						{alertsData && alertsData.total > 0 && (
+							<Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+								{alertsData.total}
+							</Badge>
+						)}
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="overview">
+					{/* Stats Panel */}
+					<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10 mb-6">
+						<div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+							<div className="p-4">
+								<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+									Schedule
+								</div>
+								<div className="font-medium text-foreground">
+									{formatSchedule(check.scheduleType, check.scheduleValue)}
+								</div>
+								{check.scheduleType === "CRON" && (
+									<div className="font-mono text-xs text-muted-foreground mt-0.5">
+										{check.scheduleValue}
+									</div>
+								)}
+							</div>
+							<div className="p-4">
+								<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+									Grace Period
+								</div>
+								<div className="font-medium text-foreground">
+									{formatGrace(check.graceSeconds)}
+								</div>
+							</div>
+							<div className="p-4">
+								<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+									Last Ping
+								</div>
+								<div className="font-medium text-foreground">
+									{check.lastPingAt
+										? formatRelativeCompactAgo(check.lastPingAt)
+										: "Never"}
+								</div>
+							</div>
+							<div className="p-4">
+								<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+									Recent Activity
+								</div>
+								<PingSparkline sparkline={check.sparkline} />
+							</div>
 						</div>
-						<div className="font-medium text-foreground">
-							{formatSchedule(check.scheduleType, check.scheduleValue)}
+					</div>
+
+					{/* Duration Stats */}
+					<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10 mb-6">
+						<div className="px-4 py-3 border-b border-border flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<Timer className="h-4 w-4 text-muted-foreground" />
+								<h2 className="font-medium">Duration Stats</h2>
+							</div>
+							{durationStats?.isAnomaly && (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Badge variant="destructive" className="gap-1 cursor-help">
+											<AlertTriangle className="h-3 w-3" />
+											Anomaly
+										</Badge>
+									</TooltipTrigger>
+									<TooltipContent side="left" className="max-w-[250px]">
+										Duration significantly deviates from the 7-day baseline
+										(z-score exceeded threshold)
+									</TooltipContent>
+								</Tooltip>
+							)}
 						</div>
-						{check.scheduleType === "CRON" && (
-							<div className="font-mono text-xs text-muted-foreground mt-0.5">
-								{check.scheduleValue}
+						{durationLoading ? (
+							<div className="p-4 grid grid-cols-3 md:grid-cols-6 gap-4">
+								{["avg", "p50", "p95", "p99", "samples", "trend"].map(
+									(label) => (
+										<div key={label}>
+											<Skeleton className="h-3 w-16 mb-2" />
+											<Skeleton className="h-5 w-12" />
+										</div>
+									),
+								)}
+							</div>
+						) : durationStats?.current ? (
+							<>
+								<div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-border">
+									<StatCell
+										label="Avg"
+										value={formatDurationMs(durationStats.current.avgMs)}
+									/>
+									<StatCell
+										label="P50"
+										value={formatDurationMs(durationStats.current.p50Ms)}
+									/>
+									<StatCell
+										label="P95"
+										value={formatDurationMs(durationStats.current.p95Ms)}
+									/>
+									<StatCell
+										label="P99"
+										value={formatDurationMs(durationStats.current.p99Ms)}
+									/>
+									<StatCell
+										label="Samples"
+										value={String(durationStats.current.sampleCount)}
+									/>
+									<div className="p-4">
+										<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+											Trend
+										</div>
+										{(() => {
+											const config = trendConfig[durationStats.trend.direction]
+											const Icon = config.icon
+											return (
+												<div
+													className={cn(
+														"flex items-center gap-1.5 font-medium",
+														config.className,
+													)}
+												>
+													{Icon && <Icon className="h-4 w-4" />}
+													<span>{config.label}</span>
+												</div>
+											)
+										})()}
+									</div>
+								</div>
+								{durationStats.trend.last5.length > 0 && (
+									<div className="px-4 py-3 border-t border-border bg-muted/30">
+										<div className="text-xs text-muted-foreground mb-1.5">
+											Last 5 durations
+										</div>
+										<div className="flex items-center gap-2 font-mono text-sm">
+											{durationStats.trend.last5.map((ms, i) => (
+												<span
+													// biome-ignore lint/suspicious/noArrayIndexKey: fixed-size array from API
+													key={i}
+													className={cn(
+														"px-1.5 py-0.5 rounded text-xs",
+														i === durationStats.trend.last5.length - 1
+															? "bg-primary/10 text-primary font-medium"
+															: "text-muted-foreground",
+													)}
+												>
+													{formatDurationMs(ms)}
+												</span>
+											))}
+										</div>
+									</div>
+								)}
+							</>
+						) : (
+							<div className="text-center py-8 text-muted-foreground">
+								<Timer className="h-8 w-8 mx-auto mb-2 opacity-50" />
+								<p className="text-sm">No duration data yet</p>
+								<p className="text-xs mt-1">
+									Send{" "}
+									<code className="bg-secondary px-1 py-0.5 rounded">
+										START
+									</code>{" "}
+									then{" "}
+									<code className="bg-secondary px-1 py-0.5 rounded">
+										SUCCESS
+									</code>{" "}
+									pings to track duration
+								</p>
 							</div>
 						)}
 					</div>
-					<div className="p-4">
-						<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-							Grace Period
-						</div>
-						<div className="font-medium text-foreground">
-							{formatGrace(check.graceSeconds)}
-						</div>
-					</div>
-					<div className="p-4">
-						<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-							Last Ping
-						</div>
-						<div className="font-medium text-foreground">
-							{check.lastPingAt
-								? formatRelativeCompactAgo(check.lastPingAt)
-								: "Never"}
-						</div>
-					</div>
-					<div className="p-4">
-						<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-							Recent Activity
-						</div>
-						<PingSparkline sparkline={check.sparkline} />
-					</div>
-				</div>
-			</div>
 
-			{/* Ping History */}
-			<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10">
-				<div className="px-4 py-3 border-b border-border">
-					<h2 className="font-medium">Ping History</h2>
-				</div>
-				{pingsLoading ? (
-					<div className="p-4 space-y-2">
-						<Skeleton className="h-8 w-full" />
-						<Skeleton className="h-8 w-full" />
-						<Skeleton className="h-8 w-full" />
-					</div>
-				) : pingsData?.pings.length === 0 ? (
-					<div className="text-center py-12 text-muted-foreground">
-						<Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-						<p>No pings recorded yet</p>
-						<p className="text-xs mt-1">
-							Send a request to{" "}
-							<code className="bg-secondary px-1.5 py-0.5 rounded">
-								/ping/{check.slug}
-							</code>
-						</p>
-					</div>
-				) : (
-					<Table>
-						<TableHeader>
-							<TableRow className="hover:bg-transparent">
-								<TableHead className="text-xs uppercase tracking-wide">
-									Type
-								</TableHead>
-								<TableHead className="text-xs uppercase tracking-wide">
-									Time
-								</TableHead>
-								<TableHead className="text-xs uppercase tracking-wide">
-									Source IP
-								</TableHead>
-								{hasAnyBody && (
-									<TableHead className="text-xs uppercase tracking-wide">
-										Body
-									</TableHead>
-								)}
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{pingsData?.pings.map((ping) => (
-								<TableRow key={ping.id}>
-									<TableCell className="py-3">
-										<span
-											className={cn(
-												"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-												pingTypeStyles[ping.type].bg,
-												pingTypeStyles[ping.type].text,
-											)}
-										>
-											{pingTypeLabels[ping.type]}
-										</span>
-									</TableCell>
-									<TableCell className="py-3 text-muted-foreground">
-										<Tooltip>
-											<TooltipTrigger>
-												{formatDistanceToNow(new Date(ping.createdAt), {
-													addSuffix: true,
-												})}
-											</TooltipTrigger>
-											<TooltipContent>
-												{new Date(ping.createdAt).toLocaleString()}
-											</TooltipContent>
-										</Tooltip>
-									</TableCell>
-									<TableCell className="py-3 font-mono text-xs text-muted-foreground">
-										{ping.sourceIp}
-									</TableCell>
-									{hasAnyBody && (
-										<TableCell className="py-3 text-muted-foreground truncate max-w-[200px]">
-											{ping.body ? (
+					{/* Ping History */}
+					<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10">
+						<div className="px-4 py-3 border-b border-border">
+							<h2 className="font-medium">Ping History</h2>
+						</div>
+						{pingsLoading ? (
+							<div className="p-4 space-y-2">
+								<Skeleton className="h-8 w-full" />
+								<Skeleton className="h-8 w-full" />
+								<Skeleton className="h-8 w-full" />
+							</div>
+						) : pingsData?.pings.length === 0 ? (
+							<div className="text-center py-12 text-muted-foreground">
+								<Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+								<p>No pings recorded yet</p>
+								<p className="text-xs mt-1">
+									Send a request to{" "}
+									<code className="bg-secondary px-1.5 py-0.5 rounded">
+										/ping/{check.slug}
+									</code>
+								</p>
+							</div>
+						) : (
+							<Table>
+								<TableHeader>
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="text-xs uppercase tracking-wide">
+											Type
+										</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide">
+											Time
+										</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide">
+											Source IP
+										</TableHead>
+										{hasAnyBody && (
+											<TableHead className="text-xs uppercase tracking-wide">
+												Body
+											</TableHead>
+										)}
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{pingsData?.pings.map((ping) => (
+										<TableRow key={ping.id}>
+											<TableCell className="py-3">
+												<span
+													className={cn(
+														"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+														pingTypeStyles[ping.type].bg,
+														pingTypeStyles[ping.type].text,
+													)}
+												>
+													{pingTypeLabels[ping.type]}
+												</span>
+											</TableCell>
+											<TableCell className="py-3 text-muted-foreground">
 												<Tooltip>
-													<TooltipTrigger className="truncate block max-w-[200px]">
-														{ping.body}
+													<TooltipTrigger>
+														{formatDistanceToNow(new Date(ping.createdAt), {
+															addSuffix: true,
+														})}
 													</TooltipTrigger>
-													<TooltipContent className="max-w-sm">
-														<pre className="text-xs whitespace-pre-wrap">
-															{ping.body}
-														</pre>
+													<TooltipContent>
+														{new Date(ping.createdAt).toLocaleString()}
 													</TooltipContent>
 												</Tooltip>
-											) : (
-												<span className="text-muted-foreground/50">—</span>
+											</TableCell>
+											<TableCell className="py-3 font-mono text-xs text-muted-foreground">
+												{ping.sourceIp}
+											</TableCell>
+											{hasAnyBody && (
+												<TableCell className="py-3 text-muted-foreground truncate max-w-[200px]">
+													{ping.body ? (
+														<Tooltip>
+															<TooltipTrigger className="truncate block max-w-[200px]">
+																{ping.body}
+															</TooltipTrigger>
+															<TooltipContent className="max-w-sm">
+																<pre className="text-xs whitespace-pre-wrap">
+																	{ping.body}
+																</pre>
+															</TooltipContent>
+														</Tooltip>
+													) : (
+														<span className="text-muted-foreground/50">—</span>
+													)}
+												</TableCell>
 											)}
-										</TableCell>
-									)}
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				)}
-			</div>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						)}
+					</div>
+				</TabsContent>
+
+				<TabsContent value="alerts">
+					<CheckAlertsTab checkId={id} />
+				</TabsContent>
+			</Tabs>
 
 			<CheckForm
 				open={showEdit}

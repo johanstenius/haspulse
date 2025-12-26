@@ -6,6 +6,30 @@ type CreatePingData = {
 	type: PingType
 	body: string | null
 	sourceIp: string
+	durationMs?: number | null
+	startPingId?: string | null
+}
+
+function toModel(ping: {
+	id: string
+	checkId: string
+	type: PingType
+	body: string | null
+	sourceIp: string
+	durationMs: number | null
+	startPingId: string | null
+	createdAt: Date
+}): PingModel {
+	return {
+		id: ping.id,
+		checkId: ping.checkId,
+		type: ping.type,
+		body: ping.body,
+		sourceIp: ping.sourceIp,
+		durationMs: ping.durationMs,
+		startPingId: ping.startPingId,
+		createdAt: ping.createdAt,
+	}
 }
 
 export const pingRepository = {
@@ -16,16 +40,11 @@ export const pingRepository = {
 				type: data.type,
 				body: data.body,
 				sourceIp: data.sourceIp,
+				durationMs: data.durationMs ?? null,
+				startPingId: data.startPingId ?? null,
 			},
 		})
-		return {
-			id: ping.id,
-			checkId: ping.checkId,
-			type: ping.type,
-			body: ping.body,
-			sourceIp: ping.sourceIp,
-			createdAt: ping.createdAt,
-		}
+		return toModel(ping)
 	},
 
 	async findByCheckId(checkId: string, limit = 50): Promise<PingModel[]> {
@@ -34,14 +53,7 @@ export const pingRepository = {
 			orderBy: { createdAt: "desc" },
 			take: limit,
 		})
-		return pings.map((ping) => ({
-			id: ping.id,
-			checkId: ping.checkId,
-			type: ping.type,
-			body: ping.body,
-			sourceIp: ping.sourceIp,
-			createdAt: ping.createdAt,
-		}))
+		return pings.map(toModel)
 	},
 
 	async deleteOlderThan(checkId: string, cutoffDate: Date): Promise<number> {
@@ -103,5 +115,87 @@ export const pingRepository = {
 		}
 
 		return result
+	},
+
+	async findLatestStartPing(checkId: string): Promise<PingModel | null> {
+		const ping = await prisma.ping.findFirst({
+			where: { checkId, type: "START" },
+			orderBy: { createdAt: "desc" },
+		})
+		return ping ? toModel(ping) : null
+	},
+
+	async findRecentWithDuration(
+		checkId: string,
+		limit: number,
+	): Promise<PingModel[]> {
+		const pings = await prisma.ping.findMany({
+			where: {
+				checkId,
+				durationMs: { not: null },
+			},
+			orderBy: { createdAt: "desc" },
+			take: limit,
+		})
+		return pings.map(toModel)
+	},
+
+	async findFailedInTimeWindow(
+		checkIds: string[],
+		windowStart: Date,
+		windowEnd: Date,
+	): Promise<Array<{ checkId: string; checkName: string; createdAt: Date }>> {
+		if (checkIds.length === 0) return []
+
+		const pings = await prisma.ping.findMany({
+			where: {
+				checkId: { in: checkIds },
+				type: "FAIL",
+				createdAt: {
+					gte: windowStart,
+					lte: windowEnd,
+				},
+			},
+			include: {
+				check: { select: { name: true } },
+			},
+			orderBy: { createdAt: "desc" },
+		})
+
+		return pings.map((p) => ({
+			checkId: p.checkId,
+			checkName: p.check.name,
+			createdAt: p.createdAt,
+		}))
+	},
+
+	async countFailedByCheckId(checkId: string, since: Date): Promise<number> {
+		return prisma.ping.count({
+			where: {
+				checkId,
+				type: "FAIL",
+				createdAt: { gte: since },
+			},
+		})
+	},
+
+	async findAllDurationsInWindow(
+		checkId: string,
+		windowStart: Date,
+		windowEnd: Date,
+	): Promise<number[]> {
+		const pings = await prisma.ping.findMany({
+			where: {
+				checkId,
+				durationMs: { not: null },
+				createdAt: {
+					gte: windowStart,
+					lte: windowEnd,
+				},
+			},
+			select: { durationMs: true },
+			orderBy: { createdAt: "asc" },
+		})
+		return pings.map((p) => p.durationMs).filter((d): d is number => d !== null)
 	},
 }

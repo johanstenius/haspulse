@@ -30,6 +30,10 @@ import {
 	slugExistsInProject,
 	updateCheck,
 } from "../../../services/check.service.js"
+import {
+	getDurationStats,
+	getDurationTrend,
+} from "../../../services/duration.service.js"
 import { getEffectivePlan } from "../../../services/organization.service.js"
 import {
 	getProjectById,
@@ -42,6 +46,7 @@ import {
 	checkListResponseSchema,
 	checkResponseSchema,
 	createCheckBodySchema,
+	durationStatsResponseSchema,
 	errorResponseSchema,
 	projectIdParamSchema,
 	updateCheckBodySchema,
@@ -280,6 +285,32 @@ const resumeCheckRoute = createRoute({
 	summary: "Resume check monitoring",
 })
 
+const durationStatsRoute = createRoute({
+	method: "get",
+	path: "/{id}/duration-stats",
+	request: { params: checkIdParamSchema },
+	responses: {
+		200: {
+			content: { "application/json": { schema: durationStatsResponseSchema } },
+			description: "Duration statistics",
+		},
+		401: {
+			content: { "application/json": { schema: errorResponseSchema } },
+			description: "Unauthorized",
+		},
+		403: {
+			content: { "application/json": { schema: errorResponseSchema } },
+			description: "Forbidden",
+		},
+		404: {
+			content: { "application/json": { schema: errorResponseSchema } },
+			description: "Check not found",
+		},
+	},
+	tags: ["Checks"],
+	summary: "Get duration statistics for a check",
+})
+
 // Project-scoped routes
 projectCheckRoutes.openapi(listChecksRoute, async (c) => {
 	const { projectId } = c.req.valid("param")
@@ -354,6 +385,7 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 		timezone: body.timezone,
 		alertOnRecovery: body.alertOnRecovery,
 		reminderIntervalHours: body.reminderIntervalHours,
+		anomalySensitivity: body.anomalySensitivity,
 	})
 
 	return c.json(toCheckResponse(check, []), 201)
@@ -433,6 +465,35 @@ checkRoutes.openapi(resumeCheckRoute, async (c) => {
 	const pings = pingsMap.get(id) ?? []
 	const sparkline = calculateSparkline(resumed, pings)
 	return c.json(toCheckResponse(resumed, channelIds, sparkline), 200)
+})
+
+checkRoutes.openapi(durationStatsRoute, async (c) => {
+	const { id } = c.req.valid("param")
+	const check = await getAuthorizedCheck(c, id)
+	const [stats, trend] = await Promise.all([
+		getDurationStats(check.id),
+		getDurationTrend(check.id),
+	])
+
+	return c.json(
+		{
+			current: stats
+				? {
+						avgMs: stats.avgDurationMs,
+						p50Ms: stats.p50DurationMs,
+						p95Ms: stats.p95DurationMs,
+						p99Ms: stats.p99DurationMs,
+						sampleCount: stats.sampleCount,
+					}
+				: null,
+			trend: {
+				last5: trend.last5Durations,
+				direction: trend.trendDirection,
+			},
+			isAnomaly: trend.isAnomaly,
+		},
+		200,
+	)
 })
 
 export { checkRoutes, projectCheckRoutes }

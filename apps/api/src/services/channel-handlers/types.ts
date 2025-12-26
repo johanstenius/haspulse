@@ -1,8 +1,32 @@
+import type { AlertContext as RichAlertContext } from "../alert-context.service.js"
 import type { ChannelModel } from "../channel.service.js"
 import type { CheckModel } from "../check.service.js"
 import type { ProjectModel } from "../project.service.js"
 
 export type AlertEvent = "check.down" | "check.up" | "check.still_down"
+
+export type AlertPayloadContext = {
+	duration?: {
+		lastDurationMs: number | null
+		last5Durations: number[]
+		avgDurationMs: number | null
+		trendDirection: "increasing" | "decreasing" | "stable" | "unknown"
+		isAnomaly: boolean
+		anomalyType?: "zscore" | "drift"
+		zScore?: number
+	}
+	errorPattern?: {
+		lastErrorSnippet: string | null
+		errorCount24h: number
+	}
+	correlation?: {
+		relatedFailures: Array<{
+			checkId: string
+			checkName: string
+			failedAt: string
+		}>
+	}
+}
 
 export type AlertPayload = {
 	event: AlertEvent
@@ -18,6 +42,7 @@ export type AlertPayload = {
 		name: string
 	}
 	timestamp: string
+	context?: AlertPayloadContext
 }
 
 export type SendResult = {
@@ -30,11 +55,14 @@ export type AlertContext = {
 	event: AlertEvent
 	check: CheckModel
 	project: ProjectModel
+	richContext?: RichAlertContext
 }
 
 export type ChannelHandler = {
 	send: (ctx: AlertContext) => Promise<SendResult>
 }
+
+export type { RichAlertContext }
 
 export function parseConfig<T>(
 	schema: {
@@ -63,8 +91,9 @@ export function buildPayload(
 	event: AlertEvent,
 	check: CheckModel,
 	project: ProjectModel,
+	richContext?: RichAlertContext,
 ): AlertPayload {
-	return {
+	const payload: AlertPayload = {
 		event,
 		check: {
 			id: check.id,
@@ -79,6 +108,12 @@ export function buildPayload(
 		},
 		timestamp: new Date().toISOString(),
 	}
+
+	if (richContext) {
+		payload.context = richContext
+	}
+
+	return payload
 }
 
 export function eventDisplayName(event: AlertEvent): string {

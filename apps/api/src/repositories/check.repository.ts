@@ -1,4 +1,5 @@
 import {
+	type AnomalySensitivity,
 	CheckStatus,
 	type PingType,
 	type ScheduleType,
@@ -51,6 +52,7 @@ type RawCheck = {
 	last_alert_at: Date | null
 	alert_on_recovery: boolean
 	reminder_interval_hours: number | null
+	anomaly_sensitivity: AnomalySensitivity
 	created_at: Date
 	updated_at: Date
 }
@@ -72,6 +74,7 @@ function rawToCheckModel(raw: RawCheck): CheckModel {
 		lastAlertAt: raw.last_alert_at,
 		alertOnRecovery: raw.alert_on_recovery,
 		reminderIntervalHours: raw.reminder_interval_hours,
+		anomalySensitivity: raw.anomaly_sensitivity,
 		createdAt: raw.created_at,
 		updatedAt: raw.updated_at,
 	}
@@ -93,6 +96,7 @@ function toCheckModel(check: {
 	lastAlertAt: Date | null
 	alertOnRecovery: boolean
 	reminderIntervalHours: number | null
+	anomalySensitivity: AnomalySensitivity
 	createdAt: Date
 	updatedAt: Date
 }): CheckModel {
@@ -112,6 +116,7 @@ function toCheckModel(check: {
 		lastAlertAt: check.lastAlertAt,
 		alertOnRecovery: check.alertOnRecovery,
 		reminderIntervalHours: check.reminderIntervalHours,
+		anomalySensitivity: check.anomalySensitivity,
 		createdAt: check.createdAt,
 		updatedAt: check.updatedAt,
 	}

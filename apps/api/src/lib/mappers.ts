@@ -58,6 +58,7 @@ export function toCheckResponse(
 		nextExpectedAt: toISOStringOrNull(check.nextExpectedAt),
 		alertOnRecovery: check.alertOnRecovery,
 		reminderIntervalHours: check.reminderIntervalHours,
+		anomalySensitivity: check.anomalySensitivity,
 		channelIds,
 		sparkline,
 		createdAt: check.createdAt.toISOString(),

@@ -1,4 +1,8 @@
-import type { CheckStatus, ScheduleType } from "@haspulse/db"
+import type {
+	AnomalySensitivity,
+	CheckStatus,
+	ScheduleType,
+} from "@haspulse/db"
 import { forbidden, notFound } from "../lib/errors.js"
 import { checkRepository } from "../repositories/check.repository.js"
 
@@ -18,6 +22,7 @@ export type CheckModel = {
 	lastAlertAt: Date | null
 	alertOnRecovery: boolean
 	reminderIntervalHours: number | null
+	anomalySensitivity: AnomalySensitivity
 	createdAt: Date
 	updatedAt: Date
 }
@@ -32,6 +37,7 @@ export type CreateCheckInput = {
 	timezone?: string
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number
+	anomalySensitivity?: AnomalySensitivity
 }
 
 export type UpdateCheckInput = {
@@ -43,6 +49,7 @@ export type UpdateCheckInput = {
 	timezone?: string | null
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number | null
+	anomalySensitivity?: AnomalySensitivity
 }
 
 export async function getCheckById(id: string): Promise<CheckModel | null> {
