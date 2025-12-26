@@ -65,7 +65,20 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 		timestamp: ping.createdAt,
 	})
 
-	if (wasDown && input.type !== "START" && check.alertOnRecovery) {
+	// Trigger check.fail alert on FAIL pings (with dedup)
+	if (input.type === "FAIL") {
+		try {
+			const result = await triggerAlert("check.fail", check)
+			if (result.sent) {
+				await checkRepository.updateLastAlertAt(check.id, ping.createdAt)
+			}
+		} catch (err) {
+			logger.error({ err, checkId: check.id }, "Failed to trigger fail alert")
+		}
+	}
+
+	// Recovery alert only on SUCCESS (not FAIL)
+	if (wasDown && input.type === "SUCCESS" && check.alertOnRecovery) {
 		try {
 			const result = await triggerAlert("check.up", check)
 			if (result.sent) {

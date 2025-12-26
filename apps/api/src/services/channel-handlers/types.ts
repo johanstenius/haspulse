@@ -3,7 +3,11 @@ import type { ChannelModel } from "../channel.service.js"
 import type { CheckModel } from "../check.service.js"
 import type { ProjectModel } from "../project.service.js"
 
-export type AlertEvent = "check.down" | "check.up" | "check.still_down"
+export type AlertEvent =
+	| "check.down"
+	| "check.up"
+	| "check.still_down"
+	| "check.fail"
 
 export type AlertPayloadContext = {
 	duration?: {
@@ -124,5 +128,7 @@ export function eventDisplayName(event: AlertEvent): string {
 			return "RECOVERED"
 		case "check.still_down":
 			return "STILL DOWN"
+		case "check.fail":
+			return "FAILED"
 	}
 }

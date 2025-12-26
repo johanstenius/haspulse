@@ -183,7 +183,8 @@ export const checkRepository = {
 			)
 		}
 
-		if (data.type === "SUCCESS" || data.type === "FAIL") {
+		// Only SUCCESS transitions to UP, not FAIL
+		if (data.type === "SUCCESS") {
 			if (
 				check.status === CheckStatus.DOWN ||
 				check.status === CheckStatus.NEW ||

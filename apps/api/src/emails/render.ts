@@ -44,7 +44,7 @@ type AlertContext = {
 type AlertEmailParams = {
 	checkName: string
 	projectName: string
-	status: "DOWN" | "RECOVERED" | "STILL DOWN"
+	status: "DOWN" | "RECOVERED" | "STILL DOWN" | "FAILED"
 	lastPingAt: string | null
 	context?: AlertContext
 }

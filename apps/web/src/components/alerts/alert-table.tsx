@@ -34,6 +34,8 @@ function getEventLabel(event: string): string {
 			return "Recovered"
 		case "check.still_down":
 			return "Still Down"
+		case "check.fail":
+			return "Failed"
 		default:
 			return event
 	}
@@ -47,6 +49,8 @@ function getEventIcon(event: string) {
 			return <Check className="size-4" />
 		case "check.still_down":
 			return <Bell className="size-4" />
+		case "check.fail":
+			return <X className="size-4" />
 		default:
 			return <Bell className="size-4" />
 	}
@@ -60,6 +64,8 @@ function getEventColor(event: string): string {
 			return "text-green-500 bg-green-500/10"
 		case "check.still_down":
 			return "text-amber-500 bg-amber-500/10"
+		case "check.fail":
+			return "text-red-500 bg-red-500/10"
 		default:
 			return "text-muted-foreground bg-muted"
 	}

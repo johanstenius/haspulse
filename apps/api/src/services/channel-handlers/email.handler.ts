@@ -25,7 +25,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	const html = await renderAlertEmail({
 		checkName: ctx.check.name,
 		projectName: ctx.project.name,
-		status: status as "DOWN" | "RECOVERED" | "STILL DOWN",
+		status: status as "DOWN" | "RECOVERED" | "STILL DOWN" | "FAILED",
 		lastPingAt: ctx.check.lastPingAt?.toISOString() ?? null,
 		context: ctx.richContext,
 	})

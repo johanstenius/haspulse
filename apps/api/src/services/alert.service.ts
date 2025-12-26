@@ -18,12 +18,38 @@ export type { AlertModel, AlertModelWithCheck }
 export type AlertResult = {
 	sent: boolean
 	success: boolean
+	skipped?: boolean
+}
+
+// Dedup cooldown in minutes per event type
+const ALERT_COOLDOWN_MINUTES: Record<string, number> = {
+	"check.fail": 5, // Don't spam on repeated failures
+	"check.down": 0, // Always alert on down
+	"check.up": 0, // Always alert on recovery
+	"check.still_down": 0, // Handled by reminderIntervalHours
 }
 
 export async function triggerAlert(
 	event: AlertEvent,
 	check: CheckModel,
+	options: { skipDedup?: boolean } = {},
 ): Promise<AlertResult> {
+	const cooldown = ALERT_COOLDOWN_MINUTES[event] ?? 0
+	if (!options.skipDedup && cooldown > 0) {
+		const hasRecent = await alertRepository.hasRecentAlert(
+			check.id,
+			event,
+			cooldown,
+		)
+		if (hasRecent) {
+			logger.info(
+				{ checkId: check.id, event, cooldown },
+				"Alert skipped (dedup cooldown)",
+			)
+			return { sent: false, success: false, skipped: true }
+		}
+	}
+
 	const channels = await listChannelsByCheck(check.id)
 	if (channels.length === 0) {
 		return { sent: false, success: false }

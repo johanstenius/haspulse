@@ -96,6 +96,22 @@ function buildDateFilter(
 }
 
 export const alertRepository = {
+	async hasRecentAlert(
+		checkId: string,
+		event: string,
+		withinMinutes: number,
+	): Promise<boolean> {
+		const cutoff = new Date(Date.now() - withinMinutes * 60 * 1000)
+		const count = await prisma.alert.count({
+			where: {
+				checkId,
+				event,
+				createdAt: { gte: cutoff },
+			},
+		})
+		return count > 0
+	},
+
 	async create(input: CreateAlertInput): Promise<AlertModel> {
 		const alert = await prisma.alert.create({
 			data: {
