@@ -146,9 +146,13 @@ function slugify(text: string): string {
 		.replace(/^-|-$/g, "")
 }
 
-const channelIcons = {
+const channelIcons: Record<string, typeof Mail> = {
 	EMAIL: Mail,
-	SLACK: MessageSquare,
+	SLACK_WEBHOOK: MessageSquare,
+	SLACK_APP: MessageSquare,
+	DISCORD: MessageSquare,
+	PAGERDUTY: Globe,
+	OPSGENIE: Globe,
 	WEBHOOK: Globe,
 }
 

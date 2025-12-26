@@ -24,13 +24,21 @@ type ChannelCardProps = {
 
 const channelIcons: Record<ChannelType, typeof Mail> = {
 	EMAIL: Mail,
-	SLACK: MessageSquare,
+	SLACK_WEBHOOK: MessageSquare,
+	SLACK_APP: MessageSquare,
+	DISCORD: MessageSquare,
+	PAGERDUTY: Globe,
+	OPSGENIE: Globe,
 	WEBHOOK: Globe,
 }
 
 const channelLabels: Record<ChannelType, string> = {
 	EMAIL: "Email",
-	SLACK: "Slack",
+	SLACK_WEBHOOK: "Slack",
+	SLACK_APP: "Slack",
+	DISCORD: "Discord",
+	PAGERDUTY: "PagerDuty",
+	OPSGENIE: "OpsGenie",
 	WEBHOOK: "Webhook",
 }
 
@@ -73,8 +81,12 @@ export function ChannelCard({ channel, onEdit }: ChannelCardProps) {
 		switch (channel.type) {
 			case "EMAIL":
 				return (channel.config.email as string) ?? "No email set"
-			case "SLACK":
+			case "SLACK_WEBHOOK":
+			case "SLACK_APP":
+			case "DISCORD":
 				return "Webhook configured"
+			case "PAGERDUTY":
+			case "OPSGENIE":
 			case "WEBHOOK":
 				return (channel.config.url as string) ?? "No URL set"
 			default:

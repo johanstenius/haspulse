@@ -33,13 +33,21 @@ import { z } from "zod"
 
 const channelFormSchema = z.object({
 	name: z.string().min(1, "Name is required"),
-	type: z.enum(["EMAIL", "SLACK", "WEBHOOK"]),
+	type: z.enum(["EMAIL", "SLACK_WEBHOOK", "WEBHOOK"]),
 	email: z.string().email("Invalid email").optional().or(z.literal("")),
 	webhookUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
 	webhookSecret: z.string().optional(),
 })
 
 type ChannelFormValues = z.infer<typeof channelFormSchema>
+type FormChannelType = ChannelFormValues["type"]
+
+function toFormType(type: ChannelType | undefined): FormChannelType {
+	if (type === "EMAIL" || type === "SLACK_WEBHOOK" || type === "WEBHOOK") {
+		return type
+	}
+	return "EMAIL"
+}
 
 type ChannelFormProps = {
 	open: boolean
@@ -73,9 +81,12 @@ export function ChannelForm({
 		if (open) {
 			form.reset({
 				name: channel?.name ?? "",
-				type: channel?.type ?? "EMAIL",
+				type: toFormType(channel?.type),
 				email: (channel?.config.email as string) ?? "",
-				webhookUrl: (channel?.config.url as string) ?? "",
+				webhookUrl:
+					(channel?.config.webhookUrl as string) ??
+					(channel?.config.url as string) ??
+					"",
 				webhookSecret: (channel?.config.secret as string) ?? "",
 			})
 		}
@@ -97,7 +108,7 @@ export function ChannelForm({
 			case "EMAIL":
 				config = { email: result.data.email }
 				break
-			case "SLACK":
+			case "SLACK_WEBHOOK":
 				config = { webhookUrl: result.data.webhookUrl }
 				break
 			case "WEBHOOK":
@@ -163,7 +174,7 @@ export function ChannelForm({
 											</FormControl>
 											<SelectContent>
 												<SelectItem value="EMAIL">Email</SelectItem>
-												<SelectItem value="SLACK">Slack</SelectItem>
+												<SelectItem value="SLACK_WEBHOOK">Slack</SelectItem>
 												<SelectItem value="WEBHOOK">Webhook</SelectItem>
 											</SelectContent>
 										</Select>
@@ -192,7 +203,7 @@ export function ChannelForm({
 								/>
 							)}
 
-							{type === "SLACK" && (
+							{type === "SLACK_WEBHOOK" && (
 								<FormField
 									control={form.control}
 									name="webhookUrl"

@@ -97,7 +97,14 @@ export type Check = {
 	updatedAt: string
 }
 
-export type ChannelType = "EMAIL" | "SLACK" | "WEBHOOK"
+export type ChannelType =
+	| "EMAIL"
+	| "SLACK_WEBHOOK"
+	| "SLACK_APP"
+	| "DISCORD"
+	| "PAGERDUTY"
+	| "OPSGENIE"
+	| "WEBHOOK"
 
 export type Channel = {
 	id: string
@@ -130,6 +137,19 @@ export type Ping = {
 	body: string | null
 	sourceIp: string
 	createdAt: string
+}
+
+export type PingListParams = {
+	page?: number
+	limit?: number
+}
+
+export type PingsListResponse = {
+	pings: Ping[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
 }
 
 export type ApiError = {
@@ -508,10 +528,15 @@ export const api = {
 			del(`/v1/projects/${projectId}/api-keys/${apiKeyId}`),
 	},
 	pings: {
-		list: (checkId: string, limit?: number) =>
-			get<{ pings: Ping[] }>(
-				`/v1/checks/${checkId}/pings${limit ? `?limit=${limit}` : ""}`,
-			),
+		list: (checkId: string, params?: PingListParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			const query = searchParams.toString()
+			return get<PingsListResponse>(
+				`/v1/checks/${checkId}/pings${query ? `?${query}` : ""}`,
+			)
+		},
 	},
 	alerts: {
 		listByCheck: (checkId: string, params?: AlertFiltersParams) => {
