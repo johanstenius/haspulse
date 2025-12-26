@@ -8,7 +8,6 @@ type SparklineCheck = {
 	status: CheckStatus
 	scheduleType: ScheduleType
 	scheduleValue: string
-	timezone: string | null
 	createdAt: Date
 }
 
@@ -27,7 +26,6 @@ export function calculateSparkline(
 		check.scheduleValue,
 		count,
 		now,
-		check.timezone,
 	)
 
 	if (expectedTimes.length === 0) {

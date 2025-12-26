@@ -20,7 +20,6 @@ type CreateCheckData = {
 	scheduleType: ScheduleType
 	scheduleValue: string
 	graceSeconds?: number
-	timezone?: string
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number
 }
@@ -31,7 +30,6 @@ type UpdateCheckData = {
 	scheduleType?: ScheduleType
 	scheduleValue?: string
 	graceSeconds?: number
-	timezone?: string | null
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number | null
 }
@@ -44,7 +42,6 @@ type RawCheck = {
 	schedule_type: "PERIOD" | "CRON"
 	schedule_value: string
 	grace_seconds: number
-	timezone: string | null
 	status: string
 	last_ping_at: Date | null
 	last_started_at: Date | null
@@ -66,7 +63,6 @@ function rawToCheckModel(raw: RawCheck): CheckModel {
 		scheduleType: raw.schedule_type,
 		scheduleValue: raw.schedule_value,
 		graceSeconds: raw.grace_seconds,
-		timezone: raw.timezone,
 		status: raw.status as CheckStatus,
 		lastPingAt: raw.last_ping_at,
 		lastStartedAt: raw.last_started_at,
@@ -88,7 +84,6 @@ function toCheckModel(check: {
 	scheduleType: "PERIOD" | "CRON"
 	scheduleValue: string
 	graceSeconds: number
-	timezone: string | null
 	status: CheckStatus
 	lastPingAt: Date | null
 	lastStartedAt: Date | null
@@ -108,7 +103,6 @@ function toCheckModel(check: {
 		scheduleType: check.scheduleType,
 		scheduleValue: check.scheduleValue,
 		graceSeconds: check.graceSeconds,
-		timezone: check.timezone,
 		status: check.status,
 		lastPingAt: check.lastPingAt,
 		lastStartedAt: check.lastStartedAt,
@@ -186,7 +180,6 @@ export const checkRepository = {
 				check.scheduleType,
 				check.scheduleValue,
 				data.timestamp,
-				check.timezone,
 			)
 		}
 
@@ -217,7 +210,6 @@ export const checkRepository = {
 				scheduleType: data.scheduleType,
 				scheduleValue: data.scheduleValue,
 				graceSeconds: data.graceSeconds ?? 300,
-				timezone: data.timezone,
 				alertOnRecovery: data.alertOnRecovery ?? true,
 				reminderIntervalHours: data.reminderIntervalHours,
 			},

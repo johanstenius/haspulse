@@ -16,7 +16,6 @@ export const projectResponseSchema = z
 		id: z.string(),
 		name: z.string(),
 		slug: z.string(),
-		timezone: z.string(),
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
 	})
@@ -44,7 +43,6 @@ export const createProjectBodySchema = z
 			.min(1)
 			.max(64)
 			.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes"),
-		timezone: z.string().optional().default("UTC"),
 	})
 	.openapi("CreateProjectRequest")
 
@@ -59,7 +57,6 @@ export const updateProjectBodySchema = z
 			.max(64)
 			.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes")
 			.optional(),
-		timezone: z.string().optional(),
 	})
 	.openapi("UpdateProjectRequest")
 

@@ -6,7 +6,6 @@ export type DashboardCheckRow = {
 	status: CheckStatus
 	scheduleType: "PERIOD" | "CRON"
 	scheduleValue: string
-	timezone: string | null
 	lastPingAt: Date | null
 	createdAt: Date
 	projectId: string
@@ -49,7 +48,6 @@ export const dashboardRepository = {
 			status: check.status,
 			scheduleType: check.scheduleType,
 			scheduleValue: check.scheduleValue,
-			timezone: check.timezone,
 			lastPingAt: check.lastPingAt,
 			createdAt: check.createdAt,
 			projectId: check.project.id,

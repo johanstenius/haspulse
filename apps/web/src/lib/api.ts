@@ -47,7 +47,6 @@ export type Project = {
 	id: string
 	name: string
 	slug: string
-	timezone: string
 	createdAt: string
 	updatedAt: string
 }
@@ -83,7 +82,6 @@ export type Check = {
 	scheduleType: ScheduleType
 	scheduleValue: string
 	graceSeconds: number
-	timezone: string | null
 	status: CheckStatus
 	lastPingAt: string | null
 	lastStartedAt: string | null
@@ -246,13 +244,11 @@ function del<T = void>(path: string, includeOrg = true): Promise<T> {
 export type CreateProjectData = {
 	name: string
 	slug: string
-	timezone?: string
 }
 
 export type UpdateProjectData = {
 	name?: string
 	slug?: string
-	timezone?: string
 }
 
 export type CreateCheckData = {
@@ -261,7 +257,6 @@ export type CreateCheckData = {
 	scheduleType: ScheduleType
 	scheduleValue: string
 	graceSeconds?: number
-	timezone?: string
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number
 	anomalySensitivity?: AnomalySensitivity
@@ -273,7 +268,6 @@ export type UpdateCheckData = {
 	scheduleType?: ScheduleType
 	scheduleValue?: string
 	graceSeconds?: number
-	timezone?: string | null
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number | null
 	anomalySensitivity?: AnomalySensitivity

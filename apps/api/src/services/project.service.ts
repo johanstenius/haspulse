@@ -6,7 +6,6 @@ export type ProjectModel = {
 	orgId: string
 	name: string
 	slug: string
-	timezone: string
 	createdAt: Date
 	updatedAt: Date
 }
@@ -15,13 +14,11 @@ export type CreateProjectInput = {
 	orgId: string
 	name: string
 	slug: string
-	timezone?: string
 }
 
 export type UpdateProjectInput = {
 	name?: string
 	slug?: string
-	timezone?: string
 }
 
 export async function createProject(

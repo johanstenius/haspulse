@@ -382,7 +382,6 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 		scheduleType: body.scheduleType,
 		scheduleValue: body.scheduleValue,
 		graceSeconds: body.graceSeconds,
-		timezone: body.timezone,
 		alertOnRecovery: body.alertOnRecovery,
 		reminderIntervalHours: body.reminderIntervalHours,
 		anomalySensitivity: body.anomalySensitivity,

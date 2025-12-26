@@ -40,7 +40,6 @@ export async function testChannel(
 		scheduleType: "PERIOD",
 		scheduleValue: "86400",
 		graceSeconds: 300,
-		timezone: null,
 		status: "DOWN",
 		lastPingAt: new Date(),
 		lastStartedAt: null,

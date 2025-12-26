@@ -132,7 +132,6 @@ model Project {
   orgId     String   @map("org_id")
   name      String
   slug      String   @unique
-  timezone  String   @default("UTC")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -153,7 +152,6 @@ model Check {
   scheduleType          ScheduleType       @map("schedule_type")
   scheduleValue         String             @map("schedule_value")
   graceSeconds          Int                @default(300) @map("grace_seconds")
-  timezone              String?
   status                CheckStatus        @default(NEW)
   lastPingAt            DateTime?          @map("last_ping_at")
   lastStartedAt         DateTime?          @map("last_started_at")

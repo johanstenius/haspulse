@@ -10,7 +10,6 @@ function toProjectModel(project: {
 	orgId: string
 	name: string
 	slug: string
-	timezone: string
 	createdAt: Date
 	updatedAt: Date
 }): ProjectModel {
@@ -19,7 +18,6 @@ function toProjectModel(project: {
 		orgId: project.orgId,
 		name: project.name,
 		slug: project.slug,
-		timezone: project.timezone,
 		createdAt: project.createdAt,
 		updatedAt: project.updatedAt,
 	}
@@ -32,7 +30,6 @@ export const projectRepository = {
 				orgId: input.orgId,
 				name: input.name,
 				slug: input.slug,
-				timezone: input.timezone ?? "UTC",
 			},
 		})
 		return toProjectModel(project)

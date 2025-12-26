@@ -32,7 +32,6 @@ export function toProjectResponse(project: ProjectModel): ProjectResponse {
 		id: project.id,
 		name: project.name,
 		slug: project.slug,
-		timezone: project.timezone,
 		createdAt: project.createdAt.toISOString(),
 		updatedAt: project.updatedAt.toISOString(),
 	}
@@ -51,7 +50,6 @@ export function toCheckResponse(
 		scheduleType: check.scheduleType,
 		scheduleValue: check.scheduleValue,
 		graceSeconds: check.graceSeconds,
-		timezone: check.timezone,
 		status: check.status,
 		lastPingAt: toISOStringOrNull(check.lastPingAt),
 		lastStartedAt: toISOStringOrNull(check.lastStartedAt),

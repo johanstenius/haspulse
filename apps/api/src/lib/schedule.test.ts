@@ -27,37 +27,25 @@ describe("schedule", () => {
 		})
 
 		describe("CRON schedule", () => {
-			it("calculates next run for daily cron", () => {
+			it("calculates next run for daily cron in UTC", () => {
 				const from = new Date("2025-01-07T12:00:00Z")
-				const result = calculateNextExpected("CRON", "0 3 * * *", from, "UTC")
+				const result = calculateNextExpected("CRON", "0 3 * * *", from)
 
 				expect(result).toEqual(new Date("2025-01-08T03:00:00Z"))
 			})
 
 			it("calculates next run same day if not passed", () => {
 				const from = new Date("2025-01-07T02:00:00Z")
-				const result = calculateNextExpected("CRON", "0 3 * * *", from, "UTC")
+				const result = calculateNextExpected("CRON", "0 3 * * *", from)
 
 				expect(result).toEqual(new Date("2025-01-07T03:00:00Z"))
 			})
 
 			it("handles hourly cron", () => {
 				const from = new Date("2025-01-07T12:30:00Z")
-				const result = calculateNextExpected("CRON", "0 * * * *", from, "UTC")
+				const result = calculateNextExpected("CRON", "0 * * * *", from)
 
 				expect(result).toEqual(new Date("2025-01-07T13:00:00Z"))
-			})
-
-			it("respects timezone", () => {
-				const from = new Date("2025-01-07T02:00:00Z")
-				const result = calculateNextExpected(
-					"CRON",
-					"0 3 * * *",
-					from,
-					"America/New_York",
-				)
-
-				expect(result).toEqual(new Date("2025-01-07T08:00:00Z"))
 			})
 		})
 	})

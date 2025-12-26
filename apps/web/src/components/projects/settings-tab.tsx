@@ -67,10 +67,6 @@ export function SettingsTab({ project }: SettingsTabProps) {
 								<p className="text-muted-foreground">Slug</p>
 								<p className="font-mono">{project.slug}</p>
 							</div>
-							<div>
-								<p className="text-muted-foreground">Timezone</p>
-								<p>{project.timezone}</p>
-							</div>
 						</div>
 						<Button variant="outline" onClick={() => setShowForm(true)}>
 							Edit project

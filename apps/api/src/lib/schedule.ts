@@ -6,7 +6,6 @@ export function getExpectedRunTimes(
 	scheduleValue: string,
 	count: number,
 	fromDate: Date,
-	timezone?: string | null,
 ): Date[] {
 	const times: Date[] = []
 
@@ -25,7 +24,7 @@ export function getExpectedRunTimes(
 
 	const interval = CronExpressionParser.parse(scheduleValue, {
 		currentDate: fromDate,
-		tz: timezone ?? "UTC",
+		tz: "UTC",
 	})
 	for (let i = 0; i < count; i++) {
 		times.unshift(interval.prev().toDate())
@@ -37,7 +36,6 @@ export function calculateNextExpected(
 	scheduleType: ScheduleType,
 	scheduleValue: string,
 	fromDate: Date,
-	timezone?: string | null,
 ): Date {
 	if (scheduleType === "PERIOD") {
 		const seconds = Number.parseInt(scheduleValue, 10)
@@ -49,7 +47,7 @@ export function calculateNextExpected(
 
 	const interval = CronExpressionParser.parse(scheduleValue, {
 		currentDate: fromDate,
-		tz: timezone ?? "UTC",
+		tz: "UTC",
 	})
 	return interval.next().toDate()
 }

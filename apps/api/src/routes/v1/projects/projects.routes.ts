@@ -174,7 +174,6 @@ projectRoutes.openapi(createProjectRoute, async (c) => {
 		orgId: org.id,
 		name: body.name,
 		slug,
-		timezone: body.timezone,
 	})
 
 	return c.json(toProjectResponse(project), 201)

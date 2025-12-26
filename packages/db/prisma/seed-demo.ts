@@ -24,7 +24,6 @@ async function main() {
 				orgId: ORG_ID,
 				name: "Production API",
 				slug: "production-api",
-				timezone: "UTC",
 			},
 		}),
 		prisma.project.upsert({
@@ -34,7 +33,6 @@ async function main() {
 				orgId: ORG_ID,
 				name: "Data Pipeline",
 				slug: "data-pipeline",
-				timezone: "America/New_York",
 			},
 		}),
 	])

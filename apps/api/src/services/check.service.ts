@@ -14,7 +14,6 @@ export type CheckModel = {
 	scheduleType: ScheduleType
 	scheduleValue: string
 	graceSeconds: number
-	timezone: string | null
 	status: CheckStatus
 	lastPingAt: Date | null
 	lastStartedAt: Date | null
@@ -34,7 +33,6 @@ export type CreateCheckInput = {
 	scheduleType: ScheduleType
 	scheduleValue: string
 	graceSeconds?: number
-	timezone?: string
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number
 	anomalySensitivity?: AnomalySensitivity
@@ -46,7 +44,6 @@ export type UpdateCheckInput = {
 	scheduleType?: ScheduleType
 	scheduleValue?: string
 	graceSeconds?: number
-	timezone?: string | null
 	alertOnRecovery?: boolean
 	reminderIntervalHours?: number | null
 	anomalySensitivity?: AnomalySensitivity
