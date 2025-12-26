@@ -93,7 +93,7 @@ export const auth = betterAuth({
 	advanced: {
 		crossSubDomainCookies: {
 			enabled: true,
-			domain: config.cookieDomain,
+			domain: new URL(config.appUrl).hostname,
 		},
 		useSecureCookies: config.nodeEnv === "production",
 	},
