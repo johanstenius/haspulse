@@ -19,7 +19,7 @@ import {
 	X,
 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { Fragment, useState } from "react"
 
 type AlertTableProps<T extends Alert | AlertWithCheck> = {
 	alerts: T[]
@@ -105,7 +105,7 @@ function DurationBar({
 	const max = Math.max(...durations)
 
 	return (
-		<div className="flex items-end gap-0.5 h-6">
+		<div className="flex items-end gap-1 h-8 px-2 py-1.5 bg-background/50 rounded-md">
 			{durations.map((d, i) => {
 				const height = max > 0 ? (d / max) * 100 : 50
 				const isAboveAvg = avgMs && d > avgMs
@@ -114,12 +114,11 @@ function DurationBar({
 					<div
 						key={`bar-${i}-${d}`}
 						className={cn(
-							"w-3 rounded-sm transition-all",
-							isAboveAvg ? "bg-amber-500" : "bg-primary",
-							isLatest &&
-								"ring-1 ring-primary ring-offset-1 ring-offset-background",
+							"w-2.5 rounded-sm transition-all",
+							isAboveAvg ? "bg-amber-500" : "bg-emerald-500",
+							isLatest && "bg-primary",
 						)}
-						style={{ height: `${Math.max(height, 15)}%` }}
+						style={{ height: `${Math.max(height, 20)}%` }}
 						title={formatDuration(d)}
 					/>
 				)
@@ -135,41 +134,43 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 
 	if (!duration && !errorPattern && !relatedFailures?.length && !alert.error) {
 		return (
-			<p className="text-xs text-muted-foreground py-2">
+			<p className="text-xs text-muted-foreground py-3 pl-4">
 				No additional context
 			</p>
 		)
 	}
 
 	return (
-		<div className="flex flex-wrap gap-6 py-3">
+		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 py-3 pl-4">
 			{/* Duration context */}
 			{duration && (
-				<div className="space-y-2">
-					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-						<Clock className="size-3" />
-						<span>Duration</span>
+				<div className="bg-background/60 rounded-lg p-3 space-y-2">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+							<Clock className="size-3.5" />
+							<span>Duration</span>
+						</div>
 						{duration.isAnomaly && (
-							<Badge variant="destructive" className="text-[10px] px-1 py-0">
+							<Badge variant="destructive" className="text-[10px] px-1.5 py-0">
 								{duration.anomalyType === "zscore"
 									? `z=${duration.zScore?.toFixed(1)}`
 									: "drift"}
 							</Badge>
 						)}
 					</div>
-					<div className="flex items-center gap-4 text-xs">
-						<div className="space-y-1">
+					<div className="flex items-center justify-between gap-3">
+						<div className="space-y-0.5 text-xs">
 							<div className="flex items-center gap-2">
-								<span className="text-muted-foreground">Last:</span>
-								<span className="font-mono font-medium">
+								<span className="text-muted-foreground w-8">Last</span>
+								<span className="font-mono font-semibold text-foreground">
 									{duration.lastDurationMs !== null
 										? formatDuration(duration.lastDurationMs)
 										: "—"}
 								</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<span className="text-muted-foreground">Avg:</span>
-								<span className="font-mono">
+								<span className="text-muted-foreground w-8">Avg</span>
+								<span className="font-mono text-muted-foreground">
 									{duration.avgDurationMs !== null
 										? formatDuration(duration.avgDurationMs)
 										: "—"}
@@ -189,17 +190,19 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 
 			{/* Error context */}
 			{errorPattern?.lastErrorSnippet && (
-				<div className="space-y-2 max-w-xs">
-					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-						<AlertTriangle className="size-3" />
-						<span>Last Error</span>
+				<div className="bg-background/60 rounded-lg p-3 space-y-2">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+							<AlertTriangle className="size-3.5" />
+							<span>Last Error</span>
+						</div>
 						{errorPattern.errorCount24h > 0 && (
-							<Badge variant="secondary" className="text-[10px] px-1 py-0">
+							<Badge variant="secondary" className="text-[10px] px-1.5 py-0">
 								{errorPattern.errorCount24h} in 24h
 							</Badge>
 						)}
 					</div>
-					<pre className="text-[10px] bg-muted p-2 rounded-md overflow-hidden text-ellipsis whitespace-nowrap max-w-full">
+					<pre className="text-[10px] bg-muted/50 p-2 rounded overflow-hidden text-ellipsis whitespace-nowrap font-mono text-muted-foreground">
 						{errorPattern.lastErrorSnippet}
 					</pre>
 				</div>
@@ -207,20 +210,24 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 
 			{/* Correlation context */}
 			{relatedFailures && relatedFailures.length > 0 && (
-				<div className="space-y-2">
-					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-						<Link2 className="size-3" />
-						<span>Related</span>
-						<Badge variant="secondary" className="text-[10px] px-1 py-0">
+				<div className="bg-background/60 rounded-lg p-3 space-y-2">
+					<div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+						<Link2 className="size-3.5" />
+						<span>Related Failures</span>
+						<Badge
+							variant="secondary"
+							className="text-[10px] px-1.5 py-0 ml-auto"
+						>
 							{relatedFailures.length}
 						</Badge>
 					</div>
-					<div className="flex flex-wrap gap-1">
+					<div className="flex flex-wrap gap-1.5">
 						{relatedFailures.slice(0, 3).map((f) => (
 							<Link
 								key={f.checkId}
 								href={`/checks/${f.checkId}`}
-								className="text-[10px] text-primary hover:underline"
+								className="text-xs text-primary hover:underline bg-primary/5 px-2 py-0.5 rounded"
+								onClick={(e) => e.stopPropagation()}
 							>
 								{f.checkName}
 							</Link>
@@ -231,12 +238,12 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 
 			{/* Delivery error */}
 			{alert.error && (
-				<div className="space-y-2 max-w-xs">
-					<div className="flex items-center gap-1.5 text-xs text-destructive">
-						<X className="size-3" />
-						<span>Delivery Error</span>
+				<div className="bg-destructive/5 rounded-lg p-3 space-y-2 border border-destructive/20">
+					<div className="flex items-center gap-1.5 text-xs font-medium text-destructive">
+						<X className="size-3.5" />
+						<span>Delivery Failed</span>
 					</div>
-					<pre className="text-[10px] bg-destructive/10 text-destructive p-2 rounded-md overflow-hidden text-ellipsis whitespace-nowrap">
+					<pre className="text-[10px] bg-destructive/10 p-2 rounded overflow-hidden text-ellipsis whitespace-nowrap font-mono text-destructive">
 						{alert.error}
 					</pre>
 				</div>
@@ -275,6 +282,8 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 		)
 	}
 
+	const colCount = showCheckColumn ? 6 : 5
+
 	return (
 		<div className="bg-card border border-border rounded-xl overflow-hidden">
 			<table className="w-full text-sm text-left">
@@ -290,60 +299,68 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 						<th className="py-3 px-4 w-10" />
 					</tr>
 				</thead>
-				<tbody className="divide-y divide-border/50">
+				<tbody>
 					{alerts.map((alert) => {
 						const isExpanded = expandedIds.has(alert.id)
 						return (
-							<tr
-								key={alert.id}
-								className="cursor-pointer hover:bg-secondary/30 transition-colors"
-								tabIndex={0}
-								onClick={() => toggleExpanded(alert.id)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter" || e.key === " ") {
-										e.preventDefault()
-										toggleExpanded(alert.id)
-									}
-								}}
-							>
-								<td className="py-3 px-4" colSpan={showCheckColumn ? 6 : 5}>
-									<div className="flex items-center gap-4">
-										{/* Event badge */}
+							<Fragment key={alert.id}>
+								<tr
+									className={cn(
+										"cursor-pointer hover:bg-secondary/30 transition-colors border-b border-border/50",
+										isExpanded && "bg-secondary/20",
+									)}
+									tabIndex={0}
+									onClick={() => toggleExpanded(alert.id)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault()
+											toggleExpanded(alert.id)
+										}
+									}}
+								>
+									{/* Event */}
+									<td className="py-3 px-4">
 										<div
 											className={cn(
-												"inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium shrink-0",
+												"inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium",
 												getEventColor(alert.event),
 											)}
 										>
 											{getEventIcon(alert.event)}
 											{getEventLabel(alert.event)}
 										</div>
+									</td>
 
-										{/* Check name (if showing) */}
-										{showCheckColumn && isAlertWithCheck(alert) && (
-											<div className="min-w-0 shrink-0">
-												<Link
-													href={`/checks/${alert.checkId}`}
-													className="hover:underline text-primary text-sm"
-													onClick={(e) => e.stopPropagation()}
-												>
-													{alert.checkName}
-												</Link>
-												<p className="text-xs text-muted-foreground truncate">
-													{alert.projectName}
-												</p>
-											</div>
-										)}
+									{/* Check (optional) */}
+									{showCheckColumn && (
+										<td className="py-3 px-4">
+											{isAlertWithCheck(alert) && (
+												<div className="min-w-0">
+													<Link
+														href={`/checks/${alert.checkId}`}
+														className="hover:underline text-primary text-sm"
+														onClick={(e) => e.stopPropagation()}
+													>
+														{alert.checkName}
+													</Link>
+													<p className="text-xs text-muted-foreground truncate">
+														{alert.projectName}
+													</p>
+												</div>
+											)}
+										</td>
+									)}
 
-										{/* Time */}
-										<span className="text-muted-foreground text-sm shrink-0">
-											{formatDistanceToNow(new Date(alert.createdAt), {
-												addSuffix: true,
-											})}
-										</span>
+									{/* Time */}
+									<td className="py-3 px-4 text-muted-foreground">
+										{formatDistanceToNow(new Date(alert.createdAt), {
+											addSuffix: true,
+										})}
+									</td>
 
-										{/* Channels */}
-										<div className="flex flex-wrap gap-1 shrink-0">
+									{/* Channels */}
+									<td className="py-3 px-4">
+										<div className="flex flex-wrap gap-1">
 											{alert.channels.slice(0, 2).map((channel) => (
 												<Badge
 													key={channel.id}
@@ -359,40 +376,42 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 												</Badge>
 											)}
 										</div>
+									</td>
 
-										{/* Status */}
-										<div className="shrink-0">
-											{alert.success ? (
-												<span className="inline-flex items-center gap-1 text-green-500 text-xs">
-													<Check className="size-3" />
-													Sent
-												</span>
-											) : (
-												<span className="inline-flex items-center gap-1 text-destructive text-xs">
-													<X className="size-3" />
-													Failed
-												</span>
-											)}
-										</div>
+									{/* Status */}
+									<td className="py-3 px-4">
+										{alert.success ? (
+											<span className="inline-flex items-center gap-1 text-green-500 text-xs">
+												<Check className="size-3" />
+												Sent
+											</span>
+										) : (
+											<span className="inline-flex items-center gap-1 text-destructive text-xs">
+												<X className="size-3" />
+												Failed
+											</span>
+										)}
+									</td>
 
-										{/* Expand indicator - push to right */}
-										<div className="ml-auto">
-											{isExpanded ? (
-												<ChevronDown className="h-4 w-4 text-muted-foreground" />
-											) : (
-												<ChevronRight className="h-4 w-4 text-muted-foreground" />
-											)}
-										</div>
-									</div>
+									{/* Expand */}
+									<td className="py-3 px-4">
+										{isExpanded ? (
+											<ChevronDown className="size-4 text-muted-foreground" />
+										) : (
+											<ChevronRight className="size-4 text-muted-foreground" />
+										)}
+									</td>
+								</tr>
 
-									{/* Expanded content */}
-									{isExpanded && (
-										<div className="mt-2 pt-2 border-t border-border/50">
+								{/* Expanded row */}
+								{isExpanded && (
+									<tr className="bg-secondary/10 border-b border-border/50">
+										<td colSpan={colCount} className="px-4 pb-3">
 											<AlertExpandedContent alert={alert} />
-										</div>
-									)}
-								</td>
-							</tr>
+										</td>
+									</tr>
+								)}
+							</Fragment>
 						)
 					})}
 				</tbody>
