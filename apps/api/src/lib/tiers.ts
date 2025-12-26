@@ -23,7 +23,7 @@ export const TIERS: Record<TierName, Tier> = {
 		displayName: "Free",
 		price: 0,
 		limits: {
-			checks: 10,
+			checks: 20,
 			projects: 2,
 			channelsPerProject: 3,
 			apiKeysPerProject: 1,

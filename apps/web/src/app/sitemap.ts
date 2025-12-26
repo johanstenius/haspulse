@@ -1,5 +1,5 @@
 import { cronPatterns } from "@/data/cron-patterns"
-import { integrations } from "@/data/integrations"
+import { alertChannels, integrations } from "@/data/integrations"
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -30,8 +30,47 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			changeFrequency: "weekly",
 			priority: 0.9,
 		},
+	]
+
+	const docsPages: MetadataRoute.Sitemap = [
 		{
-			url: `${baseUrl}/integrations`,
+			url: `${baseUrl}/docs`,
+			lastModified: new Date(),
+			changeFrequency: "weekly",
+			priority: 0.8,
+		},
+		{
+			url: `${baseUrl}/docs/quickstart`,
+			lastModified: new Date(),
+			changeFrequency: "monthly",
+			priority: 0.8,
+		},
+		{
+			url: `${baseUrl}/docs/api`,
+			lastModified: new Date(),
+			changeFrequency: "monthly",
+			priority: 0.7,
+		},
+		{
+			url: `${baseUrl}/docs/sdk`,
+			lastModified: new Date(),
+			changeFrequency: "monthly",
+			priority: 0.7,
+		},
+		{
+			url: `${baseUrl}/docs/pricing`,
+			lastModified: new Date(),
+			changeFrequency: "monthly",
+			priority: 0.7,
+		},
+		{
+			url: `${baseUrl}/docs/integrations`,
+			lastModified: new Date(),
+			changeFrequency: "weekly",
+			priority: 0.8,
+		},
+		{
+			url: `${baseUrl}/docs/alerts`,
 			lastModified: new Date(),
 			changeFrequency: "weekly",
 			priority: 0.8,
@@ -47,12 +86,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
 	const integrationPages: MetadataRoute.Sitemap = integrations.map(
 		(integration) => ({
-			url: `${baseUrl}/integrations/${integration.slug}`,
+			url: `${baseUrl}/docs/integrations/${integration.slug}`,
 			lastModified: new Date(),
 			changeFrequency: "monthly" as const,
 			priority: 0.7,
 		}),
 	)
 
-	return [...staticPages, ...cronPages, ...integrationPages]
+	const alertPages: MetadataRoute.Sitemap = alertChannels.map((channel) => ({
+		url: `${baseUrl}/docs/alerts/${channel.slug}`,
+		lastModified: new Date(),
+		changeFrequency: "monthly" as const,
+		priority: 0.7,
+	}))
+
+	return [
+		...staticPages,
+		...docsPages,
+		...cronPages,
+		...integrationPages,
+		...alertPages,
+	]
 }

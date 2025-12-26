@@ -79,7 +79,7 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 	const [showForm, setShowForm] = useState(false)
 	const [showUpgrade, setShowUpgrade] = useState(false)
 
-	const checkLimit = billing?.usage.checks.limit ?? 10
+	const checkLimit = billing?.usage.checks.limit ?? 20
 
 	function handleCreate(formData: CreateCheckData & { channelIds?: string[] }) {
 		createCheck.mutate(
