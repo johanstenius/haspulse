@@ -24,6 +24,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table"
+import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
@@ -337,24 +345,29 @@ export default function CheckDetailPage({
 						</p>
 					</div>
 				) : (
-					<table className="w-full text-sm">
-						<thead>
-							<tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
-								<th className="py-3 px-4 font-medium text-left">Type</th>
-								<th className="py-3 px-4 font-medium text-left">Time</th>
-								<th className="py-3 px-4 font-medium text-left">Source IP</th>
+					<Table>
+						<TableHeader>
+							<TableRow className="hover:bg-transparent">
+								<TableHead className="text-xs uppercase tracking-wide">
+									Type
+								</TableHead>
+								<TableHead className="text-xs uppercase tracking-wide">
+									Time
+								</TableHead>
+								<TableHead className="text-xs uppercase tracking-wide">
+									Source IP
+								</TableHead>
 								{hasAnyBody && (
-									<th className="py-3 px-4 font-medium text-left">Body</th>
+									<TableHead className="text-xs uppercase tracking-wide">
+										Body
+									</TableHead>
 								)}
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-border/50">
+							</TableRow>
+						</TableHeader>
+						<TableBody>
 							{pingsData?.pings.map((ping) => (
-								<tr
-									key={ping.id}
-									className="hover:bg-secondary/30 transition-colors"
-								>
-									<td className="py-3 px-4">
+								<TableRow key={ping.id}>
+									<TableCell className="py-3">
 										<span
 											className={cn(
 												"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
@@ -364,8 +377,8 @@ export default function CheckDetailPage({
 										>
 											{pingTypeLabels[ping.type]}
 										</span>
-									</td>
-									<td className="py-3 px-4 text-muted-foreground">
+									</TableCell>
+									<TableCell className="py-3 text-muted-foreground">
 										<Tooltip>
 											<TooltipTrigger>
 												{formatDistanceToNow(new Date(ping.createdAt), {
@@ -376,12 +389,12 @@ export default function CheckDetailPage({
 												{new Date(ping.createdAt).toLocaleString()}
 											</TooltipContent>
 										</Tooltip>
-									</td>
-									<td className="py-3 px-4 font-mono text-xs text-muted-foreground">
+									</TableCell>
+									<TableCell className="py-3 font-mono text-xs text-muted-foreground">
 										{ping.sourceIp}
-									</td>
+									</TableCell>
 									{hasAnyBody && (
-										<td className="py-3 px-4 text-muted-foreground truncate max-w-[200px]">
+										<TableCell className="py-3 text-muted-foreground truncate max-w-[200px]">
 											{ping.body ? (
 												<Tooltip>
 													<TooltipTrigger className="truncate block max-w-[200px]">
@@ -396,12 +409,12 @@ export default function CheckDetailPage({
 											) : (
 												<span className="text-muted-foreground/50">—</span>
 											)}
-										</td>
+										</TableCell>
 									)}
-								</tr>
+								</TableRow>
 							))}
-						</tbody>
-					</table>
+						</TableBody>
+					</Table>
 				)}
 			</div>
 

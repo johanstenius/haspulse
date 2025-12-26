@@ -46,10 +46,7 @@ export default function SettingsPage() {
 
 	return (
 		<div className="p-6 max-w-2xl space-y-6">
-			<PageHeader
-				title="Settings"
-				description="Manage your account settings"
-			/>
+			<PageHeader title="Settings" description="Manage your account settings" />
 
 			<Card>
 				<CardHeader>

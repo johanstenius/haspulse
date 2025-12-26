@@ -49,7 +49,9 @@ export default function ProjectDetailPage({
 					</Link>
 				</Button>
 				<div>
-					<h1 className="font-display text-2xl font-semibold">{project.name}</h1>
+					<h1 className="font-display text-2xl font-semibold">
+						{project.name}
+					</h1>
 					<p className="text-muted-foreground font-mono text-sm">
 						/{project.slug}
 					</p>
