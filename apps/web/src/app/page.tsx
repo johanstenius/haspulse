@@ -128,7 +128,7 @@ function PricingCard({
 }) {
 	return (
 		<div
-			className={`rounded-xl p-8 ${
+			className={`rounded-xl p-8 flex flex-col ${
 				highlighted
 					? "bg-card border-2 border-primary/50 relative"
 					: "bg-card border border-border"
@@ -151,7 +151,7 @@ function PricingCard({
 				)}
 			</div>
 			<div className="text-sm text-muted-foreground mb-6">{period}</div>
-			<ul className="space-y-3 mb-8">
+			<ul className="space-y-3 mb-8 flex-1">
 				{features.map((feature) => (
 					<li key={feature} className="flex items-center gap-3 text-sm">
 						<Check className="w-4 h-4 text-primary flex-shrink-0" />
