@@ -176,7 +176,7 @@ export function CheckForm({
 											<Input placeholder="daily-backup" {...field} />
 										</FormControl>
 										<FormDescription>
-											Ping URL: haspulse.io/p/{slug || "<check-id>"}
+											Ping URL: haspulse.dev/p/{slug || "<check-id>"}
 										</FormDescription>
 										<FormMessage />
 									</FormItem>

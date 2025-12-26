@@ -89,13 +89,13 @@ try {
 				label: "Raw HTTP (no SDK)",
 				code: `// No dependencies needed - just fetch
 cron.schedule('*/5 * * * *', async () => {
-  await fetch('https://haspulse.io/ping/YOUR_CHECK_ID/start');
+  await fetch('https://haspulse.dev/ping/YOUR_CHECK_ID/start');
 
   try {
     await processQueue();
-    await fetch('https://haspulse.io/ping/YOUR_CHECK_ID');
+    await fetch('https://haspulse.dev/ping/YOUR_CHECK_ID');
   } catch (error) {
-    await fetch('https://haspulse.io/ping/YOUR_CHECK_ID/fail');
+    await fetch('https://haspulse.dev/ping/YOUR_CHECK_ID/fail');
     throw error;
   }
 });`,
@@ -129,7 +129,7 @@ cron.schedule('*/5 * * * *', async () => {
 import requests
 
 def backup_database():
-    check_url = "https://haspulse.io/ping/YOUR_CHECK_ID"
+    check_url = "https://haspulse.dev/ping/YOUR_CHECK_ID"
 
     # Signal start
     requests.get(f"{check_url}/start")
@@ -159,7 +159,7 @@ app = Celery('tasks')
 
 @app.task
 def process_queue():
-    check_url = "https://haspulse.io/ping/YOUR_CHECK_ID"
+    check_url = "https://haspulse.dev/ping/YOUR_CHECK_ID"
 
     try:
         # Your task logic
@@ -187,7 +187,7 @@ from contextlib import contextmanager
 @contextmanager
 def haspulse_monitor(check_id):
     """Context manager for monitoring jobs."""
-    url = f"https://haspulse.io/ping/{check_id}"
+    url = f"https://haspulse.dev/ping/{check_id}"
 
     requests.get(f"{url}/start")
     try:
@@ -237,7 +237,7 @@ func main() {
     c := cron.New()
 
     c.AddFunc("*/5 * * * *", func() {
-        checkURL := "https://haspulse.io/ping/YOUR_CHECK_ID"
+        checkURL := "https://haspulse.dev/ping/YOUR_CHECK_ID"
 
         // Signal start
         http.Get(checkURL + "/start")
@@ -270,7 +270,7 @@ import (
 var client = &http.Client{Timeout: 10 * time.Second}
 
 func Ping(checkID string, status string) error {
-    url := fmt.Sprintf("https://haspulse.io/ping/%s", checkID)
+    url := fmt.Sprintf("https://haspulse.dev/ping/%s", checkID)
     if status != "" {
         url += "/" + status
     }
@@ -319,13 +319,13 @@ protected function schedule(Schedule $schedule)
     $schedule->command('backup:run')
         ->daily()
         ->at('03:00')
-        ->pingBefore('https://haspulse.io/ping/YOUR_CHECK_ID/start')
-        ->pingOnSuccess('https://haspulse.io/ping/YOUR_CHECK_ID')
-        ->pingOnFailure('https://haspulse.io/ping/YOUR_CHECK_ID/fail');
+        ->pingBefore('https://haspulse.dev/ping/YOUR_CHECK_ID/start')
+        ->pingOnSuccess('https://haspulse.dev/ping/YOUR_CHECK_ID')
+        ->pingOnFailure('https://haspulse.dev/ping/YOUR_CHECK_ID/fail');
 
     $schedule->command('queue:work --stop-when-empty')
         ->everyFiveMinutes()
-        ->thenPing('https://haspulse.io/ping/QUEUE_CHECK_ID');
+        ->thenPing('https://haspulse.dev/ping/QUEUE_CHECK_ID');
 }`,
 			},
 			{
@@ -338,7 +338,7 @@ class ProcessReports extends Command
 
     public function handle()
     {
-        $checkUrl = 'https://haspulse.io/ping/' . config('services.haspulse.check_id');
+        $checkUrl = 'https://haspulse.dev/ping/' . config('services.haspulse.check_id');
 
         Http::get($checkUrl . '/start');
 
@@ -382,7 +382,7 @@ class ProcessReports extends Command
   include Sidekiq::Worker
 
   def perform
-    check_url = "https://haspulse.io/ping/\#{ENV['BACKUP_CHECK_ID']}"
+    check_url = "https://haspulse.dev/ping/\#{ENV['BACKUP_CHECK_ID']}"
 
     # Signal start
     Net::HTTP.get(URI("\#{check_url}/start"))
@@ -412,12 +412,12 @@ set :output, '/var/log/cron.log'
 
 every 1.day, at: '3:00 am' do
   rake "db:backup",
-    before: "curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID/start",
-    after: "curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID"
+    before: "curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID/start",
+    after: "curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID"
 end
 
 every 5.minutes do
-  command "rake queue:process && curl -fsS https://haspulse.io/ping/QUEUE_CHECK_ID"
+  command "rake queue:process && curl -fsS https://haspulse.dev/ping/QUEUE_CHECK_ID"
 end`,
 			},
 		],
@@ -449,18 +449,18 @@ end`,
 # Add to end of any cron script
 
 # Simple ping on success
-curl -fsS --retry 3 https://haspulse.io/ping/YOUR_CHECK_ID
+curl -fsS --retry 3 https://haspulse.dev/ping/YOUR_CHECK_ID
 
 # With start signal
-curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID/start
+curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID/start
 # ... your script logic ...
-curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID`,
+curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID`,
 			},
 			{
 				language: "bash",
 				label: "With error handling",
 				code: `#!/bin/bash
-CHECK_URL="https://haspulse.io/ping/YOUR_CHECK_ID"
+CHECK_URL="https://haspulse.dev/ping/YOUR_CHECK_ID"
 
 # Signal start
 curl -fsS "$CHECK_URL/start"
@@ -484,13 +484,13 @@ exit $EXIT_CODE`,
 				code: `# Edit with: crontab -e
 
 # Database backup at 3 AM daily
-0 3 * * * /home/user/backup.sh && curl -fsS https://haspulse.io/ping/BACKUP_ID
+0 3 * * * /home/user/backup.sh && curl -fsS https://haspulse.dev/ping/BACKUP_ID
 
 # Queue processor every 5 minutes
-*/5 * * * * /home/user/process-queue.sh; curl -fsS https://haspulse.io/ping/QUEUE_ID
+*/5 * * * * /home/user/process-queue.sh; curl -fsS https://haspulse.dev/ping/QUEUE_ID
 
 # With full lifecycle
-0 * * * * curl -fsS https://haspulse.io/ping/HOURLY_ID/start && /home/user/hourly-job.sh && curl -fsS https://haspulse.io/ping/HOURLY_ID || curl -fsS https://haspulse.io/ping/HOURLY_ID/fail`,
+0 * * * * curl -fsS https://haspulse.dev/ping/HOURLY_ID/start && /home/user/hourly-job.sh && curl -fsS https://haspulse.dev/ping/HOURLY_ID || curl -fsS https://haspulse.dev/ping/HOURLY_ID/fail`,
 			},
 		],
 	},
@@ -527,7 +527,7 @@ RUN chmod +x /app/backup.sh
 # Wrapper script with monitoring
 COPY <<'EOF' /app/run.sh
 #!/bin/bash
-CHECK_URL="https://haspulse.io/ping/$CHECK_ID"
+CHECK_URL="https://haspulse.dev/ping/$CHECK_ID"
 curl -fsS "$CHECK_URL/start"
 /app/backup.sh
 if [ $? -eq 0 ]; then
@@ -581,10 +581,10 @@ spec:
             - /bin/sh
             - -c
             - |
-              curl -fsS "https://haspulse.io/ping/$CHECK_ID/start"
+              curl -fsS "https://haspulse.dev/ping/$CHECK_ID/start"
               /app/backup.sh && \\
-                curl -fsS "https://haspulse.io/ping/$CHECK_ID" || \\
-                curl -fsS "https://haspulse.io/ping/$CHECK_ID/fail"
+                curl -fsS "https://haspulse.dev/ping/$CHECK_ID" || \\
+                curl -fsS "https://haspulse.dev/ping/$CHECK_ID/fail"
           restartPolicy: OnFailure`,
 			},
 		],
@@ -613,7 +613,7 @@ spec:
 				language: "php",
 				label: "Basic PHP",
 				code: `<?php
-$checkUrl = 'https://haspulse.io/ping/' . getenv('CHECK_ID');
+$checkUrl = 'https://haspulse.dev/ping/' . getenv('CHECK_ID');
 
 // Signal start
 file_get_contents($checkUrl . '/start');
@@ -635,7 +635,7 @@ try {
 				label: "With cURL",
 				code: `<?php
 function pingHaspulse(string $checkId, string $status = ''): void {
-    $url = "https://haspulse.io/ping/{$checkId}";
+    $url = "https://haspulse.dev/ping/{$checkId}";
     if ($status) {
         $url .= "/{$status}";
     }

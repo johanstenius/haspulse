@@ -51,7 +51,7 @@ Indie developers and small teams need something in between: reliable monitoring 
 - **Reminder alerts** — Repeat if still down (optional)
 
 ### Status Pages
-- **Public pages** — `{project}.haspulse.io` or custom domain
+- **Public pages** — `{project}.haspulse.dev` or custom domain
 - **90-day uptime bars** — Visual uptime history
 - **Incidents** — Create, update, resolve with status updates
 - **Maintenance windows** — Scheduled downtime that doesn't alert

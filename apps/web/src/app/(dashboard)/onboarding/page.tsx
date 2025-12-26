@@ -244,7 +244,7 @@ export default function OnboardingPage() {
 													<Input placeholder="My Backend API" {...field} />
 												</FormControl>
 												<FormDescription>
-													Status page: haspulse.io/status/
+													Status page: haspulse.dev/status/
 													{slugify(projectName) || "..."}
 												</FormDescription>
 												<FormMessage />

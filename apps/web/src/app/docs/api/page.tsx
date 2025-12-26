@@ -28,7 +28,7 @@ export default function ApiPage() {
 			<div className="not-prose mb-8">
 				<Button asChild variant="outline">
 					<Link
-						href="https://api.haspulse.io/docs"
+						href="https://api.haspulse.dev/docs"
 						target="_blank"
 						rel="noopener"
 					>
@@ -57,7 +57,7 @@ export default function ApiPage() {
 			<h2>Base URL</h2>
 
 			<pre>
-				<code>https://api.haspulse.io/v1</code>
+				<code>https://api.haspulse.dev/v1</code>
 			</pre>
 
 			<h2>Endpoints</h2>

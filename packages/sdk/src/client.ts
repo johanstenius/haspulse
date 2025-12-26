@@ -33,7 +33,7 @@ export class HasPulse {
 
 		this.apiKey = config.apiKey
 		this.enabled = !!config.apiKey
-		this.baseUrl = config.baseUrl ?? "https://api.haspulse.io"
+		this.baseUrl = config.baseUrl ?? "https://api.haspulse.dev"
 		this.timeout = config.timeout ?? 30000
 		this.retries = config.retries ?? 2
 

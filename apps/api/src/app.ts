@@ -5,6 +5,7 @@ import { cors } from "hono/cors"
 import { config } from "./env.js"
 import { auth } from "./lib/auth.js"
 import { AppError } from "./lib/errors.js"
+import { logger } from "./lib/logger.js"
 import { badgeRoutes } from "./routes/badge/badge.routes.js"
 import { pingRoutes } from "./routes/ping/ping.routes.js"
 import { statusRoutes } from "./routes/status/status.routes.js"
@@ -39,6 +40,22 @@ export function createApp() {
 			allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 		}),
 	)
+
+	// Request logging
+	app.use("*", async (c, next) => {
+		const start = Date.now()
+		await next()
+		const duration = Date.now() - start
+		const path = new URL(c.req.url).pathname
+		if (path !== "/health") {
+			logger.info({
+				method: c.req.method,
+				path,
+				status: c.res.status,
+				duration,
+			})
+		}
+	})
 
 	// Health check (before auth)
 	app.get("/health", (c) => c.json({ ok: true }))
@@ -94,7 +111,7 @@ export function createApp() {
 				err.status as 400,
 			)
 		}
-		console.error(err)
+		logger.error({ err, path: c.req.path }, "Unhandled error")
 		return c.json(
 			{ error: { code: "INTERNAL_ERROR", message: "Internal server error" } },
 			500,

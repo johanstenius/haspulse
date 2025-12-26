@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 	authors: [{ name: "Haspulse" }],
 	creator: "Haspulse",
 	metadataBase: new URL(
-		process.env.NEXT_PUBLIC_APP_URL ?? "https://haspulse.io",
+		process.env.NEXT_PUBLIC_APP_URL ?? "https://haspulse.dev",
 	),
 	openGraph: {
 		type: "website",

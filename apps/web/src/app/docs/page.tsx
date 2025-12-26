@@ -78,7 +78,7 @@ export default function DocsPage() {
 
 			<div className="not-prose my-6">
 				<CodeBlock
-					code="curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID"
+					code="curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID"
 					language="bash"
 					label="Terminal"
 				/>

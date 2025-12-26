@@ -132,7 +132,7 @@ export default async function CronPatternPage({ params }: Props) {
 								crontab
 							</span>
 							<CopyButton
-								text={`${pattern.expression} /path/to/script.sh && curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID`}
+								text={`${pattern.expression} /path/to/script.sh && curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID`}
 							/>
 						</div>
 						<div className="p-4 font-mono text-sm overflow-x-auto">
@@ -142,7 +142,7 @@ export default async function CronPatternPage({ params }: Props) {
 							<span className="text-foreground">/path/to/script.sh</span>{" "}
 							<span className="text-muted-foreground">&&</span>{" "}
 							<span className="text-foreground">
-								curl -fsS https://haspulse.io/ping/
+								curl -fsS https://haspulse.dev/ping/
 							</span>
 							<span className="text-warning">YOUR_CHECK_ID</span>
 						</div>

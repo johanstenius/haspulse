@@ -102,7 +102,7 @@ export function SettingsTab({ project }: SettingsTabProps) {
 							<div className="space-y-0.5">
 								<Label>Enable public status page</Label>
 								<p className="text-sm text-muted-foreground">
-									haspulse.io/status/{project.slug}
+									haspulse.dev/status/{project.slug}
 								</p>
 							</div>
 							<Switch

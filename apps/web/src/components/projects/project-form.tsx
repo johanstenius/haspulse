@@ -134,7 +134,7 @@ export function ProjectForm({
 											<Input placeholder="my-project" {...field} />
 										</FormControl>
 										<FormDescription>
-											Used in status page URL: haspulse.io/status/
+											Used in status page URL: haspulse.dev/status/
 											{field.value || "..."}
 										</FormDescription>
 										<FormMessage />

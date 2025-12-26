@@ -3,7 +3,7 @@ import { integrations } from "@/data/integrations"
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://haspulse.io"
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://haspulse.dev"
 
 	const staticPages: MetadataRoute.Sitemap = [
 		{

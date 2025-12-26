@@ -45,7 +45,7 @@ await client.ping('check-id', { type: 'fail', body: 'Error: connection failed' }
 			<pre>
 				<code>{`const client = new HasPulse({
   apiKey: 'hp_...',
-  baseUrl: 'https://api.haspulse.io', // optional
+  baseUrl: 'https://api.haspulse.dev', // optional
   timeout: 30000,                      // optional, default 30s
   retries: 2,                          // optional, default 2 retries
 });`}</code>

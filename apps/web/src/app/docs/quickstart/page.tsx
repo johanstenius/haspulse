@@ -23,8 +23,8 @@ export default function QuickstartPage() {
 			<h2>1. Create an account</h2>
 
 			<p>
-				Sign up at <Link href="/register">haspulse.io/register</Link>. Free tier
-				includes 5 checks.
+				Sign up at <Link href="/register">haspulse.dev/register</Link>. Free
+				tier includes 5 checks.
 			</p>
 
 			<h2>2. Create a project</h2>
@@ -62,7 +62,7 @@ export default function QuickstartPage() {
 
 			<div className="not-prose my-6">
 				<CodeBlock
-					code="curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID"
+					code="curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID"
 					language="bash"
 					label="Terminal"
 				/>
@@ -73,16 +73,16 @@ export default function QuickstartPage() {
 			<div className="not-prose my-6">
 				<CodeBlock
 					code={`# Signal start
-curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID/start
+curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID/start
 
 # Run your job
 ./backup.sh
 
 # Signal success or failure
 if [ $? -eq 0 ]; then
-    curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID
+    curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID
 else
-    curl -fsS https://haspulse.io/ping/YOUR_CHECK_ID/fail
+    curl -fsS https://haspulse.dev/ping/YOUR_CHECK_ID/fail
 fi`}
 					language="bash"
 					label="Full lifecycle"

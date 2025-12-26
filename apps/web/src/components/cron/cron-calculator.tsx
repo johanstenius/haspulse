@@ -44,7 +44,7 @@ export function CronCalculator({
 	}, [expression])
 
 	const handleCopyCurl = useCallback(async () => {
-		const curl = "curl -fsS --retry 3 https://haspulse.io/ping/YOUR_CHECK_ID"
+		const curl = "curl -fsS --retry 3 https://haspulse.dev/ping/YOUR_CHECK_ID"
 		await navigator.clipboard.writeText(curl)
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
@@ -171,7 +171,7 @@ export function CronCalculator({
 						<div className="bg-card border border-border rounded-lg p-4">
 							<div className="flex items-center justify-between gap-4">
 								<code className="text-sm font-mono text-foreground break-all">
-									curl -fsS --retry 3 https://haspulse.io/ping/YOUR_CHECK_ID
+									curl -fsS --retry 3 https://haspulse.dev/ping/YOUR_CHECK_ID
 								</code>
 								<Button variant="outline" size="sm" onClick={handleCopyCurl}>
 									<Copy className="h-3 w-3 mr-1" />
