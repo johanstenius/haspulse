@@ -7,6 +7,7 @@ export type ChannelModel = {
 	type: ChannelType
 	name: string
 	config: Record<string, unknown>
+	isDefault: boolean
 	createdAt: Date
 	updatedAt: Date
 }
@@ -16,11 +17,13 @@ export type CreateChannelInput = {
 	type: ChannelType
 	name: string
 	config: Record<string, unknown>
+	isDefault?: boolean
 }
 
 export type UpdateChannelInput = {
 	name?: string
 	config?: Record<string, unknown>
+	isDefault?: boolean
 }
 
 export async function createChannel(
@@ -62,4 +65,10 @@ export async function listChannelsByCheck(
 	checkId: string,
 ): Promise<ChannelModel[]> {
 	return channelRepository.findByCheckId(checkId)
+}
+
+export async function listDefaultChannelsByProject(
+	projectId: string,
+): Promise<ChannelModel[]> {
+	return channelRepository.findDefaultByProjectId(projectId)
 }

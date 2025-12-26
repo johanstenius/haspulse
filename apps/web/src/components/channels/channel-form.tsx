@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -12,6 +13,7 @@ import {
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -37,6 +39,7 @@ const channelFormSchema = z.object({
 	email: z.string().email("Invalid email").optional().or(z.literal("")),
 	webhookUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
 	webhookSecret: z.string().optional(),
+	isDefault: z.boolean(),
 })
 
 type ChannelFormValues = z.infer<typeof channelFormSchema>
@@ -71,6 +74,7 @@ export function ChannelForm({
 			email: "",
 			webhookUrl: "",
 			webhookSecret: "",
+			isDefault: false,
 		},
 	})
 
@@ -88,6 +92,7 @@ export function ChannelForm({
 					(channel?.config.url as string) ??
 					"",
 				webhookSecret: (channel?.config.secret as string) ?? "",
+				isDefault: channel?.isDefault ?? false,
 			})
 		}
 	}, [open, channel, form])
@@ -123,6 +128,7 @@ export function ChannelForm({
 			name: result.data.name,
 			type: result.data.type as ChannelType,
 			config,
+			isDefault: result.data.isDefault,
 		})
 	}
 
@@ -260,6 +266,27 @@ export function ChannelForm({
 									/>
 								</>
 							)}
+
+							<FormField
+								control={form.control}
+								name="isDefault"
+								render={({ field }) => (
+									<FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
+										<FormControl>
+											<Checkbox
+												checked={field.value}
+												onCheckedChange={field.onChange}
+											/>
+										</FormControl>
+										<div className="space-y-1 leading-none">
+											<FormLabel>Default channel</FormLabel>
+											<FormDescription>
+												Auto-assign to new checks
+											</FormDescription>
+										</div>
+									</FormItem>
+								)}
+							/>
 						</div>
 
 						<DialogFooter>

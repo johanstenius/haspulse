@@ -14,6 +14,10 @@ vi.mock("../../../services/check.service.js", () => ({
 	setCheckChannelIds: vi.fn(),
 }))
 
+vi.mock("../../../services/channel.service.js", () => ({
+	listDefaultChannelsByProject: vi.fn(),
+}))
+
 vi.mock("../../../services/project.service.js", () => ({
 	getProjectForOrg: vi.fn(),
 	getProjectById: vi.fn(),
@@ -54,6 +58,7 @@ import { auth } from "../../../lib/auth.js"
 import { checkCheckLimit } from "../../../lib/limits.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
 import { pingRepository } from "../../../repositories/ping.repository.js"
+import { listDefaultChannelsByProject } from "../../../services/channel.service.js"
 import {
 	createCheck,
 	getCheckById,
@@ -147,6 +152,7 @@ describe("Check Routes", () => {
 		vi.mocked(organizationRepository.getMember).mockResolvedValue(mockMember)
 		vi.mocked(getEffectivePlan).mockResolvedValue("free")
 		vi.mocked(getCheckChannelIds).mockResolvedValue([])
+		vi.mocked(listDefaultChannelsByProject).mockResolvedValue([])
 		vi.mocked(checkCheckLimit).mockResolvedValue({ allowed: true })
 		vi.mocked(pingRepository.findRecentByCheckIds).mockResolvedValue(new Map())
 	})

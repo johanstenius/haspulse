@@ -110,6 +110,7 @@ export type Channel = {
 	type: ChannelType
 	name: string
 	config: Record<string, unknown>
+	isDefault: boolean
 	createdAt: string
 	updatedAt: string
 }
@@ -278,11 +279,13 @@ export type CreateChannelData = {
 	type: ChannelType
 	name: string
 	config: Record<string, unknown>
+	isDefault?: boolean
 }
 
 export type UpdateChannelData = {
 	name?: string
 	config?: Record<string, unknown>
+	isDefault?: boolean
 }
 
 export type CreateApiKeyData = {

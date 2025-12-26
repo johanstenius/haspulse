@@ -11,6 +11,7 @@ function toChannelModel(channel: {
 	type: ChannelType
 	name: string
 	config: unknown
+	isDefault: boolean
 	createdAt: Date
 	updatedAt: Date
 }): ChannelModel {
@@ -20,6 +21,7 @@ function toChannelModel(channel: {
 		type: channel.type,
 		name: channel.name,
 		config: channel.config as Record<string, unknown>,
+		isDefault: channel.isDefault,
 		createdAt: channel.createdAt,
 		updatedAt: channel.updatedAt,
 	}
@@ -33,6 +35,7 @@ export const channelRepository = {
 				type: input.type,
 				name: input.name,
 				config: input.config as Prisma.InputJsonValue,
+				isDefault: input.isDefault ?? false,
 			},
 		})
 		return toChannelModel(channel)
@@ -74,6 +77,7 @@ export const channelRepository = {
 			data: {
 				name: input.name,
 				config: input.config as Prisma.InputJsonValue | undefined,
+				isDefault: input.isDefault,
 			},
 		})
 		return toChannelModel(channel)
@@ -90,6 +94,13 @@ export const channelRepository = {
 					some: { checkId },
 				},
 			},
+		})
+		return channels.map(toChannelModel)
+	},
+
+	async findDefaultByProjectId(projectId: string): Promise<ChannelModel[]> {
+		const channels = await prisma.channel.findMany({
+			where: { projectId, isDefault: true },
 		})
 		return channels.map(toChannelModel)
 	},

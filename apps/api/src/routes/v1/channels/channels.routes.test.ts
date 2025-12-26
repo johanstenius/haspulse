@@ -104,6 +104,7 @@ const mockChannel = {
 	type: "EMAIL" as const,
 	name: "Email Alerts",
 	config: { email: "alerts@example.com" },
+	isDefault: false,
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }

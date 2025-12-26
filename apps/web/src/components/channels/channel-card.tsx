@@ -1,10 +1,11 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { Channel, ChannelType } from "@/lib/api"
-import { useDeleteChannel, useTestChannel } from "@/lib/query"
+import { useDeleteChannel, useTestChannel, useUpdateChannel } from "@/lib/query"
 import {
 	Globe,
 	Loader2,
@@ -12,6 +13,8 @@ import {
 	MessageSquare,
 	Pencil,
 	Play,
+	Star,
+	StarOff,
 	Trash2,
 } from "lucide-react"
 import { useState } from "react"
@@ -45,6 +48,7 @@ const channelLabels: Record<ChannelType, string> = {
 export function ChannelCard({ channel, onEdit }: ChannelCardProps) {
 	const deleteChannel = useDeleteChannel()
 	const testChannel = useTestChannel()
+	const updateChannel = useUpdateChannel()
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const Icon = channelIcons[channel.type]
 
@@ -77,6 +81,24 @@ export function ChannelCard({ channel, onEdit }: ChannelCardProps) {
 		)
 	}
 
+	function handleToggleDefault() {
+		updateChannel.mutate(
+			{
+				projectId: channel.projectId,
+				channelId: channel.id,
+				data: { isDefault: !channel.isDefault },
+			},
+			{
+				onSuccess: () => {
+					toast.success(
+						channel.isDefault ? "Removed from defaults" : "Added to defaults",
+					)
+				},
+				onError: (error) => toast.error(error.message),
+			},
+		)
+	}
+
 	function getConfigSummary(): string {
 		switch (channel.type) {
 			case "EMAIL":
@@ -102,12 +124,38 @@ export function ChannelCard({ channel, onEdit }: ChannelCardProps) {
 						<Icon className="h-5 w-5 text-muted-foreground" />
 					</div>
 					<div className="flex-1 min-w-0">
-						<CardTitle className="text-base truncate">{channel.name}</CardTitle>
+						<div className="flex items-center gap-2">
+							<CardTitle className="text-base truncate">
+								{channel.name}
+							</CardTitle>
+							{channel.isDefault && (
+								<Badge variant="secondary" className="text-xs">
+									Default
+								</Badge>
+							)}
+						</div>
 						<p className="text-xs text-muted-foreground">
 							{channelLabels[channel.type]}
 						</p>
 					</div>
 					<div className="flex gap-1">
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={handleToggleDefault}
+							disabled={updateChannel.isPending}
+							title={
+								channel.isDefault ? "Remove from defaults" : "Set as default"
+							}
+						>
+							{updateChannel.isPending ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : channel.isDefault ? (
+								<Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+							) : (
+								<StarOff className="h-4 w-4" />
+							)}
+						</Button>
 						<Button
 							variant="ghost"
 							size="icon"

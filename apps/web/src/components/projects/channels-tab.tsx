@@ -51,7 +51,11 @@ export function ChannelsTab({ projectId }: ChannelsTabProps) {
 			{
 				projectId,
 				channelId: editingChannel.id,
-				data: { name: data.name, config: data.config },
+				data: {
+					name: data.name,
+					config: data.config,
+					isDefault: data.isDefault,
+				},
 			},
 			{
 				onSuccess: () => {

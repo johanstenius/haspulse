@@ -71,6 +71,7 @@ export function toChannelResponse(channel: ChannelModel): ChannelResponse {
 		type: channel.type,
 		name: channel.name,
 		config: channel.config,
+		isDefault: channel.isDefault,
 		createdAt: channel.createdAt.toISOString(),
 		updatedAt: channel.updatedAt.toISOString(),
 	}

@@ -226,6 +226,7 @@ channelRoutes.openapi(createChannelRoute, async (c) => {
 		type: body.type,
 		name: body.name,
 		config: body.config,
+		isDefault: body.isDefault,
 	})
 
 	return c.json(toChannelResponse(channel), 201)

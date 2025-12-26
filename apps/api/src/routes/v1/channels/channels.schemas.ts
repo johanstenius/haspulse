@@ -85,6 +85,7 @@ export const channelResponseSchema = z
 		type: channelTypeSchema,
 		name: z.string(),
 		config: z.record(z.unknown()),
+		isDefault: z.boolean(),
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
 	})
@@ -109,42 +110,49 @@ const createEmailChannel = z.object({
 	type: z.literal("EMAIL"),
 	name: z.string().min(1).max(100),
 	config: emailConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 const createSlackWebhookChannel = z.object({
 	type: z.literal("SLACK_WEBHOOK"),
 	name: z.string().min(1).max(100),
 	config: slackWebhookConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 const createSlackAppChannel = z.object({
 	type: z.literal("SLACK_APP"),
 	name: z.string().min(1).max(100),
 	config: slackAppConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 const createDiscordChannel = z.object({
 	type: z.literal("DISCORD"),
 	name: z.string().min(1).max(100),
 	config: discordConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 const createPagerDutyChannel = z.object({
 	type: z.literal("PAGERDUTY"),
 	name: z.string().min(1).max(100),
 	config: pagerdutyConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 const createOpsgenieChannel = z.object({
 	type: z.literal("OPSGENIE"),
 	name: z.string().min(1).max(100),
 	config: opsgenieConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 const createWebhookChannel = z.object({
 	type: z.literal("WEBHOOK"),
 	name: z.string().min(1).max(100),
 	config: webhookConfigSchema,
+	isDefault: z.boolean().optional().default(false),
 })
 
 export const createChannelBodySchema = z
@@ -176,6 +184,7 @@ export const updateChannelBodySchema = z
 	.object({
 		name: z.string().min(1).max(100).optional(),
 		config: channelConfigSchema.optional(),
+		isDefault: z.boolean().optional(),
 	})
 	.openapi("UpdateChannelRequest")
 

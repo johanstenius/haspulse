@@ -17,6 +17,7 @@ import {
 } from "../../../middleware/auth.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
 import { pingRepository } from "../../../repositories/ping.repository.js"
+import { listDefaultChannelsByProject } from "../../../services/channel.service.js"
 import {
 	type CheckModel,
 	createCheck,
@@ -387,7 +388,14 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 		anomalySensitivity: body.anomalySensitivity,
 	})
 
-	return c.json(toCheckResponse(check, []), 201)
+	// Auto-assign default channels from project
+	const defaultChannels = await listDefaultChannelsByProject(project.id)
+	const defaultChannelIds = defaultChannels.map((ch) => ch.id)
+	if (defaultChannelIds.length > 0) {
+		await setCheckChannelIds(check.id, defaultChannelIds)
+	}
+
+	return c.json(toCheckResponse(check, defaultChannelIds), 201)
 })
 
 // Direct check routes
