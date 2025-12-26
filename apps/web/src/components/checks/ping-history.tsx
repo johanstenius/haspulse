@@ -40,7 +40,7 @@ const pingTypeLabels: Record<PingType, string> = {
 }
 
 export function PingHistory({ check, open, onOpenChange }: PingHistoryProps) {
-	const { data, isLoading } = usePings(check?.id ?? "", 50)
+	const { data, isLoading } = usePings(check?.id ?? "", { limit: 50 })
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>

@@ -2,6 +2,7 @@ import type { PingType } from "@haspulse/db"
 import { logger } from "../lib/logger.js"
 import { checkRepository } from "../repositories/check.repository.js"
 import { pingRepository } from "../repositories/ping.repository.js"
+import { createPaginatedResult } from "../routes/v1/shared/schemas.js"
 import { triggerAlert } from "./alert.service.js"
 import {
 	calculateDurationFromStart,
@@ -86,4 +87,17 @@ export async function listPingsByCheck(
 	limit = 50,
 ): Promise<PingModel[]> {
 	return pingRepository.findByCheckId(checkId, limit)
+}
+
+export async function listPingsByCheckPaginated(
+	checkId: string,
+	page: number,
+	limit: number,
+) {
+	const result = await pingRepository.findByCheckIdPaginated(
+		checkId,
+		page,
+		limit,
+	)
+	return createPaginatedResult(result.data, result.total, page, limit)
 }

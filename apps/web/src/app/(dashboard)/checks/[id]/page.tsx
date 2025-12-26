@@ -4,6 +4,7 @@ import { CheckAlertsTab } from "@/components/checks/check-alerts-tab"
 import { CheckForm } from "@/components/checks/check-form"
 import { PingSparkline } from "@/components/checks/ping-sparkline"
 import { StatusBadge } from "@/components/checks/status-badge"
+import { PaginationControls } from "@/components/pagination-controls"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -156,16 +157,20 @@ export default function CheckDetailPage({
 }: { params: Promise<{ id: string }> }) {
 	const { id } = use(params)
 	const router = useRouter()
+	const [showEdit, setShowEdit] = useState(false)
+	const [showDelete, setShowDelete] = useState(false)
+	const [copied, setCopied] = useState(false)
+	const [pingsPage, setPingsPage] = useState(1)
+
 	const { data: check, isLoading } = useCheck(id)
-	const { data: pingsData, isLoading: pingsLoading } = usePings(id, 50)
+	const { data: pingsData, isLoading: pingsLoading } = usePings(id, {
+		page: pingsPage,
+		limit: 20,
+	})
 	const { data: channelsData } = useChannels(check?.projectId ?? "")
 	const { data: durationStats, isLoading: durationLoading } =
 		useDurationStats(id)
 	const { data: alertsData } = useCheckAlerts(id, { page: 1, limit: 1 })
-
-	const [showEdit, setShowEdit] = useState(false)
-	const [showDelete, setShowDelete] = useState(false)
-	const [copied, setCopied] = useState(false)
 
 	const updateCheck = useUpdateCheck()
 	const pauseCheck = usePauseCheck()
@@ -528,76 +533,89 @@ export default function CheckDetailPage({
 								</p>
 							</div>
 						) : (
-							<Table>
-								<TableHeader>
-									<TableRow className="hover:bg-transparent">
-										<TableHead className="text-xs uppercase tracking-wide">
-											Type
-										</TableHead>
-										<TableHead className="text-xs uppercase tracking-wide">
-											Time
-										</TableHead>
-										<TableHead className="text-xs uppercase tracking-wide">
-											Source IP
-										</TableHead>
-										{hasAnyBody && (
+							<>
+								<Table>
+									<TableHeader>
+										<TableRow className="hover:bg-transparent">
 											<TableHead className="text-xs uppercase tracking-wide">
-												Body
+												Type
 											</TableHead>
-										)}
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{pingsData?.pings.map((ping) => (
-										<TableRow key={ping.id}>
-											<TableCell className="py-3">
-												<span
-													className={cn(
-														"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-														pingTypeStyles[ping.type].bg,
-														pingTypeStyles[ping.type].text,
-													)}
-												>
-													{pingTypeLabels[ping.type]}
-												</span>
-											</TableCell>
-											<TableCell className="py-3 text-muted-foreground">
-												<Tooltip>
-													<TooltipTrigger>
-														{formatDistanceToNow(new Date(ping.createdAt), {
-															addSuffix: true,
-														})}
-													</TooltipTrigger>
-													<TooltipContent>
-														{new Date(ping.createdAt).toLocaleString()}
-													</TooltipContent>
-												</Tooltip>
-											</TableCell>
-											<TableCell className="py-3 font-mono text-xs text-muted-foreground">
-												{ping.sourceIp}
-											</TableCell>
+											<TableHead className="text-xs uppercase tracking-wide">
+												Time
+											</TableHead>
+											<TableHead className="text-xs uppercase tracking-wide">
+												Source IP
+											</TableHead>
 											{hasAnyBody && (
-												<TableCell className="py-3 text-muted-foreground truncate max-w-[200px]">
-													{ping.body ? (
-														<Tooltip>
-															<TooltipTrigger className="truncate block max-w-[200px]">
-																{ping.body}
-															</TooltipTrigger>
-															<TooltipContent className="max-w-sm">
-																<pre className="text-xs whitespace-pre-wrap">
-																	{ping.body}
-																</pre>
-															</TooltipContent>
-														</Tooltip>
-													) : (
-														<span className="text-muted-foreground/50">—</span>
-													)}
-												</TableCell>
+												<TableHead className="text-xs uppercase tracking-wide">
+													Body
+												</TableHead>
 											)}
 										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+									</TableHeader>
+									<TableBody>
+										{pingsData?.pings.map((ping) => (
+											<TableRow key={ping.id}>
+												<TableCell className="py-3">
+													<span
+														className={cn(
+															"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+															pingTypeStyles[ping.type].bg,
+															pingTypeStyles[ping.type].text,
+														)}
+													>
+														{pingTypeLabels[ping.type]}
+													</span>
+												</TableCell>
+												<TableCell className="py-3 text-muted-foreground">
+													<Tooltip>
+														<TooltipTrigger>
+															{formatDistanceToNow(new Date(ping.createdAt), {
+																addSuffix: true,
+															})}
+														</TooltipTrigger>
+														<TooltipContent>
+															{new Date(ping.createdAt).toLocaleString()}
+														</TooltipContent>
+													</Tooltip>
+												</TableCell>
+												<TableCell className="py-3 font-mono text-xs text-muted-foreground">
+													{ping.sourceIp}
+												</TableCell>
+												{hasAnyBody && (
+													<TableCell className="py-3 text-muted-foreground truncate max-w-[200px]">
+														{ping.body ? (
+															<Tooltip>
+																<TooltipTrigger className="truncate block max-w-[200px]">
+																	{ping.body}
+																</TooltipTrigger>
+																<TooltipContent className="max-w-sm">
+																	<pre className="text-xs whitespace-pre-wrap">
+																		{ping.body}
+																	</pre>
+																</TooltipContent>
+															</Tooltip>
+														) : (
+															<span className="text-muted-foreground/50">
+																—
+															</span>
+														)}
+													</TableCell>
+												)}
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+								{pingsData && pingsData.totalPages > 1 && (
+									<div className="p-4 border-t border-border">
+										<PaginationControls
+											page={pingsPage}
+											totalPages={pingsData.totalPages}
+											onPageChange={setPingsPage}
+										/>
+									</div>
+								)}
+							</>
 						)}
 					</div>
 				</TabsContent>

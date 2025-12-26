@@ -11,7 +11,7 @@ import {
 import { getCheckById } from "../../../services/check.service.js"
 import {
 	type PingModel,
-	listPingsByCheck,
+	listPingsByCheckPaginated,
 } from "../../../services/ping.service.js"
 import { getProjectForOrg } from "../../../services/project.service.js"
 import {
@@ -84,10 +84,19 @@ const listPingsRoute = createRoute({
 
 pingHistoryRoutes.openapi(listPingsRoute, async (c) => {
 	const { id } = c.req.valid("param")
-	const { limit } = c.req.valid("query")
+	const { page, limit } = c.req.valid("query")
 	const check = await getAuthorizedCheck(c, id)
-	const pings = await listPingsByCheck(check.id, limit)
-	return c.json({ pings: pings.map(toPingResponse) }, 200)
+	const result = await listPingsByCheckPaginated(check.id, page, limit)
+	return c.json(
+		{
+			pings: result.data.map(toPingResponse),
+			total: result.total,
+			page: result.page,
+			limit: result.limit,
+			totalPages: result.totalPages,
+		},
+		200,
+	)
 })
 
 export { pingHistoryRoutes }

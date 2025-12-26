@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { createApp } from "../../../app.js"
 
 vi.mock("../../../services/ping.service.js", () => ({
-	listPingsByCheck: vi.fn(),
+	listPingsByCheckPaginated: vi.fn(),
 	resolveCheckId: vi.fn(),
 	recordPing: vi.fn(),
 }))
@@ -45,7 +45,7 @@ import { organizationRepository } from "../../../repositories/organization.repos
 import { validateApiKey } from "../../../services/api-key.service.js"
 import { getCheckById } from "../../../services/check.service.js"
 import { getEffectivePlan } from "../../../services/organization.service.js"
-import { listPingsByCheck } from "../../../services/ping.service.js"
+import { listPingsByCheckPaginated } from "../../../services/ping.service.js"
 import { getProjectForOrg } from "../../../services/project.service.js"
 
 const mockUser = {
@@ -146,7 +146,13 @@ describe("Ping History Routes", () => {
 			it("returns list of pings", async () => {
 				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
 				vi.mocked(getProjectForOrg).mockResolvedValue(mockProject)
-				vi.mocked(listPingsByCheck).mockResolvedValue([mockPing])
+				vi.mocked(listPingsByCheckPaginated).mockResolvedValue({
+					data: [mockPing],
+					total: 1,
+					page: 1,
+					limit: 20,
+					totalPages: 1,
+				})
 
 				const res = await app.request("/v1/checks/check123/pings", {
 					headers: { "X-Org-Id": "org123" },
@@ -156,6 +162,7 @@ describe("Ping History Routes", () => {
 				const json = await res.json()
 				expect(json.pings).toHaveLength(1)
 				expect(json.pings[0].type).toBe("SUCCESS")
+				expect(json.total).toBe(1)
 			})
 
 			it("returns 404 for non-existent check", async () => {
@@ -168,17 +175,28 @@ describe("Ping History Routes", () => {
 				expect(res.status).toBe(404)
 			})
 
-			it("respects limit query param", async () => {
+			it("respects pagination params", async () => {
 				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
 				vi.mocked(getProjectForOrg).mockResolvedValue(mockProject)
-				vi.mocked(listPingsByCheck).mockResolvedValue([mockPing])
-
-				const res = await app.request("/v1/checks/check123/pings?limit=10", {
-					headers: { "X-Org-Id": "org123" },
+				vi.mocked(listPingsByCheckPaginated).mockResolvedValue({
+					data: [mockPing],
+					total: 50,
+					page: 2,
+					limit: 10,
+					totalPages: 5,
 				})
 
+				const res = await app.request(
+					"/v1/checks/check123/pings?page=2&limit=10",
+					{ headers: { "X-Org-Id": "org123" } },
+				)
+
 				expect(res.status).toBe(200)
-				expect(listPingsByCheck).toHaveBeenCalledWith("check123", 10)
+				expect(listPingsByCheckPaginated).toHaveBeenCalledWith(
+					"check123",
+					2,
+					10,
+				)
 			})
 		})
 	})
@@ -199,7 +217,13 @@ describe("Ping History Routes", () => {
 					createdAt: new Date(),
 				})
 				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
-				vi.mocked(listPingsByCheck).mockResolvedValue([mockPing])
+				vi.mocked(listPingsByCheckPaginated).mockResolvedValue({
+					data: [mockPing],
+					total: 1,
+					page: 1,
+					limit: 20,
+					totalPages: 1,
+				})
 
 				const res = await app.request("/v1/checks/check123/pings", {
 					headers: { Authorization: "Bearer hp_live_testkey123" },

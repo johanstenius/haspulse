@@ -20,6 +20,7 @@ import {
 	type CreateProjectData,
 	type Invitation,
 	type Organization,
+	type PingListParams,
 	type Project,
 	type UpdateChannelData,
 	type UpdateCheckData,
@@ -56,7 +57,8 @@ export const queryKeys = {
 		list: (projectId: string) => ["apiKeys", projectId] as const,
 	},
 	pings: {
-		list: (checkId: string) => ["pings", checkId] as const,
+		list: (checkId: string, params?: PingListParams) =>
+			["pings", checkId, params] as const,
 	},
 	alerts: {
 		listByCheck: (checkId: string, params?: AlertFiltersParams) =>
@@ -453,11 +455,12 @@ export function useDeleteApiKey(
 }
 
 // Pings
-export function usePings(checkId: string, limit?: number) {
+export function usePings(checkId: string, params?: PingListParams) {
 	return useQuery({
-		queryKey: queryKeys.pings.list(checkId),
-		queryFn: () => api.pings.list(checkId, limit),
+		queryKey: queryKeys.pings.list(checkId, params),
+		queryFn: () => api.pings.list(checkId, params),
 		enabled: !!checkId,
+		placeholderData: keepPreviousData,
 	})
 }
 

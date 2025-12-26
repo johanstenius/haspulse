@@ -56,6 +56,23 @@ export const pingRepository = {
 		return pings.map(toModel)
 	},
 
+	async findByCheckIdPaginated(
+		checkId: string,
+		page: number,
+		limit: number,
+	): Promise<{ data: PingModel[]; total: number }> {
+		const [pings, total] = await Promise.all([
+			prisma.ping.findMany({
+				where: { checkId },
+				orderBy: { createdAt: "desc" },
+				skip: (page - 1) * limit,
+				take: limit,
+			}),
+			prisma.ping.count({ where: { checkId } }),
+		])
+		return { data: pings.map(toModel), total }
+	},
+
 	async deleteOlderThan(checkId: string, cutoffDate: Date): Promise<number> {
 		const result = await prisma.ping.deleteMany({
 			where: {

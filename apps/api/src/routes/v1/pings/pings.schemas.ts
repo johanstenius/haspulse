@@ -1,5 +1,9 @@
 import { z } from "@hono/zod-openapi"
-import { errorResponseSchema, idParamSchema } from "../shared/schemas.js"
+import {
+	errorResponseSchema,
+	idParamSchema,
+	paginationQuerySchema,
+} from "../shared/schemas.js"
 
 export { errorResponseSchema, idParamSchema as checkIdParamSchema }
 
@@ -21,20 +25,13 @@ export type PingEntryResponse = z.infer<typeof pingResponseSchema>
 export const pingListResponseSchema = z
 	.object({
 		pings: z.array(pingResponseSchema),
+		total: z.number(),
+		page: z.number(),
+		limit: z.number(),
+		totalPages: z.number(),
 	})
 	.openapi("PingList")
 
 export type PingListResponse = z.infer<typeof pingListResponseSchema>
 
-export const pingQuerySchema = z.object({
-	limit: z.coerce
-		.number()
-		.min(1)
-		.max(100)
-		.optional()
-		.default(50)
-		.openapi({
-			param: { name: "limit", in: "query" },
-			example: 50,
-		}),
-})
+export const pingQuerySchema = paginationQuerySchema
