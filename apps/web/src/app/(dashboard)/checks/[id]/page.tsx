@@ -312,12 +312,7 @@ export default function CheckDetailPage({
 						<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
 							Recent Activity
 						</div>
-						<div className="flex items-center gap-3">
-							<PingSparkline sparkline={check.sparkline} />
-							<span className="text-xs text-muted-foreground">
-								{pingsData?.pings.length ?? 0} total
-							</span>
-						</div>
+						<PingSparkline sparkline={check.sparkline} />
 					</div>
 				</div>
 			</div>
