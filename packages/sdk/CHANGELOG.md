@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Fix: `wrap()` now sends error message as body on FAIL pings
+
 ## 0.3.1
 
 - Fix: `ping()` and `wrap()` no longer throw on errors, log warning instead
