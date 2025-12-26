@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Fix: add missing Authorization header to ping requests
+
 ## 0.2.0
 
 - Add no-op mode: `ping()` and `wrap()` silently skip when `apiKey` undefined

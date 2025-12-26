@@ -86,6 +86,9 @@ export class HasPulse {
 			`${this.baseUrl}${path}`,
 			{
 				method: body ? "POST" : "GET",
+				headers: {
+					Authorization: `Bearer ${this.apiKey}`,
+				},
 				body: body ?? undefined,
 			},
 			this.timeout,
