@@ -47,8 +47,11 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
 
 			<nav className="flex-1 p-3 space-y-1">
 				{navItems.map((item) => {
+					// Exact match for /settings to avoid highlighting when on /settings/team or /settings/billing
 					const isActive =
-						pathname === item.href || pathname.startsWith(`${item.href}/`)
+						item.href === "/settings"
+							? pathname === item.href
+							: pathname === item.href || pathname.startsWith(`${item.href}/`)
 					return (
 						<Link
 							key={item.href}
