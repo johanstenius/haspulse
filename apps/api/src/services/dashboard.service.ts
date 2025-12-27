@@ -1,9 +1,11 @@
 import type { CheckStatus } from "@haspulse/db"
 import { dashboardRepository } from "../repositories/dashboard.repository.js"
+import { statsRepository } from "../repositories/stats.repository.js"
 
 export type DashboardStatsModel = {
 	totalProjects: number
 	totalChecks: number
+	uptimePercent: number
 	checksByStatus: {
 		UP: number
 		DOWN: number
@@ -49,9 +51,10 @@ function sortChecksByPriority(
 export async function getDashboardStats(
 	orgId: string,
 ): Promise<DashboardStatsModel> {
-	const [projectCount, checkCounts] = await Promise.all([
+	const [projectCount, checkCounts, uptimeData] = await Promise.all([
 		dashboardRepository.countProjectsByOrgId(orgId),
 		dashboardRepository.countChecksByStatusForOrg(orgId),
+		statsRepository.getOrgUptimeForPeriod(orgId, 30),
 	])
 
 	const statusCounts: Record<CheckStatus, number> = {
@@ -68,9 +71,14 @@ export async function getDashboardStats(
 		totalChecks += item._count.id
 	}
 
+	const totalMinutes = uptimeData.upMinutes + uptimeData.downMinutes
+	const uptimePercent =
+		totalMinutes > 0 ? (uptimeData.upMinutes / totalMinutes) * 100 : 100
+
 	return {
 		totalProjects: projectCount,
 		totalChecks,
+		uptimePercent: Math.round(uptimePercent * 10) / 10,
 		checksByStatus: statusCounts,
 	}
 }

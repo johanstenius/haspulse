@@ -163,4 +163,29 @@ export const statsRepository = {
 
 		return stats.map(toDailyStatModel)
 	},
+
+	async getOrgUptimeForPeriod(
+		orgId: string,
+		days: number,
+	): Promise<{ upMinutes: number; downMinutes: number }> {
+		const startDate = new Date()
+		startDate.setDate(startDate.getDate() - days)
+		startDate.setHours(0, 0, 0, 0)
+
+		const result = await prisma.checkDailyStat.aggregate({
+			where: {
+				check: { project: { orgId } },
+				date: { gte: startDate },
+			},
+			_sum: {
+				upMinutes: true,
+				downMinutes: true,
+			},
+		})
+
+		return {
+			upMinutes: result._sum.upMinutes ?? 0,
+			downMinutes: result._sum.downMinutes ?? 0,
+		}
+	},
 }

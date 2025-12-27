@@ -114,13 +114,6 @@ export default function DashboardPage() {
 		)
 	}
 
-	const upCount = stats?.checksByStatus.UP ?? 0
-	const totalActive =
-		upCount +
-		(stats?.checksByStatus.DOWN ?? 0) +
-		(stats?.checksByStatus.LATE ?? 0) +
-		(stats?.checksByStatus.NEW ?? 0)
-	const uptimePercent = totalActive > 0 ? (upCount / totalActive) * 100 : 100
 	const issues =
 		(stats?.checksByStatus.DOWN ?? 0) + (stats?.checksByStatus.LATE ?? 0)
 
@@ -142,7 +135,7 @@ export default function DashboardPage() {
 								Uptime
 							</div>
 							<div className="text-2xl font-semibold text-primary">
-								{uptimePercent.toFixed(1)}%
+								{stats?.uptimePercent.toFixed(1)}%
 							</div>
 						</div>
 						<div className="bg-secondary/50 rounded-lg p-4 text-left">

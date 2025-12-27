@@ -8,6 +8,7 @@ export const dashboardStatsResponseSchema = z
 	.object({
 		totalProjects: z.number(),
 		totalChecks: z.number(),
+		uptimePercent: z.number(),
 		checksByStatus: z.object({
 			UP: z.number(),
 			DOWN: z.number(),

@@ -295,6 +295,7 @@ export type CreateApiKeyData = {
 export type DashboardStats = {
 	totalProjects: number
 	totalChecks: number
+	uptimePercent: number
 	checksByStatus: {
 		UP: number
 		DOWN: number
