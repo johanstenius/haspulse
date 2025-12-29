@@ -31,13 +31,13 @@ export default function SdkPage() {
 const client = new HasPulse({ apiKey: 'hp_...' });
 
 // Send a ping
-await client.ping('check-id');
+await client.ping('cron-job-id');
 
 // Send a start signal
-await client.ping('check-id', { type: 'start' });
+await client.ping('cron-job-id', { type: 'start' });
 
 // Send a fail signal with output
-await client.ping('check-id', { type: 'fail', body: 'Error: connection failed' });`}</code>
+await client.ping('cron-job-id', { type: 'fail', body: 'Error: connection failed' });`}</code>
 			</pre>
 
 			<h2>Configuration</h2>
@@ -56,40 +56,40 @@ await client.ping('check-id', { type: 'fail', body: 'Error: connection failed' }
 			<p>The core of HasPulse - notify us when your job runs.</p>
 
 			<pre>
-				<code>{`await client.ping('check-id');                              // Success
-await client.ping('check-id', { type: 'start' });           // Job started
-await client.ping('check-id', { type: 'fail' });            // Job failed
-await client.ping('check-id', { type: 'fail', body: 'Error details' });`}</code>
+				<code>{`await client.ping('cron-job-id');                              // Success
+await client.ping('cron-job-id', { type: 'start' });           // Job started
+await client.ping('cron-job-id', { type: 'fail' });            // Job failed
+await client.ping('cron-job-id', { type: 'fail', body: 'Error details' });`}</code>
 			</pre>
 
-			<h2 id="checks">Checks</h2>
+			<h2 id="cron-jobs">Cron Jobs</h2>
 
 			<pre>
-				<code>{`// List all checks in a project
-const checks = await client.checks.list('project-id');
+				<code>{`// List all cron jobs in a project
+const cronJobs = await client.cronJobs.list('project-id');
 
-// Get a single check
-const check = await client.checks.get('check-id');
+// Get a single cron job
+const cronJob = await client.cronJobs.get('cron-job-id');
 
-// Create a check
-const check = await client.checks.create('project-id', {
+// Create a cron job
+const cronJob = await client.cronJobs.create('project-id', {
   name: 'DB Backup',
   scheduleType: 'PERIOD',
   scheduleValue: '3600', // every hour
 });
 
-// Update a check
-await client.checks.update('check-id', { name: 'New Name' });
+// Update a cron job
+await client.cronJobs.update('cron-job-id', { name: 'New Name' });
 
 // Pause/resume
-await client.checks.pause('check-id');
-await client.checks.resume('check-id');
+await client.cronJobs.pause('cron-job-id');
+await client.cronJobs.resume('cron-job-id');
 
 // Delete
-await client.checks.delete('check-id');
+await client.cronJobs.delete('cron-job-id');
 
 // Uptime stats (last 90 days)
-const stats = await client.checks.stats('check-id', 90);`}</code>
+const stats = await client.cronJobs.stats('cron-job-id', 90);`}</code>
 			</pre>
 
 			<h2 id="channels">Channels (Notifications)</h2>
@@ -140,10 +140,10 @@ await client.apiKeys.delete('project-id', 'key-id');`}</code>
 				<code>{`import { HasPulseError, NotFoundError, UnauthorizedError } from 'haspulse';
 
 try {
-  await client.checks.get('invalid-id');
+  await client.cronJobs.get('invalid-id');
 } catch (error) {
   if (error instanceof NotFoundError) {
-    console.log('Check not found');
+    console.log('Cron job not found');
   } else if (error instanceof UnauthorizedError) {
     console.log('Invalid API key');
   } else if (error instanceof HasPulseError) {
@@ -158,8 +158,8 @@ try {
 
 			<pre>
 				<code>{`import type {
-  Check,
-  CheckStatus,
+  CronJob,
+  MonitorStatus,
   Channel,
   ChannelType,
   Organization,

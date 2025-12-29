@@ -10,7 +10,11 @@ export const billingInfoResponseSchema = z
 			.nullable()
 			.openapi({ example: "2025-02-01T00:00:00.000Z" }),
 		usage: z.object({
-			checks: z.object({ current: z.number(), limit: z.number().nullable() }),
+			cronJobs: z.object({ current: z.number(), limit: z.number().nullable() }),
+			httpMonitors: z.object({
+				current: z.number(),
+				limit: z.number().nullable(),
+			}),
 			projects: z.object({ current: z.number(), limit: z.number().nullable() }),
 		}),
 	})

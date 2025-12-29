@@ -3,12 +3,12 @@ import type { AuthEnv } from "../../../middleware/auth.js"
 import { getRequiredOrg, requireAuth } from "../../../middleware/auth.js"
 import { pingRepository } from "../../../repositories/ping.repository.js"
 import {
-	getDashboardChecks,
+	getDashboardCronJobs,
 	getDashboardStats,
 } from "../../../services/dashboard.service.js"
 import { calculateSparkline } from "../../../services/sparkline.service.js"
 import {
-	dashboardChecksResponseSchema,
+	dashboardCronJobsResponseSchema,
 	dashboardStatsResponseSchema,
 	errorResponseSchema,
 } from "./dashboard.schemas.js"
@@ -40,15 +40,15 @@ dashboardRoutes.openapi(getStatsRoute, async (c) => {
 	return c.json(stats, 200)
 })
 
-const getChecksRoute = createRoute({
+const getCronJobsRoute = createRoute({
 	method: "get",
-	path: "/checks",
+	path: "/cron-jobs",
 	responses: {
 		200: {
 			content: {
-				"application/json": { schema: dashboardChecksResponseSchema },
+				"application/json": { schema: dashboardCronJobsResponseSchema },
 			},
-			description: "Recent checks for dashboard",
+			description: "Recent cron jobs for dashboard",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -56,30 +56,30 @@ const getChecksRoute = createRoute({
 		},
 	},
 	tags: ["Dashboard"],
-	summary: "Get recent checks for dashboard",
+	summary: "Get recent cron jobs for dashboard",
 })
 
-dashboardRoutes.openapi(getChecksRoute, async (c) => {
+dashboardRoutes.openapi(getCronJobsRoute, async (c) => {
 	const org = getRequiredOrg(c)
-	const checks = await getDashboardChecks(org.id)
+	const cronJobs = await getDashboardCronJobs(org.id)
 
-	const checkIds = checks.map((check) => check.id)
-	const pingsMap = await pingRepository.findRecentByCheckIds(checkIds, 20)
+	const cronJobIds = cronJobs.map((cronJob) => cronJob.id)
+	const pingsMap = await pingRepository.findRecentByCronJobIds(cronJobIds, 20)
 
 	return c.json(
 		{
-			checks: checks.map((check) => {
-				const pings = pingsMap.get(check.id) ?? []
-				const sparkline = calculateSparkline(check, pings)
+			cronJobs: cronJobs.map((cronJob) => {
+				const pings = pingsMap.get(cronJob.id) ?? []
+				const sparkline = calculateSparkline(cronJob, pings)
 				return {
-					id: check.id,
-					name: check.name,
-					status: check.status,
-					scheduleType: check.scheduleType,
-					scheduleValue: check.scheduleValue,
-					lastPingAt: check.lastPingAt?.toISOString() ?? null,
-					projectId: check.projectId,
-					projectName: check.projectName,
+					id: cronJob.id,
+					name: cronJob.name,
+					status: cronJob.status,
+					scheduleType: cronJob.scheduleType,
+					scheduleValue: cronJob.scheduleValue,
+					lastPingAt: cronJob.lastPingAt?.toISOString() ?? null,
+					projectId: cronJob.projectId,
+					projectName: cronJob.projectName,
 					sparkline,
 				}
 			}),

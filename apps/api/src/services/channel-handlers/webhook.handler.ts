@@ -19,7 +19,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	)
 	const payload = buildPayload(
 		ctx.event,
-		ctx.check,
+		ctx.cronJob,
 		ctx.project,
 		ctx.richContext,
 	)

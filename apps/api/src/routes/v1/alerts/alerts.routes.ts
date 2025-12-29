@@ -10,35 +10,35 @@ import {
 } from "../../../middleware/auth.js"
 import type {
 	AlertModel,
-	AlertModelWithCheck,
+	AlertModelWithCronJob,
 } from "../../../repositories/alert.repository.js"
 import {
-	getCheckAlertsPaginated,
+	getCronJobAlertsPaginated,
 	getOrgAlertsPaginated,
 } from "../../../services/alert.service.js"
-import { getCheckById } from "../../../services/check.service.js"
+import { getCronJobById } from "../../../services/cron-job.service.js"
 import { getProjectForOrg } from "../../../services/project.service.js"
 import {
 	type AlertResponse,
-	type AlertWithCheckResponse,
+	type AlertWithCronJobResponse,
 	alertFiltersQuerySchema,
 	alertOrgFiltersQuerySchema,
 	alertsListResponseSchema,
-	checkAlertsListResponseSchema,
-	checkIdParamSchema,
+	cronJobAlertsListResponseSchema,
+	cronJobIdParamSchema,
 	errorResponseSchema,
 } from "./alerts.schemas.js"
 
-const checkAlertRoutes = new OpenAPIHono<AuthEnv>()
+const cronJobAlertRoutes = new OpenAPIHono<AuthEnv>()
 const alertRoutes = new OpenAPIHono<AuthEnv>()
 
-checkAlertRoutes.use("*", requireAuth)
+cronJobAlertRoutes.use("*", requireAuth)
 alertRoutes.use("*", requireAuth)
 
 function toAlertResponse(alert: AlertModel): AlertResponse {
 	return {
 		id: alert.id,
-		checkId: alert.checkId,
+		cronJobId: alert.cronJobId,
 		event: alert.event as AlertResponse["event"],
 		channels: alert.channels,
 		context: alert.context,
@@ -48,46 +48,46 @@ function toAlertResponse(alert: AlertModel): AlertResponse {
 	}
 }
 
-function toAlertWithCheckResponse(
-	alert: AlertModelWithCheck,
-): AlertWithCheckResponse {
+function toAlertWithCronJobResponse(
+	alert: AlertModelWithCronJob,
+): AlertWithCronJobResponse {
 	return {
 		...toAlertResponse(alert),
-		checkName: alert.checkName,
+		cronJobName: alert.cronJobName,
 		projectId: alert.projectId,
 		projectName: alert.projectName,
 	}
 }
 
-async function getAuthorizedCheck(c: Context<AuthEnv>, checkId: string) {
-	const check = await getCheckById(checkId)
-	if (!check) throw notFound("Check not found")
+async function getAuthorizedCronJob(c: Context<AuthEnv>, cronJobId: string) {
+	const cronJob = await getCronJobById(cronJobId)
+	if (!cronJob) throw notFound("Cron job not found")
 
 	if (isApiKeyAuth(c)) {
 		const apiKeyProjectId = getApiKeyProjectId(c)
-		if (check.projectId !== apiKeyProjectId)
-			throw forbidden("API key not valid for this check")
+		if (cronJob.projectId !== apiKeyProjectId)
+			throw forbidden("API key not valid for this cron job")
 	} else {
 		const org = getRequiredOrg(c)
-		await getProjectForOrg(check.projectId, org.id)
+		await getProjectForOrg(cronJob.projectId, org.id)
 	}
 
-	return check
+	return cronJob
 }
 
-const listCheckAlertsRoute = createRoute({
+const listCronJobAlertsRoute = createRoute({
 	method: "get",
-	path: "/{checkId}/alerts",
+	path: "/{cronJobId}/alerts",
 	request: {
-		params: checkIdParamSchema,
+		params: cronJobIdParamSchema,
 		query: alertFiltersQuerySchema,
 	},
 	responses: {
 		200: {
 			content: {
-				"application/json": { schema: checkAlertsListResponseSchema },
+				"application/json": { schema: cronJobAlertsListResponseSchema },
 			},
-			description: "Paginated list of alerts for check",
+			description: "Paginated list of alerts for cron job",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -99,20 +99,20 @@ const listCheckAlertsRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
 	tags: ["Alerts"],
-	summary: "List alerts for a check",
+	summary: "List alerts for a cron job",
 })
 
-checkAlertRoutes.openapi(listCheckAlertsRoute, async (c) => {
-	const { checkId } = c.req.valid("param")
+cronJobAlertRoutes.openapi(listCronJobAlertsRoute, async (c) => {
+	const { cronJobId } = c.req.valid("param")
 	const { page, limit, event, fromDate, toDate } = c.req.valid("query")
 
-	await getAuthorizedCheck(c, checkId)
+	await getAuthorizedCronJob(c, cronJobId)
 
-	const result = await getCheckAlertsPaginated(checkId, page, limit, {
+	const result = await getCronJobAlertsPaginated(cronJobId, page, limit, {
 		event,
 		fromDate: fromDate ? new Date(fromDate) : undefined,
 		toDate: toDate ? new Date(toDate) : undefined,
@@ -160,7 +160,7 @@ alertRoutes.openapi(listOrgAlertsRoute, async (c) => {
 	}
 
 	const org = getRequiredOrg(c)
-	const { page, limit, event, fromDate, toDate, projectId, checkId } =
+	const { page, limit, event, fromDate, toDate, projectId, cronJobId } =
 		c.req.valid("query")
 
 	const result = await getOrgAlertsPaginated(org.id, page, limit, {
@@ -168,12 +168,12 @@ alertRoutes.openapi(listOrgAlertsRoute, async (c) => {
 		fromDate: fromDate ? new Date(fromDate) : undefined,
 		toDate: toDate ? new Date(toDate) : undefined,
 		projectId,
-		checkId,
+		cronJobId,
 	})
 
 	return c.json(
 		{
-			alerts: result.data.map(toAlertWithCheckResponse),
+			alerts: result.data.map(toAlertWithCronJobResponse),
 			total: result.total,
 			page: result.page,
 			limit: result.limit,
@@ -183,4 +183,4 @@ alertRoutes.openapi(listOrgAlertsRoute, async (c) => {
 	)
 })
 
-export { alertRoutes, checkAlertRoutes }
+export { alertRoutes, cronJobAlertRoutes }

@@ -1,15 +1,20 @@
 "use client"
 
-import { CheckFilters } from "@/components/checks/check-filters"
-import { CheckForm } from "@/components/checks/check-form"
-import { CheckTable } from "@/components/checks/check-table"
+import { HttpMonitorFilters } from "@/components/http-monitors/http-monitor-filters"
+import { HttpMonitorForm } from "@/components/http-monitors/http-monitor-form"
+import { HttpMonitorTable } from "@/components/http-monitors/http-monitor-table"
 import { PaginationControls } from "@/components/pagination-controls"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { isLimitExceeded } from "@/lib/api"
-import type { CheckStatus, CreateCheckData } from "@/lib/api"
-import { useBilling, useChannels, useChecks, useCreateCheck } from "@/lib/query"
+import type { CreateHttpMonitorData, MonitorStatus } from "@/lib/api"
+import {
+	useBilling,
+	useChannels,
+	useCreateHttpMonitor,
+	useHttpMonitors,
+} from "@/lib/query"
 import { Plus } from "lucide-react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
@@ -17,48 +22,47 @@ import { toast } from "sonner"
 
 const DEFAULT_LIMIT = 20
 
-type ChecksTabProps = {
+type HttpMonitorsTabProps = {
 	projectId: string
 }
 
-function ChecksTabContent({ projectId }: ChecksTabProps) {
+function HttpMonitorsTabContent({ projectId }: HttpMonitorsTabProps) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 
-	const page = Number(searchParams.get("page")) || 1
-	const search = searchParams.get("search") ?? ""
-	const status = (searchParams.get("status") as CheckStatus) || undefined
+	const page = Number(searchParams.get("hpage")) || 1
+	const search = searchParams.get("hsearch") ?? ""
+	const status = (searchParams.get("hstatus") as MonitorStatus) || undefined
 
 	function updateParams(updates: {
 		page?: number
 		search?: string
-		status?: CheckStatus | undefined
+		status?: MonitorStatus | undefined
 	}) {
 		const params = new URLSearchParams(searchParams.toString())
 
-		// Reset to page 1 on filter change
 		if (updates.search !== undefined || updates.status !== undefined) {
-			params.delete("page")
+			params.delete("hpage")
 		} else if (updates.page && updates.page !== 1) {
-			params.set("page", String(updates.page))
+			params.set("hpage", String(updates.page))
 		} else {
-			params.delete("page")
+			params.delete("hpage")
 		}
 
 		if (updates.search !== undefined) {
 			if (updates.search) {
-				params.set("search", updates.search)
+				params.set("hsearch", updates.search)
 			} else {
-				params.delete("search")
+				params.delete("hsearch")
 			}
 		}
 
 		if (updates.status !== undefined) {
 			if (updates.status) {
-				params.set("status", updates.status)
+				params.set("hstatus", updates.status)
 			} else {
-				params.delete("status")
+				params.delete("hstatus")
 			}
 		}
 
@@ -66,7 +70,7 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 		router.push(`${pathname}${query ? `?${query}` : ""}`, { scroll: false })
 	}
 
-	const { data, isLoading } = useChecks(projectId, {
+	const { data, isLoading } = useHttpMonitors(projectId, {
 		page,
 		limit: DEFAULT_LIMIT,
 		search: search || undefined,
@@ -74,20 +78,22 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 	})
 	const { data: channelsData } = useChannels(projectId)
 	const { data: billing } = useBilling()
-	const createCheck = useCreateCheck()
+	const createHttpMonitor = useCreateHttpMonitor()
 
 	const [showForm, setShowForm] = useState(false)
 	const [showUpgrade, setShowUpgrade] = useState(false)
 
-	const checkLimit = billing?.usage.checks.limit ?? 20
+	const httpMonitorLimit = billing?.usage.httpMonitors.limit ?? 5
 
-	function handleCreate(formData: CreateCheckData & { channelIds?: string[] }) {
-		createCheck.mutate(
+	function handleCreate(
+		formData: CreateHttpMonitorData & { channelIds?: string[] },
+	) {
+		createHttpMonitor.mutate(
 			{ projectId, data: formData },
 			{
 				onSuccess: () => {
 					setShowForm(false)
-					toast.success("Check created")
+					toast.success("HTTP monitor created")
 				},
 				onError: (error) => {
 					if (isLimitExceeded(error)) {
@@ -102,12 +108,13 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 	}
 
 	const hasFilters = search || status
-	const hasNoResults = !isLoading && data?.checks.length === 0 && hasFilters
+	const hasNoResults =
+		!isLoading && data?.httpMonitors.length === 0 && hasFilters
 
 	return (
 		<>
 			<div className="flex justify-between items-start gap-4 mb-4">
-				<CheckFilters
+				<HttpMonitorFilters
 					search={search}
 					status={status}
 					onSearchChange={(s) => updateParams({ search: s })}
@@ -115,7 +122,7 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 				/>
 				<Button onClick={() => setShowForm(true)}>
 					<Plus className="h-4 w-4 mr-2" />
-					New check
+					New HTTP monitor
 				</Button>
 			</div>
 
@@ -123,7 +130,7 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 				<Skeleton className="h-48" />
 			) : hasNoResults ? (
 				<div className="text-center py-12 text-muted-foreground">
-					<p>No checks match your filters.</p>
+					<p>No HTTP monitors match your filters.</p>
 					<Button
 						variant="link"
 						onClick={() => {
@@ -135,9 +142,8 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 				</div>
 			) : (
 				<>
-					<CheckTable
-						checks={data?.checks ?? []}
-						projectId={projectId}
+					<HttpMonitorTable
+						httpMonitors={data?.httpMonitors ?? []}
 						onAdd={() => setShowForm(true)}
 					/>
 					{data && data.totalPages > 1 && (
@@ -150,28 +156,28 @@ function ChecksTabContent({ projectId }: ChecksTabProps) {
 				</>
 			)}
 
-			<CheckForm
+			<HttpMonitorForm
 				open={showForm}
 				onOpenChange={setShowForm}
 				onSubmit={handleCreate}
 				channels={channelsData?.channels}
-				isLoading={createCheck.isPending}
+				isLoading={createHttpMonitor.isPending}
 			/>
 
 			<UpgradeDialog
 				open={showUpgrade}
 				onOpenChange={setShowUpgrade}
-				resource="checks"
-				limit={checkLimit}
+				resource="HTTP monitors"
+				limit={httpMonitorLimit}
 			/>
 		</>
 	)
 }
 
-export function ChecksTab({ projectId }: ChecksTabProps) {
+export function HttpMonitorsTab({ projectId }: HttpMonitorsTabProps) {
 	return (
 		<Suspense fallback={<Skeleton className="h-48" />}>
-			<ChecksTabContent projectId={projectId} />
+			<HttpMonitorsTabContent projectId={projectId} />
 		</Suspense>
 	)
 }

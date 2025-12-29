@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("../../../services/alert.service.js", () => ({
-	getCheckAlertsPaginated: vi.fn(),
+	getCronJobAlertsPaginated: vi.fn(),
 	getOrgAlertsPaginated: vi.fn(),
 }))
 
-vi.mock("../../../services/check.service.js", () => ({
-	getCheckById: vi.fn(),
+vi.mock("../../../services/cron-job.service.js", () => ({
+	getCronJobById: vi.fn(),
 }))
 
 vi.mock("../../../services/project.service.js", () => ({
@@ -33,10 +33,10 @@ import { createApp } from "../../../app.js"
 import { auth } from "../../../lib/auth.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
 import {
-	getCheckAlertsPaginated,
+	getCronJobAlertsPaginated,
 	getOrgAlertsPaginated,
 } from "../../../services/alert.service.js"
-import { getCheckById } from "../../../services/check.service.js"
+import { getCronJobById } from "../../../services/cron-job.service.js"
 import { getProjectForOrg } from "../../../services/project.service.js"
 
 const mockUser = {
@@ -82,20 +82,18 @@ const mockProject = {
 	orgId: "org123",
 	name: "Test Project",
 	slug: "test-project",
-	timezone: "UTC",
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }
 
-const mockCheck = {
-	id: "check123",
+const mockCronJob = {
+	id: "cronjob123",
 	projectId: "proj123",
-	name: "Test Check",
-	slug: "test-check",
+	name: "Test CronJob",
+	slug: "test-cronjob",
 	scheduleType: "PERIOD" as const,
 	scheduleValue: "3600",
 	graceSeconds: 300,
-	timezone: null,
 	status: "DOWN" as const,
 	lastPingAt: new Date("2025-01-01"),
 	lastStartedAt: null,
@@ -110,8 +108,8 @@ const mockCheck = {
 
 const mockAlert = {
 	id: "alert123",
-	checkId: "check123",
-	event: "check.down",
+	cronJobId: "cronjob123",
+	event: "cronJob.down",
 	channels: [{ id: "ch1", name: "Email", type: "email" }],
 	context: null,
 	success: true,
@@ -119,9 +117,9 @@ const mockAlert = {
 	createdAt: new Date("2025-01-02"),
 }
 
-const mockAlertWithCheck = {
+const mockAlertWithCronJob = {
 	...mockAlert,
-	checkName: "Test Check",
+	cronJobName: "Test CronJob",
 	projectId: "proj123",
 	projectName: "Test Project",
 }
@@ -139,11 +137,11 @@ describe("Alert Routes", () => {
 		vi.mocked(organizationRepository.getMember).mockResolvedValue(mockMember)
 	})
 
-	describe("GET /v1/checks/:checkId/alerts", () => {
-		it("returns paginated alerts for a check", async () => {
-			vi.mocked(getCheckById).mockResolvedValue(mockCheck)
+	describe("GET /v1/cron-jobs/:cronJobId/alerts", () => {
+		it("returns paginated alerts for a cron job", async () => {
+			vi.mocked(getCronJobById).mockResolvedValue(mockCronJob)
 			vi.mocked(getProjectForOrg).mockResolvedValue(mockProject)
-			vi.mocked(getCheckAlertsPaginated).mockResolvedValue({
+			vi.mocked(getCronJobAlertsPaginated).mockResolvedValue({
 				data: [mockAlert],
 				total: 1,
 				page: 1,
@@ -151,7 +149,7 @@ describe("Alert Routes", () => {
 				totalPages: 1,
 			})
 
-			const res = await app.request("/v1/checks/check123/alerts", {
+			const res = await app.request("/v1/cron-jobs/cronjob123/alerts", {
 				headers: { "X-Org-Id": "org123" },
 			})
 
@@ -159,14 +157,14 @@ describe("Alert Routes", () => {
 			const json = await res.json()
 			expect(json.alerts).toHaveLength(1)
 			expect(json.alerts[0].id).toBe("alert123")
-			expect(json.alerts[0].event).toBe("check.down")
+			expect(json.alerts[0].event).toBe("cronJob.down")
 			expect(json.total).toBe(1)
 		})
 
-		it("returns 404 for non-existent check", async () => {
-			vi.mocked(getCheckById).mockResolvedValue(null)
+		it("returns 404 for non-existent cron job", async () => {
+			vi.mocked(getCronJobById).mockResolvedValue(null)
 
-			const res = await app.request("/v1/checks/nonexistent/alerts", {
+			const res = await app.request("/v1/cron-jobs/nonexistent/alerts", {
 				headers: { "X-Org-Id": "org123" },
 			})
 
@@ -174,9 +172,9 @@ describe("Alert Routes", () => {
 		})
 
 		it("filters by event type", async () => {
-			vi.mocked(getCheckById).mockResolvedValue(mockCheck)
+			vi.mocked(getCronJobById).mockResolvedValue(mockCronJob)
 			vi.mocked(getProjectForOrg).mockResolvedValue(mockProject)
-			vi.mocked(getCheckAlertsPaginated).mockResolvedValue({
+			vi.mocked(getCronJobAlertsPaginated).mockResolvedValue({
 				data: [],
 				total: 0,
 				page: 1,
@@ -185,16 +183,16 @@ describe("Alert Routes", () => {
 			})
 
 			const res = await app.request(
-				"/v1/checks/check123/alerts?event=check.up",
+				"/v1/cron-jobs/cronjob123/alerts?event=cronJob.up",
 				{ headers: { "X-Org-Id": "org123" } },
 			)
 
 			expect(res.status).toBe(200)
-			expect(getCheckAlertsPaginated).toHaveBeenCalledWith(
-				"check123",
+			expect(getCronJobAlertsPaginated).toHaveBeenCalledWith(
+				"cronjob123",
 				1,
 				20,
-				expect.objectContaining({ event: "check.up" }),
+				expect.objectContaining({ event: "cronJob.up" }),
 			)
 		})
 	})
@@ -202,7 +200,7 @@ describe("Alert Routes", () => {
 	describe("GET /v1/alerts", () => {
 		it("returns paginated alerts across org", async () => {
 			vi.mocked(getOrgAlertsPaginated).mockResolvedValue({
-				data: [mockAlertWithCheck],
+				data: [mockAlertWithCronJob],
 				total: 1,
 				page: 1,
 				limit: 20,
@@ -216,11 +214,11 @@ describe("Alert Routes", () => {
 			expect(res.status).toBe(200)
 			const json = await res.json()
 			expect(json.alerts).toHaveLength(1)
-			expect(json.alerts[0].checkName).toBe("Test Check")
+			expect(json.alerts[0].cronJobName).toBe("Test CronJob")
 			expect(json.alerts[0].projectName).toBe("Test Project")
 		})
 
-		it("filters by project and check", async () => {
+		it("filters by project and cron job", async () => {
 			vi.mocked(getOrgAlertsPaginated).mockResolvedValue({
 				data: [],
 				total: 0,
@@ -230,7 +228,7 @@ describe("Alert Routes", () => {
 			})
 
 			const res = await app.request(
-				"/v1/alerts?projectId=proj123&checkId=check123",
+				"/v1/alerts?projectId=proj123&cronJobId=cronjob123",
 				{ headers: { "X-Org-Id": "org123" } },
 			)
 
@@ -241,7 +239,7 @@ describe("Alert Routes", () => {
 				20,
 				expect.objectContaining({
 					projectId: "proj123",
-					checkId: "check123",
+					cronJobId: "cronjob123",
 				}),
 			)
 		})
@@ -251,7 +249,7 @@ describe("Alert Routes", () => {
 		it("returns 401", async () => {
 			vi.mocked(auth.api.getSession).mockResolvedValue(null)
 
-			const res = await app.request("/v1/checks/check123/alerts", {
+			const res = await app.request("/v1/cron-jobs/cronjob123/alerts", {
 				headers: { "X-Org-Id": "org123" },
 			})
 

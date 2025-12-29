@@ -1,29 +1,29 @@
-import type { CheckStatus, ScheduleType } from "@haspulse/db"
+import type { MonitorStatus, ScheduleType } from "@haspulse/db"
 import type { RecentPing } from "../lib/mappers.js"
 import { getExpectedRunTimes } from "../lib/schedule.js"
 
 export type SparklineSlot = "success" | "fail" | "missed" | "empty"
 
-type SparklineCheck = {
-	status: CheckStatus
+type SparklineCronJob = {
+	status: MonitorStatus
 	scheduleType: ScheduleType
 	scheduleValue: string
 	createdAt: Date
 }
 
 export function calculateSparkline(
-	check: SparklineCheck,
+	cronJob: SparklineCronJob,
 	pings: RecentPing[],
 	count = 7,
 ): SparklineSlot[] {
-	if (check.status === "NEW" || check.status === "PAUSED") {
+	if (cronJob.status === "NEW" || cronJob.status === "PAUSED") {
 		return Array(count).fill("empty")
 	}
 
 	const now = new Date()
 	const expectedTimes = getExpectedRunTimes(
-		check.scheduleType,
-		check.scheduleValue,
+		cronJob.scheduleType,
+		cronJob.scheduleValue,
 		count,
 		now,
 	)
@@ -46,7 +46,7 @@ export function calculateSparkline(
 
 		if (ping) {
 			sparkline.push(ping.type === "SUCCESS" ? "success" : "fail")
-		} else if (windowStart < check.createdAt) {
+		} else if (windowStart < cronJob.createdAt) {
 			sparkline.push("empty")
 		} else {
 			sparkline.push("missed")

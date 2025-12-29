@@ -5,7 +5,7 @@ import {
 	getHandler,
 } from "./channel-handlers/index.js"
 import type { ChannelModel } from "./channel.service.js"
-import type { CheckModel } from "./check.service.js"
+import type { CronJobModel } from "./cron-job.service.js"
 import type { ProjectModel } from "./project.service.js"
 
 export type {
@@ -17,7 +17,7 @@ export type {
 export async function sendToChannel(
 	channel: ChannelModel,
 	event: AlertEvent,
-	check: CheckModel,
+	cronJob: CronJobModel,
 	project: ProjectModel,
 	richContext?: AlertContext,
 ): Promise<SendResult> {
@@ -25,18 +25,18 @@ export async function sendToChannel(
 	if (!handler) {
 		return { success: false, error: `Unknown channel type: ${channel.type}` }
 	}
-	return handler.send({ channel, event, check, project, richContext })
+	return handler.send({ channel, event, cronJob, project, richContext })
 }
 
 export async function testChannel(
 	channel: ChannelModel,
 	project: ProjectModel,
 ): Promise<SendResult> {
-	const testCheck: CheckModel = {
-		id: "test-check-id",
+	const testCronJob: CronJobModel = {
+		id: "test-cron-job-id",
 		projectId: project.id,
-		name: "Test Check",
-		slug: "test-check",
+		name: "Test Cron Job",
+		slug: "test-cron-job",
 		scheduleType: "PERIOD",
 		scheduleValue: "86400",
 		graceSeconds: 300,
@@ -52,5 +52,5 @@ export async function testChannel(
 		updatedAt: new Date(),
 	}
 
-	return sendToChannel(channel, "check.down", testCheck, project)
+	return sendToChannel(channel, "cronJob.down", testCronJob, project)
 }

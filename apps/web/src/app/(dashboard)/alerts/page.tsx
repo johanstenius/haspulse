@@ -19,20 +19,20 @@ function AlertsPageContent() {
 
 	const page = Number(searchParams.get("page")) || 1
 	const projectId = searchParams.get("projectId") ?? undefined
-	const checkId = searchParams.get("checkId") ?? undefined
+	const cronJobId = searchParams.get("cronJobId") ?? undefined
 	const event = (searchParams.get("event") as AlertEvent) ?? undefined
 
 	function updateParams(updates: {
 		page?: number
 		projectId?: string
-		checkId?: string
+		cronJobId?: string
 		event?: AlertEvent
 	}) {
 		const params = new URLSearchParams(searchParams.toString())
 
 		if (
 			updates.projectId !== undefined ||
-			updates.checkId !== undefined ||
+			updates.cronJobId !== undefined ||
 			updates.event !== undefined
 		) {
 			params.delete("page")
@@ -47,15 +47,15 @@ function AlertsPageContent() {
 				params.set("projectId", updates.projectId)
 			} else {
 				params.delete("projectId")
-				params.delete("checkId")
+				params.delete("cronJobId")
 			}
 		}
 
-		if (updates.checkId !== undefined) {
-			if (updates.checkId) {
-				params.set("checkId", updates.checkId)
+		if (updates.cronJobId !== undefined) {
+			if (updates.cronJobId) {
+				params.set("cronJobId", updates.cronJobId)
 			} else {
-				params.delete("checkId")
+				params.delete("cronJobId")
 			}
 		}
 
@@ -75,7 +75,7 @@ function AlertsPageContent() {
 		page,
 		limit: DEFAULT_LIMIT,
 		projectId,
-		checkId,
+		cronJobId,
 		event,
 	})
 
@@ -86,10 +86,10 @@ function AlertsPageContent() {
 			<div className="mb-4">
 				<AlertFilters
 					projectId={projectId}
-					checkId={checkId}
+					cronJobId={cronJobId}
 					event={event}
 					onProjectChange={(v) => updateParams({ projectId: v })}
-					onCheckChange={(v) => updateParams({ checkId: v })}
+					onCronJobChange={(v) => updateParams({ cronJobId: v })}
 					onEventChange={(v) => updateParams({ event: v })}
 				/>
 			</div>
@@ -98,7 +98,7 @@ function AlertsPageContent() {
 				<Skeleton className="h-48" />
 			) : (
 				<>
-					<AlertTable alerts={data?.alerts ?? []} showCheckColumn />
+					<AlertTable alerts={data?.alerts ?? []} showCronJobColumn />
 					{data && data.totalPages > 1 && (
 						<PaginationControls
 							page={page}

@@ -17,12 +17,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import type { Check, PingType } from "@/lib/api"
+import type { CronJob, PingType } from "@/lib/api"
 import { usePings } from "@/lib/query"
 import { formatDistanceToNow } from "date-fns"
 
 type PingHistoryProps = {
-	check: Check | null
+	cronJob: CronJob | null
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }
@@ -39,8 +39,8 @@ const pingTypeLabels: Record<PingType, string> = {
 	FAIL: "Fail",
 }
 
-export function PingHistory({ check, open, onOpenChange }: PingHistoryProps) {
-	const { data, isLoading } = usePings(check?.id ?? "", { limit: 50 })
+export function PingHistory({ cronJob, open, onOpenChange }: PingHistoryProps) {
+	const { data, isLoading } = usePings(cronJob?.id ?? "", { limit: 50 })
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,7 +48,7 @@ export function PingHistory({ check, open, onOpenChange }: PingHistoryProps) {
 				<DialogHeader>
 					<DialogTitle>Ping History</DialogTitle>
 					<DialogDescription>
-						Recent pings for {check?.name ?? "this check"}
+						Recent pings for {cronJob?.name ?? "this cron job"}
 					</DialogDescription>
 				</DialogHeader>
 

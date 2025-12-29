@@ -3,7 +3,7 @@ import type { AlertContext } from "../routes/v1/alerts/alerts.schemas.js"
 
 export type AlertModel = {
 	id: string
-	checkId: string
+	cronJobId: string
 	event: string
 	channels: Array<{ id: string; name: string; type: string }>
 	context: AlertContext | null
@@ -12,8 +12,8 @@ export type AlertModel = {
 	createdAt: Date
 }
 
-export type AlertModelWithCheck = AlertModel & {
-	checkName: string
+export type AlertModelWithCronJob = AlertModel & {
+	cronJobName: string
 	projectId: string
 	projectName: string
 }
@@ -26,11 +26,11 @@ export type AlertFilters = {
 
 export type AlertOrgFilters = AlertFilters & {
 	projectId?: string
-	checkId?: string
+	cronJobId?: string
 }
 
 type CreateAlertInput = {
-	checkId: string
+	cronJobId: string
 	event: string
 	channels: Array<{ id: string; name: string; type: string }>
 	context?: AlertContext | null
@@ -40,7 +40,7 @@ type CreateAlertInput = {
 
 type AlertRow = {
 	id: string
-	checkId: string
+	cronJobId: string
 	event: string
 	channels: unknown
 	context: unknown
@@ -49,8 +49,8 @@ type AlertRow = {
 	createdAt: Date
 }
 
-type AlertRowWithCheck = AlertRow & {
-	check: {
+type AlertRowWithCronJob = AlertRow & {
+	cronJob: {
 		name: string
 		projectId: string
 		project: {
@@ -62,7 +62,7 @@ type AlertRowWithCheck = AlertRow & {
 function toAlertModel(alert: AlertRow): AlertModel {
 	return {
 		id: alert.id,
-		checkId: alert.checkId,
+		cronJobId: alert.cronJobId,
 		event: alert.event,
 		channels: alert.channels as Array<{
 			id: string
@@ -76,12 +76,14 @@ function toAlertModel(alert: AlertRow): AlertModel {
 	}
 }
 
-function toAlertModelWithCheck(alert: AlertRowWithCheck): AlertModelWithCheck {
+function toAlertModelWithCronJob(
+	alert: AlertRowWithCronJob,
+): AlertModelWithCronJob {
 	return {
 		...toAlertModel(alert),
-		checkName: alert.check.name,
-		projectId: alert.check.projectId,
-		projectName: alert.check.project.name,
+		cronJobName: alert.cronJob.name,
+		projectId: alert.cronJob.projectId,
+		projectName: alert.cronJob.project.name,
 	}
 }
 
@@ -97,14 +99,14 @@ function buildDateFilter(
 
 export const alertRepository = {
 	async hasRecentAlert(
-		checkId: string,
+		cronJobId: string,
 		event: string,
 		withinMinutes: number,
 	): Promise<boolean> {
 		const cutoff = new Date(Date.now() - withinMinutes * 60 * 1000)
 		const count = await prisma.alert.count({
 			where: {
-				checkId,
+				cronJobId,
 				event,
 				createdAt: { gte: cutoff },
 			},
@@ -115,7 +117,7 @@ export const alertRepository = {
 	async create(input: CreateAlertInput): Promise<AlertModel> {
 		const alert = await prisma.alert.create({
 			data: {
-				checkId: input.checkId,
+				cronJobId: input.cronJobId,
 				event: input.event,
 				channels: input.channels as unknown as Prisma.InputJsonValue,
 				context: input.context
@@ -128,24 +130,24 @@ export const alertRepository = {
 		return toAlertModel(alert)
 	},
 
-	async findByCheckId(checkId: string, limit = 50): Promise<AlertModel[]> {
+	async findByCronJobId(cronJobId: string, limit = 50): Promise<AlertModel[]> {
 		const alerts = await prisma.alert.findMany({
-			where: { checkId },
+			where: { cronJobId },
 			orderBy: { createdAt: "desc" },
 			take: limit,
 		})
 		return alerts.map(toAlertModel)
 	},
 
-	async findByCheckIdPaginated(
-		checkId: string,
+	async findByCronJobIdPaginated(
+		cronJobId: string,
 		page: number,
 		limit: number,
 		filters?: AlertFilters,
 	): Promise<{ data: AlertModel[]; total: number }> {
 		const dateFilter = buildDateFilter(filters)
 		const where: Prisma.AlertWhereInput = {
-			checkId,
+			cronJobId,
 			...(filters?.event && { event: filters.event }),
 			...(dateFilter && { createdAt: dateFilter }),
 		}
@@ -171,15 +173,15 @@ export const alertRepository = {
 		page: number,
 		limit: number,
 		filters?: AlertOrgFilters,
-	): Promise<{ data: AlertModelWithCheck[]; total: number }> {
+	): Promise<{ data: AlertModelWithCronJob[]; total: number }> {
 		const dateFilter = buildDateFilter(filters)
 		const where: Prisma.AlertWhereInput = {
-			check: {
+			cronJob: {
 				project: {
 					orgId,
 					...(filters?.projectId && { id: filters.projectId }),
 				},
-				...(filters?.checkId && { id: filters.checkId }),
+				...(filters?.cronJobId && { id: filters.cronJobId }),
 			},
 			...(filters?.event && { event: filters.event }),
 			...(dateFilter && { createdAt: dateFilter }),
@@ -189,7 +191,7 @@ export const alertRepository = {
 			prisma.alert.findMany({
 				where,
 				include: {
-					check: {
+					cronJob: {
 						select: {
 							name: true,
 							projectId: true,
@@ -207,7 +209,7 @@ export const alertRepository = {
 		])
 
 		return {
-			data: alerts.map(toAlertModelWithCheck),
+			data: alerts.map(toAlertModelWithCronJob),
 			total,
 		}
 	},

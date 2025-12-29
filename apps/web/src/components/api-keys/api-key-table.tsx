@@ -99,7 +99,7 @@ export function ApiKeyTable({ apiKeys, projectId }: ApiKeyTableProps) {
 			<div className="flex justify-end mb-4">
 				<Button onClick={() => setShowCreate(true)}>
 					<Plus className="h-4 w-4 mr-2" />
-					Create API key
+					New API key
 				</Button>
 			</div>
 
@@ -163,35 +163,31 @@ export function ApiKeyTable({ apiKeys, projectId }: ApiKeyTableProps) {
 					</DialogHeader>
 
 					{createdKey ? (
-						<div className="py-4">
-							<div className="flex items-center gap-2">
-								<Input
-									value={createdKey}
-									readOnly
-									className="font-mono text-sm"
-								/>
-								<Button variant="outline" size="icon" onClick={handleCopy}>
-									{copied ? (
-										<Check className="h-4 w-4" />
-									) : (
-										<Copy className="h-4 w-4" />
-									)}
-								</Button>
-							</div>
+						<div className="flex items-center gap-2">
+							<Input
+								value={createdKey}
+								readOnly
+								className="font-mono text-sm"
+							/>
+							<Button variant="outline" size="icon" onClick={handleCopy}>
+								{copied ? (
+									<Check className="h-4 w-4" />
+								) : (
+									<Copy className="h-4 w-4" />
+								)}
+							</Button>
 						</div>
 					) : (
 						<form onSubmit={handleCreate}>
-							<div className="py-4">
-								<div className="space-y-2">
-									<Label htmlFor="key-name">Name</Label>
-									<Input
-										id="key-name"
-										value={newKeyName}
-										onChange={(e) => setNewKeyName(e.target.value)}
-										placeholder="Production key"
-										required
-									/>
-								</div>
+							<div className="space-y-4">
+								<Label htmlFor="key-name">Name</Label>
+								<Input
+									id="key-name"
+									value={newKeyName}
+									onChange={(e) => setNewKeyName(e.target.value)}
+									placeholder="Production key"
+									required
+								/>
 							</div>
 							<DialogFooter>
 								<Button

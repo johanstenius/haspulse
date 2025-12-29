@@ -10,6 +10,7 @@
 		"test:run": "vitest run"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.958.0",
 		"@haspulse/db": "workspace:*",
 		"@hono/node-server": "1.13.7",
 		"@hono/swagger-ui": "0.5.0",
@@ -22,7 +23,7 @@
 		"pino": "^10.1.0",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
-		"sendpigeon": "^1.5.0",
+		"sendpigeon": "^1.8.0",
 		"stripe": "^20.1.0",
 		"zod": "3.24.1"
 	},

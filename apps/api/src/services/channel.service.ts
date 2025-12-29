@@ -61,10 +61,10 @@ export async function deleteChannel(id: string): Promise<void> {
 	await channelRepository.delete(id)
 }
 
-export async function listChannelsByCheck(
-	checkId: string,
+export async function listChannelsByCronJob(
+	cronJobId: string,
 ): Promise<ChannelModel[]> {
-	return channelRepository.findByCheckId(checkId)
+	return channelRepository.findByCronJobId(cronJobId)
 }
 
 export async function listDefaultChannelsByProject(

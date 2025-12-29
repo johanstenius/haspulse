@@ -6,11 +6,13 @@ export const projectBadgeParamSchema = z.object({
 		.openapi({ param: { name: "projectSlug", in: "path" } }),
 })
 
-export const checkBadgeParamSchema = z.object({
+export const cronJobBadgeParamSchema = z.object({
 	projectSlug: z
 		.string()
 		.openapi({ param: { name: "projectSlug", in: "path" } }),
-	checkSlug: z.string().openapi({ param: { name: "checkSlug", in: "path" } }),
+	cronJobSlug: z
+		.string()
+		.openapi({ param: { name: "cronJobSlug", in: "path" } }),
 })
 
 export const badgeQuerySchema = z.object({

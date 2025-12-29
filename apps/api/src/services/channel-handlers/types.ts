@@ -1,13 +1,13 @@
 import type { AlertContext as RichAlertContext } from "../alert-context.service.js"
 import type { ChannelModel } from "../channel.service.js"
-import type { CheckModel } from "../check.service.js"
+import type { CronJobModel } from "../cron-job.service.js"
 import type { ProjectModel } from "../project.service.js"
 
 export type AlertEvent =
-	| "check.down"
-	| "check.up"
-	| "check.still_down"
-	| "check.fail"
+	| "cronJob.down"
+	| "cronJob.up"
+	| "cronJob.still_down"
+	| "cronJob.fail"
 
 export type AlertPayloadContext = {
 	duration?: {
@@ -25,8 +25,8 @@ export type AlertPayloadContext = {
 	}
 	correlation?: {
 		relatedFailures: Array<{
-			checkId: string
-			checkName: string
+			cronJobId: string
+			cronJobName: string
 			failedAt: string
 		}>
 	}
@@ -34,7 +34,7 @@ export type AlertPayloadContext = {
 
 export type AlertPayload = {
 	event: AlertEvent
-	check: {
+	cronJob: {
 		id: string
 		slug: string | null
 		name: string
@@ -57,7 +57,7 @@ export type SendResult = {
 export type AlertContext = {
 	channel: ChannelModel
 	event: AlertEvent
-	check: CheckModel
+	cronJob: CronJobModel
 	project: ProjectModel
 	richContext?: RichAlertContext
 }
@@ -93,18 +93,18 @@ export function getErrorMessage(err: unknown): string {
 
 export function buildPayload(
 	event: AlertEvent,
-	check: CheckModel,
+	cronJob: CronJobModel,
 	project: ProjectModel,
 	richContext?: RichAlertContext,
 ): AlertPayload {
 	const payload: AlertPayload = {
 		event,
-		check: {
-			id: check.id,
-			slug: check.slug,
-			name: check.name,
-			status: check.status.toLowerCase(),
-			lastPingAt: check.lastPingAt?.toISOString() ?? null,
+		cronJob: {
+			id: cronJob.id,
+			slug: cronJob.slug,
+			name: cronJob.name,
+			status: cronJob.status.toLowerCase(),
+			lastPingAt: cronJob.lastPingAt?.toISOString() ?? null,
 		},
 		project: {
 			slug: project.slug,
@@ -122,13 +122,13 @@ export function buildPayload(
 
 export function eventDisplayName(event: AlertEvent): string {
 	switch (event) {
-		case "check.down":
+		case "cronJob.down":
 			return "DOWN"
-		case "check.up":
+		case "cronJob.up":
 			return "RECOVERED"
-		case "check.still_down":
+		case "cronJob.still_down":
 			return "STILL DOWN"
-		case "check.fail":
+		case "cronJob.fail":
 			return "FAILED"
 	}
 }

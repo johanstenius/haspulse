@@ -55,7 +55,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 
 	// Fallback to chat.postMessage API
 	const status = eventDisplayName(ctx.event)
-	const emoji = ctx.event === "check.up" ? ":white_check_mark:" : ":x:"
+	const emoji = ctx.event === "cronJob.up" ? ":white_check_mark:" : ":x:"
 
 	const blocks: Array<{
 		type: string
@@ -65,7 +65,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: `${emoji} *${ctx.check.name}* is ${status}\nProject: ${ctx.project.name}`,
+				text: `${emoji} *${ctx.cronJob.name}* is ${status}\nProject: ${ctx.project.name}`,
 			},
 		},
 	]
@@ -82,7 +82,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			},
 			body: JSON.stringify({
 				channel: config.channelId,
-				text: `${emoji} *${ctx.check.name}* is ${status}`,
+				text: `${emoji} *${ctx.cronJob.name}* is ${status}`,
 				blocks,
 			}),
 		})

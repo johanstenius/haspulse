@@ -1,6 +1,6 @@
 import type { PingType } from "@haspulse/db"
 import { logger } from "../lib/logger.js"
-import { checkRepository } from "../repositories/check.repository.js"
+import { cronJobRepository } from "../repositories/cron-job.repository.js"
 import { pingRepository } from "../repositories/ping.repository.js"
 import { createPaginatedResult } from "../routes/v1/shared/schemas.js"
 import { triggerAlert } from "./alert.service.js"
@@ -8,10 +8,11 @@ import {
 	calculateDurationFromStart,
 	updateRollingStats,
 } from "./duration.service.js"
+import { incidentService } from "./incident.service.js"
 
 export type PingModel = {
 	id: string
-	checkId: string
+	cronJobId: string
 	type: PingType
 	body: string | null
 	sourceIp: string
@@ -21,7 +22,7 @@ export type PingModel = {
 }
 
 export type RecordPingInput = {
-	checkId: string
+	cronJobId: string
 	type: PingType
 	body: string | null
 	sourceIp: string
@@ -33,7 +34,7 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 
 	if (input.type !== "START") {
 		const durationResult = await calculateDurationFromStart(
-			input.checkId,
+			input.cronJobId,
 			new Date(),
 		)
 		if (durationResult) {
@@ -43,7 +44,7 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 	}
 
 	const ping = await pingRepository.create({
-		checkId: input.checkId,
+		cronJobId: input.cronJobId,
 		type: input.type,
 		body: input.body,
 		sourceIp: input.sourceIp,
@@ -52,42 +53,65 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 	})
 
 	if (durationMs !== null) {
-		updateRollingStats(input.checkId, durationMs).catch((err) => {
+		updateRollingStats(input.cronJobId, durationMs).catch((err) => {
 			logger.error(
-				{ err, checkId: input.checkId },
+				{ err, cronJobId: input.cronJobId },
 				"Failed to update duration stats",
 			)
 		})
 	}
 
-	const { wasDown, check } = await checkRepository.updateOnPing(input.checkId, {
-		type: input.type,
-		timestamp: ping.createdAt,
-	})
+	const { wasDown, cronJob } = await cronJobRepository.updateOnPing(
+		input.cronJobId,
+		{
+			type: input.type,
+			timestamp: ping.createdAt,
+		},
+	)
 
-	// Trigger check.fail alert on FAIL pings (with dedup)
+	// Trigger cronJob.fail alert on FAIL pings (with dedup)
 	if (input.type === "FAIL") {
 		try {
-			const result = await triggerAlert("check.fail", check)
+			const result = await triggerAlert("cronJob.fail", cronJob)
 			if (result.sent) {
-				await checkRepository.updateLastAlertAt(check.id, ping.createdAt)
+				await cronJobRepository.updateLastAlertAt(cronJob.id, ping.createdAt)
 			}
 		} catch (err) {
-			logger.error({ err, checkId: check.id }, "Failed to trigger fail alert")
+			logger.error(
+				{ err, cronJobId: cronJob.id },
+				"Failed to trigger fail alert",
+			)
 		}
 	}
 
 	// Recovery alert only on SUCCESS (not FAIL)
-	if (wasDown && input.type === "SUCCESS" && check.alertOnRecovery) {
+	if (wasDown && input.type === "SUCCESS" && cronJob.alertOnRecovery) {
 		try {
-			const result = await triggerAlert("check.up", check)
+			const result = await triggerAlert("cronJob.up", cronJob)
 			if (result.sent) {
-				await checkRepository.updateLastAlertAt(check.id, ping.createdAt)
+				await cronJobRepository.updateLastAlertAt(cronJob.id, ping.createdAt)
 			}
 		} catch (err) {
 			logger.error(
-				{ err, checkId: check.id },
+				{ err, cronJobId: cronJob.id },
 				"Failed to trigger recovery alert",
+			)
+		}
+	}
+
+	// Resolve auto-incident on recovery
+	if (wasDown && input.type === "SUCCESS") {
+		try {
+			await incidentService.handleMonitorRecovered(
+				cronJob.projectId,
+				cronJob.name,
+				cronJob.id,
+				undefined,
+			)
+		} catch (err) {
+			logger.error(
+				{ err, cronJobId: cronJob.id },
+				"Failed to resolve auto-incident",
 			)
 		}
 	}
@@ -95,20 +119,20 @@ export async function recordPing(input: RecordPingInput): Promise<PingModel> {
 	return ping
 }
 
-export async function listPingsByCheck(
-	checkId: string,
+export async function listPingsByCronJob(
+	cronJobId: string,
 	limit = 50,
 ): Promise<PingModel[]> {
-	return pingRepository.findByCheckId(checkId, limit)
+	return pingRepository.findByCronJobId(cronJobId, limit)
 }
 
-export async function listPingsByCheckPaginated(
-	checkId: string,
+export async function listPingsByCronJobPaginated(
+	cronJobId: string,
 	page: number,
 	limit: number,
 ) {
-	const result = await pingRepository.findByCheckIdPaginated(
-		checkId,
+	const result = await pingRepository.findByCronJobIdPaginated(
+		cronJobId,
 		page,
 		limit,
 	)

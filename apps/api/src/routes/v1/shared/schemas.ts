@@ -26,16 +26,16 @@ export const idParam = z
 		example: "W2TtHYS9_A6kfIj7",
 	})
 
-// Check ID param (named checkId instead of id)
-export const checkIdParam = z
+// Cron Job ID param (named cronJobId instead of id)
+export const cronJobIdParam = z
 	.string()
 	.min(1)
 	.openapi({
-		param: { name: "checkId", in: "path" },
+		param: { name: "cronJobId", in: "path" },
 		example: "W2TtHYS9_A6kfIj7",
 	})
 
-export const checkIdParamSchema = z.object({ checkId: checkIdParam })
+export const cronJobIdParamSchema = z.object({ cronJobId: cronJobIdParam })
 
 // Composed param schemas for common route patterns
 export const projectIdParamSchema = z.object({ projectId: projectIdParam })

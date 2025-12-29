@@ -1,6 +1,6 @@
 import type { PingType } from "@haspulse/db"
 import type { ChannelModel } from "../services/channel.service.js"
-import type { CheckModel } from "../services/check.service.js"
+import type { CronJobModel } from "../services/cron-job.service.js"
 import type { SparklineSlot } from "../services/sparkline.service.js"
 
 export type RecentPing = {
@@ -15,7 +15,7 @@ import type {
 import type { ProjectModel } from "../services/project.service.js"
 
 import type { ChannelResponse } from "../routes/v1/channels/channels.schemas.js"
-import type { CheckResponse } from "../routes/v1/checks/checks.schemas.js"
+import type { CronJobResponse } from "../routes/v1/cron-jobs/cron-jobs.schemas.js"
 import type { InvitationResponse } from "../routes/v1/invitations/invitations.schemas.js"
 import type {
 	OrgMemberResponse,
@@ -37,30 +37,30 @@ export function toProjectResponse(project: ProjectModel): ProjectResponse {
 	}
 }
 
-export function toCheckResponse(
-	check: CheckModel,
+export function toCronJobResponse(
+	cronJob: CronJobModel,
 	channelIds: string[],
 	sparkline: SparklineSlot[] = [],
-): CheckResponse {
+): CronJobResponse {
 	return {
-		id: check.id,
-		projectId: check.projectId,
-		name: check.name,
-		slug: check.slug,
-		scheduleType: check.scheduleType,
-		scheduleValue: check.scheduleValue,
-		graceSeconds: check.graceSeconds,
-		status: check.status,
-		lastPingAt: toISOStringOrNull(check.lastPingAt),
-		lastStartedAt: toISOStringOrNull(check.lastStartedAt),
-		nextExpectedAt: toISOStringOrNull(check.nextExpectedAt),
-		alertOnRecovery: check.alertOnRecovery,
-		reminderIntervalHours: check.reminderIntervalHours,
-		anomalySensitivity: check.anomalySensitivity,
+		id: cronJob.id,
+		projectId: cronJob.projectId,
+		name: cronJob.name,
+		slug: cronJob.slug,
+		scheduleType: cronJob.scheduleType,
+		scheduleValue: cronJob.scheduleValue,
+		graceSeconds: cronJob.graceSeconds,
+		status: cronJob.status,
+		lastPingAt: toISOStringOrNull(cronJob.lastPingAt),
+		lastStartedAt: toISOStringOrNull(cronJob.lastStartedAt),
+		nextExpectedAt: toISOStringOrNull(cronJob.nextExpectedAt),
+		alertOnRecovery: cronJob.alertOnRecovery,
+		reminderIntervalHours: cronJob.reminderIntervalHours,
+		anomalySensitivity: cronJob.anomalySensitivity,
 		channelIds,
 		sparkline,
-		createdAt: check.createdAt.toISOString(),
-		updatedAt: check.updatedAt.toISOString(),
+		createdAt: cronJob.createdAt.toISOString(),
+		updatedAt: cronJob.updatedAt.toISOString(),
 	}
 }
 

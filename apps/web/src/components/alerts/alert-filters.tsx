@@ -8,45 +8,45 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
-import type { AlertEvent, Project } from "@/lib/api"
-import { useChecks, useProjects } from "@/lib/query"
+import type { AlertEvent } from "@/lib/api"
+import { useCronJobs, useProjects } from "@/lib/query"
 import { X } from "lucide-react"
 
 type AlertFiltersProps = {
 	projectId: string | undefined
-	checkId: string | undefined
+	cronJobId: string | undefined
 	event: AlertEvent | undefined
 	onProjectChange: (projectId: string | undefined) => void
-	onCheckChange: (checkId: string | undefined) => void
+	onCronJobChange: (cronJobId: string | undefined) => void
 	onEventChange: (event: AlertEvent | undefined) => void
 }
 
 const EVENT_OPTIONS: { value: AlertEvent | "ALL"; label: string }[] = [
 	{ value: "ALL", label: "All events" },
-	{ value: "check.down", label: "Down" },
-	{ value: "check.up", label: "Recovered" },
-	{ value: "check.still_down", label: "Still Down" },
+	{ value: "cronJob.down", label: "Down" },
+	{ value: "cronJob.up", label: "Recovered" },
+	{ value: "cronJob.still_down", label: "Still Down" },
 ]
 
-const DROPDOWN_CHECKS_LIMIT = 500
+const DROPDOWN_CRON_JOBS_LIMIT = 500
 
 export function AlertFilters({
 	projectId,
-	checkId,
+	cronJobId,
 	event,
 	onProjectChange,
-	onCheckChange,
+	onCronJobChange,
 	onEventChange,
 }: AlertFiltersProps) {
 	const { data: projectsData } = useProjects()
-	const { data: checksData } = useChecks(projectId ?? "", {
-		limit: DROPDOWN_CHECKS_LIMIT,
+	const { data: cronJobsData } = useCronJobs(projectId ?? "", {
+		limit: DROPDOWN_CRON_JOBS_LIMIT,
 	})
 
 	const projects = projectsData?.projects ?? []
-	const checks = checksData?.checks ?? []
+	const cronJobs = cronJobsData?.cronJobs ?? []
 
-	const hasFilters = projectId || checkId || event
+	const hasFilters = projectId || cronJobId || event
 
 	return (
 		<div className="flex gap-3 flex-wrap">
@@ -54,7 +54,7 @@ export function AlertFilters({
 				value={projectId ?? "ALL"}
 				onValueChange={(v) => {
 					onProjectChange(v === "ALL" ? undefined : v)
-					onCheckChange(undefined)
+					onCronJobChange(undefined)
 				}}
 			>
 				<SelectTrigger className="w-40">
@@ -71,18 +71,18 @@ export function AlertFilters({
 			</Select>
 
 			<Select
-				value={checkId ?? "ALL"}
-				onValueChange={(v) => onCheckChange(v === "ALL" ? undefined : v)}
+				value={cronJobId ?? "ALL"}
+				onValueChange={(v) => onCronJobChange(v === "ALL" ? undefined : v)}
 				disabled={!projectId}
 			>
 				<SelectTrigger className="w-40">
-					<SelectValue placeholder="All checks" />
+					<SelectValue placeholder="All cron jobs" />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="ALL">All checks</SelectItem>
-					{checks.map((check) => (
-						<SelectItem key={check.id} value={check.id}>
-							{check.name}
+					<SelectItem value="ALL">All cron jobs</SelectItem>
+					{cronJobs.map((cronJob) => (
+						<SelectItem key={cronJob.id} value={cronJob.id}>
+							{cronJob.name}
 						</SelectItem>
 					))}
 				</SelectContent>
@@ -112,7 +112,7 @@ export function AlertFilters({
 					size="sm"
 					onClick={() => {
 						onProjectChange(undefined)
-						onCheckChange(undefined)
+						onCronJobChange(undefined)
 						onEventChange(undefined)
 					}}
 				>

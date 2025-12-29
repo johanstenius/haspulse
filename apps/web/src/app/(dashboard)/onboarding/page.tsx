@@ -28,9 +28,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { type Check, type Project, type ScheduleType, api } from "@/lib/api"
+import { type CronJob, type Project, type ScheduleType, api } from "@/lib/api"
 import { useSession } from "@/lib/auth-client"
-import { useCreateChannel, useCreateCheck, useCreateProject } from "@/lib/query"
+import {
+	useCreateChannel,
+	useCreateCronJob,
+	useCreateProject,
+} from "@/lib/query"
 import { ArrowRight, Check as CheckIcon, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
@@ -52,15 +56,15 @@ const projectSchema = z.object({
 
 type ProjectFormValues = z.infer<typeof projectSchema>
 
-// Step 2: Check Form
-const checkSchema = z.object({
+// Step 2: Cron Job Form
+const cronJobSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	slug: z.string().min(1, "Slug is required"),
 	scheduleType: z.enum(["PERIOD", "CRON"]),
 	scheduleValue: z.string().min(1, "Schedule is required"),
 })
 
-type CheckFormValues = z.infer<typeof checkSchema>
+type CronJobFormValues = z.infer<typeof cronJobSchema>
 
 // Step 4: Alert Form
 const alertSchema = z.object({
@@ -77,11 +81,11 @@ type StepConfig = {
 const STEPS: StepConfig[] = [
 	{
 		title: "Create your project",
-		description: "Projects organize your checks by app or service",
+		description: "Projects organize your cron jobs by app or service",
 	},
 	{
-		title: "Add your first check",
-		description: "Each check monitors one scheduled task",
+		title: "Add your first cron job",
+		description: "Each cron job monitors one scheduled task",
 	},
 	{
 		title: "Test your ping",
@@ -95,11 +99,11 @@ export default function OnboardingPage() {
 	const { data: session } = useSession()
 	const [step, setStep] = useState(1)
 	const [project, setProject] = useState<Project | null>(null)
-	const [check, setCheck] = useState<Check | null>(null)
+	const [cronJob, setCronJob] = useState<CronJob | null>(null)
 	const [apiKey, setApiKey] = useState<string | null>(null)
 
 	const createProject = useCreateProject()
-	const createCheck = useCreateCheck()
+	const createCronJob = useCreateCronJob()
 	const createChannel = useCreateChannel()
 
 	// Step 1 form
@@ -109,7 +113,7 @@ export default function OnboardingPage() {
 	const projectName = useWatch({ control: projectForm.control, name: "name" })
 
 	// Step 2 form
-	const checkForm = useForm<CheckFormValues>({
+	const cronJobForm = useForm<CronJobFormValues>({
 		defaultValues: {
 			name: "",
 			slug: "",
@@ -117,16 +121,16 @@ export default function OnboardingPage() {
 			scheduleValue: "86400",
 		},
 	})
-	const checkName = useWatch({ control: checkForm.control, name: "name" })
+	const cronJobName = useWatch({ control: cronJobForm.control, name: "name" })
 
-	// Auto-generate slug from check name
+	// Auto-generate slug from cron job name
 	useEffect(() => {
-		if (checkName) {
-			checkForm.setValue("slug", slugify(checkName))
+		if (cronJobName) {
+			cronJobForm.setValue("slug", slugify(cronJobName))
 		}
-	}, [checkName, checkForm])
+	}, [cronJobName, cronJobForm])
 	const scheduleType = useWatch({
-		control: checkForm.control,
+		control: cronJobForm.control,
 		name: "scheduleType",
 	})
 
@@ -158,13 +162,13 @@ export default function OnboardingPage() {
 		}
 	}
 
-	async function handleCheckSubmit(values: CheckFormValues) {
+	async function handleCronJobSubmit(values: CronJobFormValues) {
 		if (!project) return
-		const result = checkSchema.safeParse(values)
+		const result = cronJobSchema.safeParse(values)
 		if (!result.success) return
 
 		try {
-			const newCheck = await createCheck.mutateAsync({
+			const newCronJob = await createCronJob.mutateAsync({
 				projectId: project.id,
 				data: {
 					name: result.data.name,
@@ -173,10 +177,10 @@ export default function OnboardingPage() {
 					scheduleValue: result.data.scheduleValue,
 				},
 			})
-			setCheck(newCheck)
+			setCronJob(newCronJob)
 			setStep(3)
 		} catch {
-			toast.error("Failed to create check")
+			toast.error("Failed to create cron job")
 		}
 	}
 
@@ -189,7 +193,7 @@ export default function OnboardingPage() {
 	}, [])
 
 	async function handleAlertSubmit(values: AlertFormValues) {
-		if (!project || !check) {
+		if (!project || !cronJob) {
 			router.push("/dashboard")
 			return
 		}
@@ -222,7 +226,9 @@ export default function OnboardingPage() {
 
 	const currentStep = STEPS[step - 1]
 	const isLoading =
-		createProject.isPending || createCheck.isPending || createChannel.isPending
+		createProject.isPending ||
+		createCronJob.isPending ||
+		createChannel.isPending
 
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -282,19 +288,19 @@ export default function OnboardingPage() {
 							</Form>
 						)}
 
-						{/* Step 2: Create Check */}
+						{/* Step 2: Create Cron Job */}
 						{step === 2 && (
-							<Form {...checkForm}>
+							<Form {...cronJobForm}>
 								<form
-									onSubmit={checkForm.handleSubmit(handleCheckSubmit)}
+									onSubmit={cronJobForm.handleSubmit(handleCronJobSubmit)}
 									className="space-y-6"
 								>
 									<FormField
-										control={checkForm.control}
+										control={cronJobForm.control}
 										name="name"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Check name</FormLabel>
+												<FormLabel>Cron job name</FormLabel>
 												<FormControl>
 													<Input placeholder="Database backup" {...field} />
 												</FormControl>
@@ -305,7 +311,7 @@ export default function OnboardingPage() {
 
 									<div className="grid grid-cols-2 gap-4">
 										<FormField
-											control={checkForm.control}
+											control={cronJobForm.control}
 											name="scheduleType"
 											render={({ field }) => (
 												<FormItem>
@@ -330,7 +336,7 @@ export default function OnboardingPage() {
 										/>
 
 										<FormField
-											control={checkForm.control}
+											control={cronJobForm.control}
 											name="scheduleValue"
 											render={({ field }) => (
 												<FormItem>
@@ -377,11 +383,11 @@ export default function OnboardingPage() {
 						)}
 
 						{/* Step 3: Test Ping */}
-						{step === 3 && check?.slug && apiKey && (
+						{step === 3 && cronJob?.slug && apiKey && (
 							<div className="space-y-6">
 								<PingTester
-									checkId={check.id}
-									slug={check.slug}
+									checkId={cronJob.id}
+									slug={cronJob.slug}
 									apiKey={apiKey}
 									onSuccess={handlePingSuccess}
 									onSkip={handlePingSkip}

@@ -9,10 +9,10 @@ import {
 export {
 	errorResponseSchema,
 	projectIdParamSchema,
-	idParamSchema as checkIdParamSchema,
+	idParamSchema as cronJobIdParamSchema,
 }
 
-export const checkListQuerySchema = paginationQuerySchema.extend({
+export const cronJobListQuerySchema = paginationQuerySchema.extend({
 	search: z
 		.string()
 		.optional()
@@ -23,9 +23,15 @@ export const checkListQuerySchema = paginationQuerySchema.extend({
 		.openapi({ param: { name: "status", in: "query" }, example: "DOWN" }),
 })
 
-export type CheckListQuery = z.infer<typeof checkListQuerySchema>
+export type CronJobListQuery = z.infer<typeof cronJobListQuerySchema>
 
-export const checkStatusSchema = z.enum(["NEW", "UP", "LATE", "DOWN", "PAUSED"])
+export const monitorStatusSchema = z.enum([
+	"NEW",
+	"UP",
+	"LATE",
+	"DOWN",
+	"PAUSED",
+])
 export const scheduleTypeSchema = z.enum(["PERIOD", "CRON"])
 export const pingTypeSchema = z.enum(["SUCCESS", "START", "FAIL"])
 export const anomalySensitivitySchema = z.enum(["LOW", "NORMAL", "HIGH"])
@@ -37,7 +43,7 @@ export const sparklineSlotSchema = z.enum([
 	"empty",
 ])
 
-export const checkResponseSchema = z
+export const cronJobResponseSchema = z
 	.object({
 		id: z.string(),
 		projectId: z.string(),
@@ -46,7 +52,7 @@ export const checkResponseSchema = z
 		scheduleType: scheduleTypeSchema,
 		scheduleValue: z.string(),
 		graceSeconds: z.number(),
-		status: checkStatusSchema,
+		status: monitorStatusSchema,
 		lastPingAt: z.string().datetime().nullable(),
 		lastStartedAt: z.string().datetime().nullable(),
 		nextExpectedAt: z.string().datetime().nullable(),
@@ -58,23 +64,23 @@ export const checkResponseSchema = z
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
 	})
-	.openapi("Check")
+	.openapi("CronJob")
 
-export type CheckResponse = z.infer<typeof checkResponseSchema>
+export type CronJobResponse = z.infer<typeof cronJobResponseSchema>
 
-export const checkListResponseSchema = z
+export const cronJobListResponseSchema = z
 	.object({
-		checks: z.array(checkResponseSchema),
+		cronJobs: z.array(cronJobResponseSchema),
 		total: z.number(),
 		page: z.number(),
 		limit: z.number(),
 		totalPages: z.number(),
 	})
-	.openapi("CheckList")
+	.openapi("CronJobList")
 
-export type CheckListResponse = z.infer<typeof checkListResponseSchema>
+export type CronJobListResponse = z.infer<typeof cronJobListResponseSchema>
 
-export const createCheckBodySchema = z
+export const createCronJobBodySchema = z
 	.object({
 		name: z.string().min(1).max(100),
 		slug: z
@@ -90,11 +96,11 @@ export const createCheckBodySchema = z
 		reminderIntervalHours: z.number().min(1).max(168).optional(),
 		anomalySensitivity: anomalySensitivitySchema.optional().default("NORMAL"),
 	})
-	.openapi("CreateCheckRequest")
+	.openapi("CreateCronJobRequest")
 
-export type CreateCheckBody = z.infer<typeof createCheckBodySchema>
+export type CreateCronJobBody = z.infer<typeof createCronJobBodySchema>
 
-export const updateCheckBodySchema = z
+export const updateCronJobBodySchema = z
 	.object({
 		name: z.string().min(1).max(100).optional(),
 		slug: z
@@ -112,9 +118,9 @@ export const updateCheckBodySchema = z
 		anomalySensitivity: anomalySensitivitySchema.optional(),
 		channelIds: z.array(z.string()).optional(),
 	})
-	.openapi("UpdateCheckRequest")
+	.openapi("UpdateCronJobRequest")
 
-export type UpdateCheckBody = z.infer<typeof updateCheckBodySchema>
+export type UpdateCronJobBody = z.infer<typeof updateCronJobBodySchema>
 
 export const durationStatsResponseSchema = z
 	.object({

@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { createApp } from "../../../app.js"
 
 vi.mock("../../../services/ping.service.js", () => ({
-	listPingsByCheckPaginated: vi.fn(),
+	listPingsByCronJobPaginated: vi.fn(),
 	resolveCheckId: vi.fn(),
 	recordPing: vi.fn(),
 }))
 
-vi.mock("../../../services/check.service.js", () => ({
-	getCheckById: vi.fn(),
+vi.mock("../../../services/cron-job.service.js", () => ({
+	getCronJobById: vi.fn(),
 }))
 
 vi.mock("../../../services/project.service.js", () => ({
@@ -43,9 +43,9 @@ vi.mock("../../../services/organization.service.js", () => ({
 import { auth } from "../../../lib/auth.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
 import { validateApiKey } from "../../../services/api-key.service.js"
-import { getCheckById } from "../../../services/check.service.js"
+import { getCronJobById } from "../../../services/cron-job.service.js"
 import { getEffectivePlan } from "../../../services/organization.service.js"
-import { listPingsByCheckPaginated } from "../../../services/ping.service.js"
+import { listPingsByCronJobPaginated } from "../../../services/ping.service.js"
 import { getProjectForOrg } from "../../../services/project.service.js"
 
 const mockUser = {
@@ -90,20 +90,18 @@ const mockProject = {
 	orgId: "org123",
 	name: "Test Project",
 	slug: "test-project",
-	timezone: "UTC",
 	createdAt: new Date("2025-01-01"),
 	updatedAt: new Date("2025-01-01"),
 }
 
-const mockCheck = {
-	id: "check123",
+const mockCronJob = {
+	id: "cronjob123",
 	projectId: "proj123",
-	name: "Test Check",
-	slug: "test-check",
+	name: "Test CronJob",
+	slug: "test-cronjob",
 	scheduleType: "PERIOD" as const,
 	scheduleValue: "3600",
 	graceSeconds: 300,
-	timezone: null,
 	status: "UP" as const,
 	lastPingAt: new Date("2025-01-01T12:00:00Z"),
 	lastStartedAt: null,
@@ -118,7 +116,7 @@ const mockCheck = {
 
 const mockPing = {
 	id: "ping123",
-	checkId: "check123",
+	cronJobId: "cronjob123",
 	type: "SUCCESS" as const,
 	body: null,
 	sourceIp: "127.0.0.1",
@@ -142,11 +140,11 @@ describe("Ping History Routes", () => {
 	})
 
 	describe("with session auth", () => {
-		describe("GET /v1/checks/:id/pings", () => {
+		describe("GET /v1/cron-jobs/:id/pings", () => {
 			it("returns list of pings", async () => {
-				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
+				vi.mocked(getCronJobById).mockResolvedValue(mockCronJob)
 				vi.mocked(getProjectForOrg).mockResolvedValue(mockProject)
-				vi.mocked(listPingsByCheckPaginated).mockResolvedValue({
+				vi.mocked(listPingsByCronJobPaginated).mockResolvedValue({
 					data: [mockPing],
 					total: 1,
 					page: 1,
@@ -154,7 +152,7 @@ describe("Ping History Routes", () => {
 					totalPages: 1,
 				})
 
-				const res = await app.request("/v1/checks/check123/pings", {
+				const res = await app.request("/v1/cron-jobs/cronjob123/pings", {
 					headers: { "X-Org-Id": "org123" },
 				})
 
@@ -165,10 +163,10 @@ describe("Ping History Routes", () => {
 				expect(json.total).toBe(1)
 			})
 
-			it("returns 404 for non-existent check", async () => {
-				vi.mocked(getCheckById).mockResolvedValue(null)
+			it("returns 404 for non-existent cron job", async () => {
+				vi.mocked(getCronJobById).mockResolvedValue(null)
 
-				const res = await app.request("/v1/checks/nonexistent/pings", {
+				const res = await app.request("/v1/cron-jobs/nonexistent/pings", {
 					headers: { "X-Org-Id": "org123" },
 				})
 
@@ -176,9 +174,9 @@ describe("Ping History Routes", () => {
 			})
 
 			it("respects pagination params", async () => {
-				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
+				vi.mocked(getCronJobById).mockResolvedValue(mockCronJob)
 				vi.mocked(getProjectForOrg).mockResolvedValue(mockProject)
-				vi.mocked(listPingsByCheckPaginated).mockResolvedValue({
+				vi.mocked(listPingsByCronJobPaginated).mockResolvedValue({
 					data: [mockPing],
 					total: 50,
 					page: 2,
@@ -187,13 +185,13 @@ describe("Ping History Routes", () => {
 				})
 
 				const res = await app.request(
-					"/v1/checks/check123/pings?page=2&limit=10",
+					"/v1/cron-jobs/cronjob123/pings?page=2&limit=10",
 					{ headers: { "X-Org-Id": "org123" } },
 				)
 
 				expect(res.status).toBe(200)
-				expect(listPingsByCheckPaginated).toHaveBeenCalledWith(
-					"check123",
+				expect(listPingsByCronJobPaginated).toHaveBeenCalledWith(
+					"cronjob123",
 					2,
 					10,
 				)
@@ -206,7 +204,7 @@ describe("Ping History Routes", () => {
 			vi.mocked(auth.api.getSession).mockResolvedValue(null)
 		})
 
-		describe("GET /v1/checks/:id/pings", () => {
+		describe("GET /v1/cron-jobs/:id/pings", () => {
 			it("returns pings with valid API key", async () => {
 				vi.mocked(validateApiKey).mockResolvedValue({
 					id: "apikey123",
@@ -216,8 +214,8 @@ describe("Ping History Routes", () => {
 					lastUsedAt: null,
 					createdAt: new Date(),
 				})
-				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
-				vi.mocked(listPingsByCheckPaginated).mockResolvedValue({
+				vi.mocked(getCronJobById).mockResolvedValue(mockCronJob)
+				vi.mocked(listPingsByCronJobPaginated).mockResolvedValue({
 					data: [mockPing],
 					total: 1,
 					page: 1,
@@ -225,7 +223,7 @@ describe("Ping History Routes", () => {
 					totalPages: 1,
 				})
 
-				const res = await app.request("/v1/checks/check123/pings", {
+				const res = await app.request("/v1/cron-jobs/cronjob123/pings", {
 					headers: { Authorization: "Bearer hp_live_testkey123" },
 				})
 
@@ -234,7 +232,7 @@ describe("Ping History Routes", () => {
 				expect(json.pings).toHaveLength(1)
 			})
 
-			it("returns 403 when check belongs to different project", async () => {
+			it("returns 403 when cron job belongs to different project", async () => {
 				vi.mocked(validateApiKey).mockResolvedValue({
 					id: "apikey123",
 					projectId: "other-project",
@@ -243,9 +241,9 @@ describe("Ping History Routes", () => {
 					lastUsedAt: null,
 					createdAt: new Date(),
 				})
-				vi.mocked(getCheckById).mockResolvedValue(mockCheck)
+				vi.mocked(getCronJobById).mockResolvedValue(mockCronJob)
 
-				const res = await app.request("/v1/checks/check123/pings", {
+				const res = await app.request("/v1/cron-jobs/cronjob123/pings", {
 					headers: { Authorization: "Bearer hp_live_testkey123" },
 				})
 
@@ -253,7 +251,7 @@ describe("Ping History Routes", () => {
 			})
 
 			it("returns 401 without auth", async () => {
-				const res = await app.request("/v1/checks/check123/pings")
+				const res = await app.request("/v1/cron-jobs/cronjob123/pings")
 
 				expect(res.status).toBe(401)
 			})

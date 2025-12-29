@@ -17,16 +17,42 @@ const PUBLIC_PATHS = [
 	"/sitemap.xml",
 ]
 
+const MAIN_HOSTS = [
+	"localhost",
+	"localhost:3000",
+	"haspulse.dev",
+	"www.haspulse.dev",
+	"app.haspulse.dev",
+]
+
 function isPublicPath(pathname: string): boolean {
 	if (PUBLIC_PATHS.includes(pathname)) return true
 	if (pathname.startsWith("/status/")) return true
 	if (pathname.startsWith("/docs/")) return true
 	if (pathname.startsWith("/cron/")) return true
+	if (pathname.startsWith("/s/")) return true
 	return false
+}
+
+function isMainHost(host: string): boolean {
+	return MAIN_HOSTS.some((h) => host === h || host.startsWith(`${h}:`))
 }
 
 export function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl
+	const host = request.headers.get("host") ?? ""
+
+	// Handle custom domains - rewrite to status page by domain
+	if (
+		!isMainHost(host) &&
+		!pathname.startsWith("/_next") &&
+		!pathname.startsWith("/api") &&
+		!pathname.includes(".")
+	) {
+		const url = request.nextUrl.clone()
+		url.pathname = `/s/domain/${encodeURIComponent(host)}`
+		return NextResponse.rewrite(url)
+	}
 
 	// Allow public paths
 	if (isPublicPath(pathname)) {

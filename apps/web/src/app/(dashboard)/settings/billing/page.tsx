@@ -116,9 +116,9 @@ export default function BillingPage() {
 					<div className="space-y-4">
 						<h4 className="text-sm font-medium">Usage</h4>
 						<UsageBar
-							label="Checks"
-							current={billing.usage.checks.current}
-							limit={billing.usage.checks.limit}
+							label="Cron Jobs"
+							current={billing.usage.cronJobs.current}
+							limit={billing.usage.cronJobs.limit}
 						/>
 						<UsageBar
 							label="Projects"
@@ -163,7 +163,7 @@ export default function BillingPage() {
 						<ul className="space-y-2 text-sm">
 							<li className="flex items-center gap-2">
 								<span className="text-primary">✓</span>
-								100 checks (vs 10 on Free)
+								100 cron jobs (vs 10 on Free)
 							</li>
 							<li className="flex items-center gap-2">
 								<span className="text-primary">✓</span>
@@ -175,7 +175,7 @@ export default function BillingPage() {
 							</li>
 							<li className="flex items-center gap-2">
 								<span className="text-primary">✓</span>
-								500 ping history per check
+								500 ping history per cron job
 							</li>
 							<li className="flex items-center gap-2">
 								<span className="text-primary">✓</span>

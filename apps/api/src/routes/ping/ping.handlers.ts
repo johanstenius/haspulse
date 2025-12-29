@@ -1,7 +1,7 @@
 import type { PingType } from "@haspulse/db"
 import type { Context } from "hono"
 import { logger } from "../../lib/logger.js"
-import { checkRepository } from "../../repositories/check.repository.js"
+import { cronJobRepository } from "../../repositories/cron-job.repository.js"
 import { recordPing } from "../../services/ping.service.js"
 import type { PingResponse } from "./ping.schemas.js"
 
@@ -30,17 +30,20 @@ export async function processPing(
 	slug: string,
 	type: PingType,
 ): Promise<PingResponse> {
-	const checkId = await checkRepository.findIdBySlugInProject(projectId, slug)
+	const cronJobId = await cronJobRepository.findIdBySlugInProject(
+		projectId,
+		slug,
+	)
 
-	if (!checkId) {
-		logger.warn({ projectId, slug }, "Ping to unknown check")
+	if (!cronJobId) {
+		logger.warn({ projectId, slug }, "Ping to unknown cron job")
 		return { ok: true }
 	}
 
 	const body = await getRequestBody(c)
 	const sourceIp = getClientIp(c)
 
-	await recordPing({ checkId, type, body, sourceIp })
+	await recordPing({ cronJobId, type, body, sourceIp })
 
 	return { ok: true }
 }

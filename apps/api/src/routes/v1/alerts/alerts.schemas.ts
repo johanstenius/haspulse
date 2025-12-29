@@ -1,16 +1,17 @@
 import { z } from "@hono/zod-openapi"
 import {
-	checkIdParamSchema,
+	cronJobIdParamSchema,
 	errorResponseSchema,
 	paginationQuerySchema,
 } from "../shared/schemas.js"
 
-export { errorResponseSchema, checkIdParamSchema }
+export { errorResponseSchema, cronJobIdParamSchema }
 
 export const alertEventSchema = z.enum([
-	"check.down",
-	"check.up",
-	"check.still_down",
+	"cronJob.down",
+	"cronJob.up",
+	"cronJob.still_down",
+	"cronJob.fail",
 ])
 
 export const alertChannelSchema = z.object({
@@ -37,8 +38,8 @@ export const errorPatternContextSchema = z.object({
 export const correlationContextSchema = z.object({
 	relatedFailures: z.array(
 		z.object({
-			checkId: z.string(),
-			checkName: z.string(),
+			cronJobId: z.string(),
+			cronJobName: z.string(),
 			failedAt: z.string().datetime(),
 		}),
 	),
@@ -57,7 +58,7 @@ export type AlertContext = z.infer<typeof alertContextSchema>
 export const alertResponseSchema = z
 	.object({
 		id: z.string(),
-		checkId: z.string(),
+		cronJobId: z.string(),
 		event: alertEventSchema,
 		channels: z.array(alertChannelSchema),
 		context: alertContextSchema.nullable(),
@@ -69,22 +70,22 @@ export const alertResponseSchema = z
 
 export type AlertResponse = z.infer<typeof alertResponseSchema>
 
-export const alertWithCheckResponseSchema = alertResponseSchema
+export const alertWithCronJobResponseSchema = alertResponseSchema
 	.extend({
-		checkName: z.string(),
+		cronJobName: z.string(),
 		projectId: z.string(),
 		projectName: z.string(),
 	})
-	.openapi("AlertWithCheck")
+	.openapi("AlertWithCronJob")
 
-export type AlertWithCheckResponse = z.infer<
-	typeof alertWithCheckResponseSchema
+export type AlertWithCronJobResponse = z.infer<
+	typeof alertWithCronJobResponseSchema
 >
 
 export const alertFiltersQuerySchema = paginationQuerySchema.extend({
 	event: alertEventSchema.optional().openapi({
 		param: { name: "event", in: "query" },
-		example: "check.down",
+		example: "cronJob.down",
 	}),
 	fromDate: z
 		.string()
@@ -114,18 +115,18 @@ export const alertOrgFiltersQuerySchema = alertFiltersQuerySchema.extend({
 			param: { name: "projectId", in: "query" },
 			example: "V1StGXR8_Z5jdHi6",
 		}),
-	checkId: z
+	cronJobId: z
 		.string()
 		.optional()
 		.openapi({
-			param: { name: "checkId", in: "query" },
+			param: { name: "cronJobId", in: "query" },
 			example: "W2TtHYS9_A6kfIj7",
 		}),
 })
 
 export type AlertOrgFiltersQuery = z.infer<typeof alertOrgFiltersQuerySchema>
 
-export const checkAlertsListResponseSchema = z
+export const cronJobAlertsListResponseSchema = z
 	.object({
 		alerts: z.array(alertResponseSchema),
 		total: z.number(),
@@ -133,15 +134,15 @@ export const checkAlertsListResponseSchema = z
 		limit: z.number(),
 		totalPages: z.number(),
 	})
-	.openapi("CheckAlertsList")
+	.openapi("CronJobAlertsList")
 
-export type CheckAlertsListResponse = z.infer<
-	typeof checkAlertsListResponseSchema
+export type CronJobAlertsListResponse = z.infer<
+	typeof cronJobAlertsListResponseSchema
 >
 
 export const alertsListResponseSchema = z
 	.object({
-		alerts: z.array(alertWithCheckResponseSchema),
+		alerts: z.array(alertWithCronJobResponseSchema),
 		total: z.number(),
 		page: z.number(),
 		limit: z.number(),

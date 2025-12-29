@@ -89,10 +89,10 @@ function detectTrendDirection(
 }
 
 export async function calculateDurationFromStart(
-	checkId: string,
+	cronJobId: string,
 	endTimestamp: Date,
 ): Promise<{ durationMs: number; startPingId: string } | null> {
-	const startPing = await pingRepository.findLatestStartPing(checkId)
+	const startPing = await pingRepository.findLatestStartPing(cronJobId)
 	if (!startPing) return null
 
 	if (startPing.createdAt >= endTimestamp) return null
@@ -102,7 +102,7 @@ export async function calculateDurationFromStart(
 }
 
 export async function updateRollingStats(
-	checkId: string,
+	cronJobId: string,
 	_durationMs: number,
 ): Promise<void> {
 	const now = new Date()
@@ -111,7 +111,7 @@ export async function updateRollingStats(
 	windowStart.setHours(0, 0, 0, 0)
 
 	const durations = await pingRepository.findAllDurationsInWindow(
-		checkId,
+		cronJobId,
 		windowStart,
 		now,
 	)
@@ -122,7 +122,7 @@ export async function updateRollingStats(
 	const sum = durations.reduce((a, b) => a + b, 0)
 	const avg = sum / durations.length
 
-	await durationStatRepository.upsert(checkId, {
+	await durationStatRepository.upsert(cronJobId, {
 		windowStart,
 		windowEnd: now,
 		sampleCount: durations.length,
@@ -137,15 +137,15 @@ export async function updateRollingStats(
 }
 
 export async function getDurationTrend(
-	checkId: string,
+	cronJobId: string,
 ): Promise<DurationTrend> {
-	const recentPings = await pingRepository.findRecentWithDuration(checkId, 5)
+	const recentPings = await pingRepository.findRecentWithDuration(cronJobId, 5)
 	const last5Durations = recentPings
 		.map((p) => p.durationMs)
 		.filter((d): d is number => d !== null)
 		.reverse()
 
-	const stats = await durationStatRepository.findLatestByCheckId(checkId)
+	const stats = await durationStatRepository.findLatestByCronJobId(cronJobId)
 
 	if (!stats || last5Durations.length === 0) {
 		return {
@@ -252,7 +252,7 @@ export function detectAnomaly(
 }
 
 export async function getDurationStats(
-	checkId: string,
+	cronJobId: string,
 ): Promise<DurationStatModel | null> {
-	return durationStatRepository.findLatestByCheckId(checkId)
+	return durationStatRepository.findLatestByCronJobId(cronJobId)
 }

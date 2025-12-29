@@ -1,7 +1,7 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import type { Alert, AlertWithCheck } from "@/lib/api"
+import type { Alert, AlertWithCronJob } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import {
@@ -21,20 +21,20 @@ import {
 import Link from "next/link"
 import { Fragment, useState } from "react"
 
-type AlertTableProps<T extends Alert | AlertWithCheck> = {
+type AlertTableProps<T extends Alert | AlertWithCronJob> = {
 	alerts: T[]
-	showCheckColumn?: boolean
+	showCronJobColumn?: boolean
 }
 
 function getEventLabel(event: string): string {
 	switch (event) {
-		case "check.down":
+		case "cronJob.down":
 			return "Down"
-		case "check.up":
+		case "cronJob.up":
 			return "Recovered"
-		case "check.still_down":
+		case "cronJob.still_down":
 			return "Still Down"
-		case "check.fail":
+		case "cronJob.fail":
 			return "Failed"
 		default:
 			return event
@@ -43,13 +43,13 @@ function getEventLabel(event: string): string {
 
 function getEventIcon(event: string) {
 	switch (event) {
-		case "check.down":
+		case "cronJob.down":
 			return <AlertTriangle className="size-4" />
-		case "check.up":
+		case "cronJob.up":
 			return <Check className="size-4" />
-		case "check.still_down":
+		case "cronJob.still_down":
 			return <Bell className="size-4" />
-		case "check.fail":
+		case "cronJob.fail":
 			return <X className="size-4" />
 		default:
 			return <Bell className="size-4" />
@@ -58,23 +58,23 @@ function getEventIcon(event: string) {
 
 function getEventColor(event: string): string {
 	switch (event) {
-		case "check.down":
+		case "cronJob.down":
 			return "text-destructive bg-destructive/10"
-		case "check.up":
+		case "cronJob.up":
 			return "text-green-500 bg-green-500/10"
-		case "check.still_down":
+		case "cronJob.still_down":
 			return "text-amber-500 bg-amber-500/10"
-		case "check.fail":
+		case "cronJob.fail":
 			return "text-red-500 bg-red-500/10"
 		default:
 			return "text-muted-foreground bg-muted"
 	}
 }
 
-function isAlertWithCheck(
-	alert: Alert | AlertWithCheck,
-): alert is AlertWithCheck {
-	return "checkName" in alert
+function isAlertWithCronJob(
+	alert: Alert | AlertWithCronJob,
+): alert is AlertWithCronJob {
+	return "cronJobName" in alert
 }
 
 function formatDuration(ms: number): string {
@@ -127,7 +127,7 @@ function DurationBar({
 	)
 }
 
-function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
+function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCronJob }) {
 	const duration = alert.context?.duration
 	const errorPattern = alert.context?.errorPattern
 	const relatedFailures = alert.context?.correlation?.relatedFailures
@@ -224,12 +224,12 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 					<div className="flex flex-wrap gap-1.5">
 						{relatedFailures.slice(0, 3).map((f) => (
 							<Link
-								key={f.checkId}
-								href={`/checks/${f.checkId}`}
+								key={f.cronJobId}
+								href={`/cron-jobs/${f.cronJobId}`}
 								className="text-xs text-primary hover:underline bg-primary/5 px-2 py-0.5 rounded"
 								onClick={(e) => e.stopPropagation()}
 							>
-								{f.checkName}
+								{f.cronJobName}
 							</Link>
 						))}
 					</div>
@@ -252,9 +252,9 @@ function AlertExpandedContent({ alert }: { alert: Alert | AlertWithCheck }) {
 	)
 }
 
-export function AlertTable<T extends Alert | AlertWithCheck>({
+export function AlertTable<T extends Alert | AlertWithCronJob>({
 	alerts,
-	showCheckColumn = false,
+	showCronJobColumn = false,
 }: AlertTableProps<T>) {
 	const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
 
@@ -276,13 +276,13 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 				<Bell className="size-8 text-muted-foreground mb-3" />
 				<p className="text-muted-foreground">No alerts yet</p>
 				<p className="text-xs text-muted-foreground mt-1">
-					Alerts will appear here when your checks trigger notifications
+					Alerts will appear here when your cron jobs trigger notifications
 				</p>
 			</div>
 		)
 	}
 
-	const colCount = showCheckColumn ? 6 : 5
+	const colCount = showCronJobColumn ? 6 : 5
 
 	return (
 		<div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -290,8 +290,8 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 				<thead>
 					<tr className="text-xs text-muted-foreground uppercase tracking-wide border-b border-border">
 						<th className="py-3 px-4 font-medium">Event</th>
-						{showCheckColumn && (
-							<th className="py-3 px-4 font-medium">Check</th>
+						{showCronJobColumn && (
+							<th className="py-3 px-4 font-medium">Cron Job</th>
 						)}
 						<th className="py-3 px-4 font-medium">Time</th>
 						<th className="py-3 px-4 font-medium">Channels</th>
@@ -331,17 +331,17 @@ export function AlertTable<T extends Alert | AlertWithCheck>({
 										</div>
 									</td>
 
-									{/* Check (optional) */}
-									{showCheckColumn && (
+									{/* Cron Job (optional) */}
+									{showCronJobColumn && (
 										<td className="py-3 px-4">
-											{isAlertWithCheck(alert) && (
+											{isAlertWithCronJob(alert) && (
 												<div className="min-w-0">
 													<Link
-														href={`/checks/${alert.checkId}`}
+														href={`/cron-jobs/${alert.cronJobId}`}
 														className="hover:underline text-primary text-sm"
 														onClick={(e) => e.stopPropagation()}
 													>
-														{alert.checkName}
+														{alert.cronJobName}
 													</Link>
 													<p className="text-xs text-muted-foreground truncate">
 														{alert.projectName}

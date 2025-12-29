@@ -1,29 +1,29 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { CheckStatus, Project } from "@/lib/api"
+import type { MonitorStatus, Project } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { FolderKanban } from "lucide-react"
 import Link from "next/link"
 
-type CheckWithStatus = {
-	status: CheckStatus
+type CronJobWithStatus = {
+	status: MonitorStatus
 }
 
 type ProjectCardProps = {
 	project: Project
-	checks?: CheckWithStatus[]
+	cronJobs?: CronJobWithStatus[]
 }
 
-export function ProjectCard({ project, checks = [] }: ProjectCardProps) {
+export function ProjectCard({ project, cronJobs = [] }: ProjectCardProps) {
 	const counts = {
-		up: checks.filter((c) => c.status === "UP").length,
-		down: checks.filter((c) => c.status === "DOWN" || c.status === "LATE")
+		up: cronJobs.filter((c) => c.status === "UP").length,
+		down: cronJobs.filter((c) => c.status === "DOWN" || c.status === "LATE")
 			.length,
-		new: checks.filter((c) => c.status === "NEW").length,
-		paused: checks.filter((c) => c.status === "PAUSED").length,
+		new: cronJobs.filter((c) => c.status === "NEW").length,
+		paused: cronJobs.filter((c) => c.status === "PAUSED").length,
 	}
-	const totalCount = checks.length
+	const totalCount = cronJobs.length
 
 	const hasIssues = counts.down > 0
 	const allGood = totalCount > 0 && counts.up === totalCount
@@ -62,7 +62,7 @@ export function ProjectCard({ project, checks = [] }: ProjectCardProps) {
 				</CardHeader>
 				<CardContent>
 					{totalCount === 0 ? (
-						<p className="text-sm text-muted-foreground">No checks yet</p>
+						<p className="text-sm text-muted-foreground">No monitors yet</p>
 					) : (
 						<div className="flex items-center gap-4 text-sm">
 							{counts.up > 0 && (

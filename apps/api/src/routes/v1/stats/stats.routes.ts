@@ -2,11 +2,11 @@ import { OpenAPIHono, createRoute } from "@hono/zod-openapi"
 import { notFound } from "../../../lib/errors.js"
 import type { AuthEnv } from "../../../middleware/auth.js"
 import { getRequiredOrg, requireAuth } from "../../../middleware/auth.js"
-import { getCheckById } from "../../../services/check.service.js"
-import { getCheckUptimeHistory } from "../../../services/stats.service.js"
+import { getCronJobById } from "../../../services/cron-job.service.js"
+import { getCronJobUptimeHistory } from "../../../services/stats.service.js"
 import {
-	checkIdParamSchema,
-	checkStatsResponseSchema,
+	cronJobIdParamSchema,
+	cronJobStatsResponseSchema,
 	errorResponseSchema,
 	statsQuerySchema,
 } from "./stats.schemas.js"
@@ -15,17 +15,17 @@ const statsRoutes = new OpenAPIHono<AuthEnv>()
 
 statsRoutes.use("*", requireAuth)
 
-const getCheckStatsRoute = createRoute({
+const getCronJobStatsRoute = createRoute({
 	method: "get",
-	path: "/{checkId}/stats",
+	path: "/{cronJobId}/stats",
 	request: {
-		params: checkIdParamSchema,
+		params: cronJobIdParamSchema,
 		query: statsQuerySchema,
 	},
 	responses: {
 		200: {
-			content: { "application/json": { schema: checkStatsResponseSchema } },
-			description: "Check uptime history",
+			content: { "application/json": { schema: cronJobStatsResponseSchema } },
+			description: "Cron job uptime history",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -33,27 +33,27 @@ const getCheckStatsRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
 	tags: ["Stats"],
-	summary: "Get check uptime history",
+	summary: "Get cron job uptime history",
 })
 
-statsRoutes.openapi(getCheckStatsRoute, async (c) => {
+statsRoutes.openapi(getCronJobStatsRoute, async (c) => {
 	const org = getRequiredOrg(c)
-	const { checkId } = c.req.valid("param")
+	const { cronJobId } = c.req.valid("param")
 	const { days } = c.req.valid("query")
 
-	const check = await getCheckById(checkId)
-	if (!check) {
-		throw notFound("Check not found")
+	const cronJob = await getCronJobById(cronJobId)
+	if (!cronJob) {
+		throw notFound("Cron job not found")
 	}
 
-	// Verify check belongs to org's project
+	// Verify cron job belongs to org's project
 	// (simplified - in production would verify through project)
 
-	const history = await getCheckUptimeHistory(checkId, days)
+	const history = await getCronJobUptimeHistory(cronJobId, days)
 
 	return c.json(history, 200)
 })

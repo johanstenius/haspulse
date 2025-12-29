@@ -1,5 +1,5 @@
 import { z } from "@hono/zod-openapi"
-import { sparklineSlotSchema } from "../checks/checks.schemas.js"
+import { sparklineSlotSchema } from "../cron-jobs/cron-jobs.schemas.js"
 import { errorResponseSchema } from "../shared/schemas.js"
 
 export { errorResponseSchema }
@@ -7,9 +7,9 @@ export { errorResponseSchema }
 export const dashboardStatsResponseSchema = z
 	.object({
 		totalProjects: z.number(),
-		totalChecks: z.number(),
+		totalCronJobs: z.number(),
 		uptimePercent: z.number(),
-		checksByStatus: z.object({
+		cronJobsByStatus: z.object({
 			UP: z.number(),
 			DOWN: z.number(),
 			LATE: z.number(),
@@ -23,7 +23,7 @@ export type DashboardStatsResponse = z.infer<
 	typeof dashboardStatsResponseSchema
 >
 
-export const dashboardCheckSchema = z.object({
+export const dashboardCronJobSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	status: z.enum(["UP", "DOWN", "LATE", "NEW", "PAUSED"]),
@@ -35,12 +35,12 @@ export const dashboardCheckSchema = z.object({
 	sparkline: z.array(sparklineSlotSchema),
 })
 
-export const dashboardChecksResponseSchema = z
+export const dashboardCronJobsResponseSchema = z
 	.object({
-		checks: z.array(dashboardCheckSchema),
+		cronJobs: z.array(dashboardCronJobSchema),
 	})
-	.openapi("DashboardChecks")
+	.openapi("DashboardCronJobs")
 
-export type DashboardChecksResponse = z.infer<
-	typeof dashboardChecksResponseSchema
+export type DashboardCronJobsResponse = z.infer<
+	typeof dashboardCronJobsResponseSchema
 >

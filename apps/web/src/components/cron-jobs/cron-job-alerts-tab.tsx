@@ -11,27 +11,27 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { AlertEvent } from "@/lib/api"
-import { useCheckAlerts } from "@/lib/query"
+import { useCronJobAlerts } from "@/lib/query"
 import { useState } from "react"
 
 const DEFAULT_LIMIT = 20
 
 const EVENT_OPTIONS: { value: AlertEvent | "ALL"; label: string }[] = [
 	{ value: "ALL", label: "All events" },
-	{ value: "check.down", label: "Down" },
-	{ value: "check.up", label: "Recovered" },
-	{ value: "check.still_down", label: "Still Down" },
+	{ value: "cronJob.down", label: "Down" },
+	{ value: "cronJob.up", label: "Recovered" },
+	{ value: "cronJob.still_down", label: "Still Down" },
 ]
 
-type CheckAlertsTabProps = {
-	checkId: string
+type CronJobAlertsTabProps = {
+	cronJobId: string
 }
 
-export function CheckAlertsTab({ checkId }: CheckAlertsTabProps) {
+export function CronJobAlertsTab({ cronJobId }: CronJobAlertsTabProps) {
 	const [page, setPage] = useState(1)
 	const [event, setEvent] = useState<AlertEvent | undefined>(undefined)
 
-	const { data, isLoading } = useCheckAlerts(checkId, {
+	const { data, isLoading } = useCronJobAlerts(cronJobId, {
 		page,
 		limit: DEFAULT_LIMIT,
 		event,

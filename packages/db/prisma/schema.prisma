@@ -135,16 +135,18 @@ model Project {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  checks   Check[]
-  channels Channel[]
-  apiKeys  ApiKey[]
+  org          Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  cronJobs     CronJob[]
+  httpMonitors HttpMonitor[]
+  channels     Channel[]
+  apiKeys      ApiKey[]
+  statusPage   StatusPage?
 
   @@index([orgId])
   @@map("projects")
 }
 
-model Check {
+model CronJob {
   id                    String             @id @default(dbgenerated("nanoid(16)"))
   projectId             String             @map("project_id")
   name                  String
@@ -152,7 +154,7 @@ model Check {
   scheduleType          ScheduleType       @map("schedule_type")
   scheduleValue         String             @map("schedule_value")
   graceSeconds          Int                @default(300) @map("grace_seconds")
-  status                CheckStatus        @default(NEW)
+  status                MonitorStatus      @default(NEW)
   lastPingAt            DateTime?          @map("last_ping_at")
   lastStartedAt         DateTime?          @map("last_started_at")
   nextExpectedAt        DateTime?          @map("next_expected_at")
@@ -163,22 +165,119 @@ model Check {
   createdAt             DateTime           @default(now()) @map("created_at")
   updatedAt             DateTime           @updatedAt @map("updated_at")
 
-  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  pings         Ping[]
-  checkChannels CheckChannel[]
-  alerts        Alert[]
-  dailyStats    CheckDailyStat[]
-  durationStats CheckDurationStat[]
+  project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pings                Ping[]
+  cronJobChannels      CronJobChannel[]
+  alerts               Alert[]
+  dailyStats           CronJobDailyStat[]
+  durationStats        CronJobDurationStat[]
+  statusPageComponents StatusPageComponent[]
 
   @@unique([projectId, slug])
   @@index([status])
   @@index([nextExpectedAt])
-  @@map("checks")
+  @@map("cron_jobs")
+}
+
+model HttpMonitor {
+  id              String        @id @default(dbgenerated("nanoid(16)"))
+  projectId       String        @map("project_id")
+  name            String
+  url             String
+  method          String        @default("GET")
+  headers         Json?
+  body            String?
+  timeout         Int           @default(30)
+  expectedStatus  Int           @default(200) @map("expected_status")
+  expectedBody    String?       @map("expected_body")
+  interval        Int           @default(60) // seconds between polls
+  graceSeconds    Int           @default(60) @map("grace_seconds")
+  status          MonitorStatus @default(NEW)
+  lastCheckedAt   DateTime?     @map("last_checked_at")
+  lastResponseMs  Int?          @map("last_response_ms")
+  nextCheckAt     DateTime?     @map("next_check_at")
+  lastAlertAt     DateTime?     @map("last_alert_at")
+  alertOnRecovery Boolean       @default(true) @map("alert_on_recovery")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  project              Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pollResults          HttpPollResult[]
+  httpMonitorChannels  HttpMonitorChannel[]
+  alerts               HttpMonitorAlert[]
+  dailyStats           HttpMonitorDailyStat[]
+  statusPageComponents StatusPageComponent[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([nextCheckAt])
+  @@map("http_monitors")
+}
+
+model HttpPollResult {
+  id            String   @id @default(dbgenerated("nanoid(16)"))
+  httpMonitorId String   @map("http_monitor_id")
+  success       Boolean
+  statusCode    Int?     @map("status_code")
+  responseMs    Int?     @map("response_ms")
+  error         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  httpMonitor HttpMonitor @relation(fields: [httpMonitorId], references: [id], onDelete: Cascade)
+
+  @@index([httpMonitorId, createdAt(sort: Desc)])
+  @@map("http_poll_results")
+}
+
+model HttpMonitorChannel {
+  httpMonitorId String @map("http_monitor_id")
+  channelId     String @map("channel_id")
+
+  httpMonitor HttpMonitor @relation(fields: [httpMonitorId], references: [id], onDelete: Cascade)
+  channel     Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([httpMonitorId, channelId])
+  @@map("http_monitor_channels")
+}
+
+model HttpMonitorAlert {
+  id            String   @id @default(dbgenerated("nanoid(16)"))
+  httpMonitorId String   @map("http_monitor_id")
+  event         String
+  channels      Json
+  context       Json?
+  success       Boolean
+  error         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  httpMonitor HttpMonitor @relation(fields: [httpMonitorId], references: [id], onDelete: Cascade)
+
+  @@index([httpMonitorId, createdAt(sort: Desc)])
+  @@map("http_monitor_alerts")
+}
+
+model HttpMonitorDailyStat {
+  id            String   @id @default(dbgenerated("nanoid(16)"))
+  httpMonitorId String   @map("http_monitor_id")
+  date          DateTime @db.Date
+  upMinutes     Int      @default(0) @map("up_minutes")
+  downMinutes   Int      @default(0) @map("down_minutes")
+  totalPolls    Int      @default(0) @map("total_polls")
+  upPercent     Float    @default(0) @map("up_percent")
+  avgResponseMs Float?   @map("avg_response_ms")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  httpMonitor HttpMonitor @relation(fields: [httpMonitorId], references: [id], onDelete: Cascade)
+
+  @@unique([httpMonitorId, date])
+  @@index([httpMonitorId, date])
+  @@map("http_monitor_daily_stats")
 }
 
 model Ping {
   id          String   @id @default(dbgenerated("nanoid(16)"))
-  checkId     String   @map("check_id")
+  cronJobId   String   @map("cron_job_id")
   type        PingType
   body        String?
   sourceIp    String   @map("source_ip")
@@ -186,15 +285,15 @@ model Ping {
   startPingId String?  @map("start_ping_id")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  cronJob CronJob @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
 
-  @@index([checkId, createdAt(sort: Desc)])
+  @@index([cronJobId, createdAt(sort: Desc)])
   @@map("pings")
 }
 
-model CheckDailyStat {
+model CronJobDailyStat {
   id          String   @id @default(dbgenerated("nanoid(16)"))
-  checkId     String   @map("check_id")
+  cronJobId   String   @map("cron_job_id")
   date        DateTime @db.Date
   upMinutes   Int      @default(0) @map("up_minutes")
   downMinutes Int      @default(0) @map("down_minutes")
@@ -203,16 +302,16 @@ model CheckDailyStat {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  cronJob CronJob @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
 
-  @@unique([checkId, date])
-  @@index([checkId, date])
-  @@map("check_daily_stats")
+  @@unique([cronJobId, date])
+  @@index([cronJobId, date])
+  @@map("cron_job_daily_stats")
 }
 
-model CheckDurationStat {
+model CronJobDurationStat {
   id            String   @id @default(dbgenerated("nanoid(16)"))
-  checkId       String   @map("check_id")
+  cronJobId     String   @map("cron_job_id")
   windowStart   DateTime @map("window_start")
   windowEnd     DateTime @map("window_end")
   sampleCount   Int      @default(0) @map("sample_count")
@@ -226,11 +325,11 @@ model CheckDurationStat {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  cronJob CronJob @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
 
-  @@unique([checkId, windowStart])
-  @@index([checkId])
-  @@map("check_duration_stats")
+  @@unique([cronJobId, windowStart])
+  @@index([cronJobId])
+  @@map("cron_job_duration_stats")
 }
 
 model Channel {
@@ -243,26 +342,27 @@ model Channel {
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
 
-  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  checkChannels CheckChannel[]
+  project             Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  cronJobChannels     CronJobChannel[]
+  httpMonitorChannels HttpMonitorChannel[]
 
   @@map("channels")
 }
 
-model CheckChannel {
-  checkId   String @map("check_id")
+model CronJobChannel {
+  cronJobId String @map("cron_job_id")
   channelId String @map("channel_id")
 
-  check   Check   @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  cronJob CronJob @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
-  @@id([checkId, channelId])
-  @@map("check_channels")
+  @@id([cronJobId, channelId])
+  @@map("cron_job_channels")
 }
 
 model Alert {
   id        String   @id @default(dbgenerated("nanoid(16)"))
-  checkId   String   @map("check_id")
+  cronJobId String   @map("cron_job_id")
   event     String
   channels  Json
   context   Json?
@@ -270,9 +370,9 @@ model Alert {
   error     String?
   createdAt DateTime @default(now()) @map("created_at")
 
-  check Check @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  cronJob CronJob @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
 
-  @@index([checkId, createdAt(sort: Desc)])
+  @@index([cronJobId, createdAt(sort: Desc)])
   @@map("alerts")
 }
 
@@ -290,14 +390,14 @@ model ApiKey {
   @@map("api_keys")
 }
 
-enum CheckStatus {
+enum MonitorStatus {
   NEW
   UP
   LATE
   DOWN
   PAUSED
 
-  @@map("check_status")
+  @@map("monitor_status")
 }
 
 enum PingType {
@@ -335,3 +435,139 @@ enum AnomalySensitivity {
   @@map("anomaly_sensitivity")
 }
 
+// Status Page models
+model StatusPage {
+  id             String          @id @default(dbgenerated("nanoid(16)"))
+  projectId      String          @unique @map("project_id")
+  slug           String          @unique
+  name           String
+  description    String?
+  logoUrl        String?         @map("logo_url")
+  accentColor    String          @default("#10b981") @map("accent_color")
+  theme          StatusPageTheme @default(SYSTEM)
+  customDomain   String?         @unique @map("custom_domain")
+  domainVerified Boolean         @default(false) @map("domain_verified")
+  verifyToken    String?         @map("verify_token")
+  showUptime     Boolean         @default(true) @map("show_uptime")
+  uptimeDays     Int             @default(90) @map("uptime_days")
+  autoIncidents  Boolean         @default(false) @map("auto_incidents")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  components   StatusPageComponent[]
+  incidents    Incident[]
+  maintenances Maintenance[]
+
+  @@index([slug])
+  @@index([customDomain])
+  @@map("status_pages")
+}
+
+model StatusPageComponent {
+  id            String   @id @default(dbgenerated("nanoid(16)"))
+  statusPageId  String   @map("status_page_id")
+  cronJobId     String?  @map("cron_job_id")
+  httpMonitorId String?  @map("http_monitor_id")
+  displayName   String   @map("display_name")
+  groupName     String?  @map("group_name")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  statusPage  StatusPage   @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+  cronJob     CronJob?     @relation(fields: [cronJobId], references: [id], onDelete: Cascade)
+  httpMonitor HttpMonitor? @relation(fields: [httpMonitorId], references: [id], onDelete: Cascade)
+
+  @@unique([statusPageId, cronJobId])
+  @@unique([statusPageId, httpMonitorId])
+  @@index([statusPageId])
+  @@map("status_page_components")
+}
+
+model Incident {
+  id                  String           @id @default(dbgenerated("nanoid(16)"))
+  statusPageId        String           @map("status_page_id")
+  title               String
+  status              IncidentStatus   @default(INVESTIGATING)
+  severity            IncidentSeverity
+  componentIds        String[]         @map("component_ids")
+  autoCreated         Boolean          @default(false) @map("auto_created")
+  sourceCronJobId     String?          @map("source_cron_job_id")
+  sourceHttpMonitorId String?          @map("source_http_monitor_id")
+  startsAt            DateTime         @default(now()) @map("starts_at")
+  resolvedAt          DateTime?        @map("resolved_at")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  statusPage StatusPage       @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+  updates    IncidentUpdate[]
+
+  @@index([statusPageId, startsAt(sort: Desc)])
+  @@index([status])
+  @@map("incidents")
+}
+
+model IncidentUpdate {
+  id         String         @id @default(dbgenerated("nanoid(16)"))
+  incidentId String         @map("incident_id")
+  status     IncidentStatus
+  message    String         @db.Text
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, createdAt(sort: Desc)])
+  @@map("incident_updates")
+}
+
+model Maintenance {
+  id           String            @id @default(dbgenerated("nanoid(16)"))
+  statusPageId String            @map("status_page_id")
+  title        String
+  description  String?
+  componentIds String[]          @map("component_ids")
+  scheduledFor DateTime          @map("scheduled_for")
+  expectedEnd  DateTime          @map("expected_end")
+  status       MaintenanceStatus @default(SCHEDULED)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  statusPage StatusPage @relation(fields: [statusPageId], references: [id], onDelete: Cascade)
+
+  @@index([statusPageId, scheduledFor(sort: Desc)])
+  @@map("maintenances")
+}
+
+enum IncidentStatus {
+  INVESTIGATING
+  IDENTIFIED
+  MONITORING
+  RESOLVED
+
+  @@map("incident_status")
+}
+
+enum IncidentSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+
+  @@map("incident_severity")
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+
+  @@map("maintenance_status")
+}
+
+enum StatusPageTheme {
+  DARK
+  LIGHT
+  SYSTEM
+
+  @@map("status_page_theme")
+}

@@ -156,13 +156,15 @@ export async function getEffectivePlan(org: OrgModel): Promise<"free" | "pro"> {
 
 export type UsageStats = {
 	projectCount: number
-	totalChecks: number
+	totalCronJobs: number
+	totalHttpMonitors: number
 }
 
 export async function getUsageStats(orgId: string): Promise<UsageStats> {
-	const [projectCount, totalChecks] = await Promise.all([
+	const [projectCount, totalCronJobs, totalHttpMonitors] = await Promise.all([
 		organizationRepository.countProjectsByOrg(orgId),
-		organizationRepository.countChecksByOrg(orgId),
+		organizationRepository.countCronJobsByOrg(orgId),
+		organizationRepository.countHttpMonitorsByOrg(orgId),
 	])
-	return { projectCount, totalChecks }
+	return { projectCount, totalCronJobs, totalHttpMonitors }
 }

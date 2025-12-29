@@ -7,13 +7,13 @@ vi.mock("../../repositories/project.repository.js", () => ({
 	},
 }))
 
-vi.mock("../../repositories/check.repository.js", () => ({
-	checkRepository: {
+vi.mock("../../repositories/cron-job.repository.js", () => ({
+	cronJobRepository: {
 		findByProjectId: vi.fn(),
 	},
 }))
 
-import { checkRepository } from "../../repositories/check.repository.js"
+import { cronJobRepository } from "../../repositories/cron-job.repository.js"
 import { projectRepository } from "../../repositories/project.repository.js"
 
 function makeProject(overrides = {}) {
@@ -22,23 +22,21 @@ function makeProject(overrides = {}) {
 		name: "Acme",
 		slug: "acme",
 		orgId: "org1",
-		timezone: "UTC",
 		createdAt: new Date(),
 		updatedAt: new Date(),
 		...overrides,
 	}
 }
 
-function makeCheck(overrides = {}) {
+function makeCronJob(overrides = {}) {
 	return {
-		id: "check1",
+		id: "cronjob1",
 		projectId: "proj1",
 		name: "DB Backup",
 		slug: "db-backup",
 		scheduleType: "PERIOD" as const,
 		scheduleValue: "3600",
 		graceSeconds: 300,
-		timezone: null,
 		status: "UP" as const,
 		lastPingAt: new Date(),
 		lastStartedAt: null,
@@ -63,8 +61,8 @@ describe("Badge Routes", () => {
 	describe("GET /badge/{projectSlug}", () => {
 		it("returns SVG badge for existing project", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([
-				makeCheck({ status: "UP" }),
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([
+				makeCronJob({ status: "UP" }),
 			])
 
 			const res = await app.request("/badge/acme")
@@ -88,8 +86,8 @@ describe("Badge Routes", () => {
 
 		it("uses custom label when provided", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([
-				makeCheck({ status: "UP" }),
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([
+				makeCronJob({ status: "UP" }),
 			])
 
 			const res = await app.request("/badge/acme?label=My%20Service")
@@ -99,11 +97,11 @@ describe("Badge Routes", () => {
 			expect(body).toContain("My Service")
 		})
 
-		it("shows down status when any check is down", async () => {
+		it("shows down status when any cron job is down", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([
-				makeCheck({ status: "UP" }),
-				makeCheck({ id: "check2", status: "DOWN" }),
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([
+				makeCronJob({ status: "UP" }),
+				makeCronJob({ id: "cronjob2", status: "DOWN" }),
 			])
 
 			const res = await app.request("/badge/acme")
@@ -113,11 +111,11 @@ describe("Badge Routes", () => {
 			expect(body).toContain("#e05d44")
 		})
 
-		it("shows degraded status when any check is late", async () => {
+		it("shows degraded status when any cron job is late", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([
-				makeCheck({ status: "UP" }),
-				makeCheck({ id: "check2", status: "LATE" }),
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([
+				makeCronJob({ status: "UP" }),
+				makeCronJob({ id: "cronjob2", status: "LATE" }),
 			])
 
 			const res = await app.request("/badge/acme")
@@ -127,11 +125,11 @@ describe("Badge Routes", () => {
 		})
 	})
 
-	describe("GET /badge/{projectSlug}/{checkSlug}", () => {
-		it("returns SVG badge for specific check", async () => {
+	describe("GET /badge/{projectSlug}/{cronJobSlug}", () => {
+		it("returns SVG badge for specific cron job", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([
-				makeCheck({ slug: "db-backup", status: "UP" }),
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([
+				makeCronJob({ slug: "db-backup", status: "UP" }),
 			])
 
 			const res = await app.request("/badge/acme/db-backup")
@@ -143,19 +141,19 @@ describe("Badge Routes", () => {
 			expect(body).toContain("operational")
 		})
 
-		it("returns 404 for non-existent check", async () => {
+		it("returns 404 for non-existent cron job", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([])
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([])
 
 			const res = await app.request("/badge/acme/nonexistent")
 
 			expect(res.status).toBe(404)
 		})
 
-		it("shows correct status for down check", async () => {
+		it("shows correct status for down cron job", async () => {
 			vi.mocked(projectRepository.findBySlug).mockResolvedValue(makeProject())
-			vi.mocked(checkRepository.findByProjectId).mockResolvedValue([
-				makeCheck({ slug: "api", status: "DOWN" }),
+			vi.mocked(cronJobRepository.findByProjectId).mockResolvedValue([
+				makeCronJob({ slug: "api", status: "DOWN" }),
 			])
 
 			const res = await app.request("/badge/acme/api")

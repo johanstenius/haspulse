@@ -1,9 +1,9 @@
-import { type CheckStatus, prisma } from "@haspulse/db"
+import { type MonitorStatus, prisma } from "@haspulse/db"
 
-export type DashboardCheckRow = {
+export type DashboardCronJobRow = {
 	id: string
 	name: string
-	status: CheckStatus
+	status: MonitorStatus
 	scheduleType: "PERIOD" | "CRON"
 	scheduleValue: string
 	lastPingAt: Date | null
@@ -13,7 +13,7 @@ export type DashboardCheckRow = {
 }
 
 export type StatusCountRow = {
-	status: CheckStatus
+	status: MonitorStatus
 	_count: { id: number }
 }
 
@@ -22,8 +22,8 @@ export const dashboardRepository = {
 		return prisma.project.count({ where: { orgId } })
 	},
 
-	async countChecksByStatusForOrg(orgId: string): Promise<StatusCountRow[]> {
-		const result = await prisma.check.groupBy({
+	async countCronJobsByStatusForOrg(orgId: string): Promise<StatusCountRow[]> {
+		const result = await prisma.cronJob.groupBy({
 			by: ["status"],
 			where: { project: { orgId } },
 			_count: { id: true },
@@ -31,27 +31,27 @@ export const dashboardRepository = {
 		return result
 	},
 
-	async findRecentChecksForOrg(
+	async findRecentCronJobsForOrg(
 		orgId: string,
 		limit: number,
-	): Promise<DashboardCheckRow[]> {
-		const checks = await prisma.check.findMany({
+	): Promise<DashboardCronJobRow[]> {
+		const cronJobs = await prisma.cronJob.findMany({
 			where: { project: { orgId } },
 			include: { project: { select: { id: true, name: true } } },
 			orderBy: { lastPingAt: "desc" },
 			take: limit,
 		})
 
-		return checks.map((check) => ({
-			id: check.id,
-			name: check.name,
-			status: check.status,
-			scheduleType: check.scheduleType,
-			scheduleValue: check.scheduleValue,
-			lastPingAt: check.lastPingAt,
-			createdAt: check.createdAt,
-			projectId: check.project.id,
-			projectName: check.project.name,
+		return cronJobs.map((cronJob) => ({
+			id: cronJob.id,
+			name: cronJob.name,
+			status: cronJob.status,
+			scheduleType: cronJob.scheduleType,
+			scheduleValue: cronJob.scheduleValue,
+			lastPingAt: cronJob.lastPingAt,
+			createdAt: cronJob.createdAt,
+			projectId: cronJob.project.id,
+			projectName: cronJob.project.name,
 		}))
 	},
 }

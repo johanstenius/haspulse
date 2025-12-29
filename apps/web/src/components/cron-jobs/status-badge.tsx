@@ -1,12 +1,12 @@
-import type { CheckStatus } from "@/lib/api"
+import type { MonitorStatus } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 type StatusBadgeProps = {
-	status: CheckStatus
+	status: MonitorStatus
 	className?: string
 }
 
-export const statusColors: Record<CheckStatus, string> = {
+export const statusColors: Record<MonitorStatus, string> = {
 	UP: "text-primary",
 	DOWN: "text-destructive",
 	LATE: "text-warning",
@@ -15,7 +15,7 @@ export const statusColors: Record<CheckStatus, string> = {
 }
 
 const statusConfig: Record<
-	CheckStatus,
+	MonitorStatus,
 	{ label: string; dotColor: string; textColor: string }
 > = {
 	UP: {

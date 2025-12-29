@@ -1,12 +1,12 @@
-import type { CheckStatus } from "@haspulse/db"
+import type { MonitorStatus } from "@haspulse/db"
 import { dashboardRepository } from "../repositories/dashboard.repository.js"
 import { statsRepository } from "../repositories/stats.repository.js"
 
 export type DashboardStatsModel = {
 	totalProjects: number
-	totalChecks: number
+	totalCronJobs: number
 	uptimePercent: number
-	checksByStatus: {
+	cronJobsByStatus: {
 		UP: number
 		DOWN: number
 		LATE: number
@@ -15,10 +15,10 @@ export type DashboardStatsModel = {
 	}
 }
 
-export type DashboardCheckModel = {
+export type DashboardCronJobModel = {
 	id: string
 	name: string
-	status: CheckStatus
+	status: MonitorStatus
 	scheduleType: "PERIOD" | "CRON"
 	scheduleValue: string
 	lastPingAt: Date | null
@@ -35,10 +35,10 @@ const STATUS_ORDER: Record<string, number> = {
 	PAUSED: 4,
 }
 
-function sortChecksByPriority(
-	checks: DashboardCheckModel[],
-): DashboardCheckModel[] {
-	return [...checks].sort((a, b) => {
+function sortCronJobsByPriority(
+	cronJobs: DashboardCronJobModel[],
+): DashboardCronJobModel[] {
+	return [...cronJobs].sort((a, b) => {
 		const orderA = STATUS_ORDER[a.status] ?? 99
 		const orderB = STATUS_ORDER[b.status] ?? 99
 		if (orderA !== orderB) return orderA - orderB
@@ -51,13 +51,13 @@ function sortChecksByPriority(
 export async function getDashboardStats(
 	orgId: string,
 ): Promise<DashboardStatsModel> {
-	const [projectCount, checkCounts, uptimeData] = await Promise.all([
+	const [projectCount, cronJobCounts, uptimeData] = await Promise.all([
 		dashboardRepository.countProjectsByOrgId(orgId),
-		dashboardRepository.countChecksByStatusForOrg(orgId),
+		dashboardRepository.countCronJobsByStatusForOrg(orgId),
 		statsRepository.getOrgUptimeForPeriod(orgId, 30),
 	])
 
-	const statusCounts: Record<CheckStatus, number> = {
+	const statusCounts: Record<MonitorStatus, number> = {
 		UP: 0,
 		DOWN: 0,
 		LATE: 0,
@@ -65,10 +65,10 @@ export async function getDashboardStats(
 		PAUSED: 0,
 	}
 
-	let totalChecks = 0
-	for (const item of checkCounts) {
+	let totalCronJobs = 0
+	for (const item of cronJobCounts) {
 		statusCounts[item.status] = item._count.id
-		totalChecks += item._count.id
+		totalCronJobs += item._count.id
 	}
 
 	const totalMinutes = uptimeData.upMinutes + uptimeData.downMinutes
@@ -77,16 +77,19 @@ export async function getDashboardStats(
 
 	return {
 		totalProjects: projectCount,
-		totalChecks,
+		totalCronJobs,
 		uptimePercent: Math.round(uptimePercent * 10) / 10,
-		checksByStatus: statusCounts,
+		cronJobsByStatus: statusCounts,
 	}
 }
 
-export async function getDashboardChecks(
+export async function getDashboardCronJobs(
 	orgId: string,
 	limit = 10,
-): Promise<DashboardCheckModel[]> {
-	const checks = await dashboardRepository.findRecentChecksForOrg(orgId, limit)
-	return sortChecksByPriority(checks)
+): Promise<DashboardCronJobModel[]> {
+	const cronJobs = await dashboardRepository.findRecentCronJobsForOrg(
+		orgId,
+		limit,
+	)
+	return sortCronJobsByPriority(cronJobs)
 }

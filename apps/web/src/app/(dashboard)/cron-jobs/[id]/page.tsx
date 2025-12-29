@@ -1,9 +1,9 @@
 "use client"
 
-import { CheckAlertsTab } from "@/components/checks/check-alerts-tab"
-import { CheckForm } from "@/components/checks/check-form"
-import { PingSparkline } from "@/components/checks/ping-sparkline"
-import { StatusBadge } from "@/components/checks/status-badge"
+import { CronJobAlertsTab } from "@/components/cron-jobs/cron-job-alerts-tab"
+import { CronJobForm } from "@/components/cron-jobs/cron-job-form"
+import { PingSparkline } from "@/components/cron-jobs/ping-sparkline"
+import { StatusBadge } from "@/components/cron-jobs/status-badge"
 import { PaginationControls } from "@/components/pagination-controls"
 import {
 	AlertDialog,
@@ -39,18 +39,18 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { PingType, UpdateCheckData } from "@/lib/api"
+import type { PingType, UpdateCronJobData } from "@/lib/api"
 import { formatRelativeCompactAgo } from "@/lib/format"
 import {
 	useChannels,
-	useCheck,
-	useCheckAlerts,
-	useDeleteCheck,
+	useCronJob,
+	useCronJobAlerts,
+	useDeleteCronJob,
 	useDurationStats,
-	usePauseCheck,
+	usePauseCronJob,
 	usePings,
-	useResumeCheck,
-	useUpdateCheck,
+	useResumeCronJob,
+	useUpdateCronJob,
 } from "@/lib/query"
 import { cn } from "@/lib/utils"
 import cronstrue from "cronstrue"
@@ -152,7 +152,7 @@ const trendConfig = {
 	unknown: { icon: null, label: "—", className: "text-muted-foreground" },
 } as const
 
-export default function CheckDetailPage({
+export default function CronJobDetailPage({
 	params,
 }: { params: Promise<{ id: string }> }) {
 	const { id } = use(params)
@@ -162,33 +162,33 @@ export default function CheckDetailPage({
 	const [copied, setCopied] = useState(false)
 	const [pingsPage, setPingsPage] = useState(1)
 
-	const { data: check, isLoading } = useCheck(id)
+	const { data: cronJob, isLoading } = useCronJob(id)
 	const { data: pingsData, isLoading: pingsLoading } = usePings(id, {
 		page: pingsPage,
 		limit: 20,
 	})
-	const { data: channelsData } = useChannels(check?.projectId ?? "")
+	const { data: channelsData } = useChannels(cronJob?.projectId ?? "")
 	const { data: durationStats, isLoading: durationLoading } =
 		useDurationStats(id)
-	const { data: alertsData } = useCheckAlerts(id, { page: 1, limit: 1 })
+	const { data: alertsData } = useCronJobAlerts(id, { page: 1, limit: 1 })
 
-	const updateCheck = useUpdateCheck()
-	const pauseCheck = usePauseCheck()
-	const resumeCheck = useResumeCheck()
-	const deleteCheck = useDeleteCheck()
+	const updateCronJob = useUpdateCronJob()
+	const pauseCronJob = usePauseCronJob()
+	const resumeCronJob = useResumeCronJob()
+	const deleteCronJob = useDeleteCronJob()
 
 	const hasAnyBody = useMemo(() => {
 		return pingsData?.pings.some((p) => p.body) ?? false
 	}, [pingsData?.pings])
 
-	function handleUpdate(data: UpdateCheckData & { channelIds?: string[] }) {
-		if (!check) return
-		updateCheck.mutate(
-			{ id: check.id, data },
+	function handleUpdate(data: UpdateCronJobData & { channelIds?: string[] }) {
+		if (!cronJob) return
+		updateCronJob.mutate(
+			{ id: cronJob.id, data },
 			{
 				onSuccess: () => {
 					setShowEdit(false)
-					toast.success("Check updated")
+					toast.success("Cron job updated")
 				},
 				onError: (error) => {
 					toast.error(error.message)
@@ -198,29 +198,29 @@ export default function CheckDetailPage({
 	}
 
 	function handlePause() {
-		if (!check) return
-		pauseCheck.mutate(check.id, {
-			onSuccess: () => toast.success("Check paused"),
+		if (!cronJob) return
+		pauseCronJob.mutate(cronJob.id, {
+			onSuccess: () => toast.success("Cron job paused"),
 			onError: (error) => toast.error(error.message),
 		})
 	}
 
 	function handleResume() {
-		if (!check) return
-		resumeCheck.mutate(check.id, {
-			onSuccess: () => toast.success("Check resumed"),
+		if (!cronJob) return
+		resumeCronJob.mutate(cronJob.id, {
+			onSuccess: () => toast.success("Cron job resumed"),
 			onError: (error) => toast.error(error.message),
 		})
 	}
 
 	function handleDelete() {
-		if (!check) return
-		deleteCheck.mutate(
-			{ id: check.id, projectId: check.projectId },
+		if (!cronJob) return
+		deleteCronJob.mutate(
+			{ id: cronJob.id, projectId: cronJob.projectId },
 			{
 				onSuccess: () => {
-					toast.success("Check deleted")
-					router.push(`/projects/${check.projectId}`)
+					toast.success("Cron job deleted")
+					router.push(`/projects/${cronJob.projectId}`)
 				},
 				onError: (error) => toast.error(error.message),
 			},
@@ -228,8 +228,8 @@ export default function CheckDetailPage({
 	}
 
 	function handleCopyUrl() {
-		if (!check?.slug) return
-		const url = `${window.location.origin}/ping/${check.slug}`
+		if (!cronJob?.slug) return
+		const url = `${window.location.origin}/ping/${cronJob.slug}`
 		navigator.clipboard.writeText(url)
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
@@ -245,10 +245,10 @@ export default function CheckDetailPage({
 		)
 	}
 
-	if (!check) {
+	if (!cronJob) {
 		return (
 			<div className="p-6">
-				<p className="text-muted-foreground">Check not found</p>
+				<p className="text-muted-foreground">Cron job not found</p>
 				<Button asChild className="mt-4">
 					<Link href="/dashboard">Back to dashboard</Link>
 				</Button>
@@ -256,9 +256,9 @@ export default function CheckDetailPage({
 		)
 	}
 
-	const isPaused = check.status === "PAUSED"
+	const isPaused = cronJob.status === "PAUSED"
 	const isActioning =
-		pauseCheck.isPending || resumeCheck.isPending || deleteCheck.isPending
+		pauseCronJob.isPending || resumeCronJob.isPending || deleteCronJob.isPending
 
 	return (
 		<div className="p-6">
@@ -266,24 +266,24 @@ export default function CheckDetailPage({
 			<div className="flex items-start justify-between gap-4 mb-6">
 				<div className="flex items-start gap-3">
 					<Button variant="ghost" size="icon" className="mt-1" asChild>
-						<Link href={`/projects/${check.projectId}`}>
+						<Link href={`/projects/${cronJob.projectId}`}>
 							<ArrowLeft className="h-4 w-4" />
 						</Link>
 					</Button>
 					<div>
 						<div className="flex items-center gap-3">
 							<h1 className="font-display text-2xl font-semibold">
-								{check.name}
+								{cronJob.name}
 							</h1>
-							<StatusBadge status={check.status} />
+							<StatusBadge status={cronJob.status} />
 						</div>
-						{check.slug && (
+						{cronJob.slug && (
 							<button
 								type="button"
 								onClick={handleCopyUrl}
 								className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-0.5 group"
 							>
-								<span className="font-mono text-sm">/{check.slug}</span>
+								<span className="font-mono text-sm">/{cronJob.slug}</span>
 								{copied ? (
 									<Check className="h-3 w-3 text-emerald-500" />
 								) : (
@@ -355,11 +355,11 @@ export default function CheckDetailPage({
 									Schedule
 								</div>
 								<div className="font-medium text-foreground">
-									{formatSchedule(check.scheduleType, check.scheduleValue)}
+									{formatSchedule(cronJob.scheduleType, cronJob.scheduleValue)}
 								</div>
-								{check.scheduleType === "CRON" && (
+								{cronJob.scheduleType === "CRON" && (
 									<div className="font-mono text-xs text-muted-foreground mt-0.5">
-										{check.scheduleValue}
+										{cronJob.scheduleValue}
 									</div>
 								)}
 							</div>
@@ -368,7 +368,7 @@ export default function CheckDetailPage({
 									Grace Period
 								</div>
 								<div className="font-medium text-foreground">
-									{formatGrace(check.graceSeconds)}
+									{formatGrace(cronJob.graceSeconds)}
 								</div>
 							</div>
 							<div className="p-4">
@@ -376,8 +376,8 @@ export default function CheckDetailPage({
 									Last Ping
 								</div>
 								<div className="font-medium text-foreground">
-									{check.lastPingAt
-										? formatRelativeCompactAgo(check.lastPingAt)
+									{cronJob.lastPingAt
+										? formatRelativeCompactAgo(cronJob.lastPingAt)
 										: "Never"}
 								</div>
 							</div>
@@ -385,7 +385,7 @@ export default function CheckDetailPage({
 								<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
 									Recent Activity
 								</div>
-								<PingSparkline sparkline={check.sparkline} />
+								<PingSparkline sparkline={cronJob.sparkline} />
 							</div>
 						</div>
 					</div>
@@ -528,7 +528,7 @@ export default function CheckDetailPage({
 								<p className="text-xs mt-1">
 									Send a request to{" "}
 									<code className="bg-secondary px-1.5 py-0.5 rounded">
-										/ping/{check.slug}
+										/ping/{cronJob.slug}
 									</code>
 								</p>
 							</div>
@@ -621,25 +621,25 @@ export default function CheckDetailPage({
 				</TabsContent>
 
 				<TabsContent value="alerts">
-					<CheckAlertsTab checkId={id} />
+					<CronJobAlertsTab cronJobId={id} />
 				</TabsContent>
 			</Tabs>
 
-			<CheckForm
+			<CronJobForm
 				open={showEdit}
 				onOpenChange={setShowEdit}
 				onSubmit={handleUpdate}
-				check={check}
+				cronJob={cronJob}
 				channels={channelsData?.channels}
-				isLoading={updateCheck.isPending}
+				isLoading={updateCronJob.isPending}
 			/>
 
 			<AlertDialog open={showDelete} onOpenChange={setShowDelete}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete check?</AlertDialogTitle>
+						<AlertDialogTitle>Delete cron job?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This will permanently delete "{check.name}" and all its ping
+							This will permanently delete "{cronJob.name}" and all its ping
 							history. This action cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
@@ -649,7 +649,7 @@ export default function CheckDetailPage({
 							onClick={handleDelete}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{deleteCheck.isPending ? (
+							{deleteCronJob.isPending ? (
 								<Loader2 className="h-4 w-4 animate-spin" />
 							) : (
 								"Delete"

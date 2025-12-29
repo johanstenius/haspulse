@@ -8,15 +8,15 @@ import {
 	isApiKeyAuth,
 	requireAuth,
 } from "../../../middleware/auth.js"
-import { getCheckById } from "../../../services/check.service.js"
+import { getCronJobById } from "../../../services/cron-job.service.js"
 import {
 	type PingModel,
-	listPingsByCheckPaginated,
+	listPingsByCronJobPaginated,
 } from "../../../services/ping.service.js"
 import { getProjectForOrg } from "../../../services/project.service.js"
 import {
 	type PingEntryResponse,
-	checkIdParamSchema,
+	cronJobIdParamSchema,
 	errorResponseSchema,
 	pingListResponseSchema,
 	pingQuerySchema,
@@ -29,7 +29,7 @@ pingHistoryRoutes.use("*", requireAuth)
 function toPingResponse(ping: PingModel): PingEntryResponse {
 	return {
 		id: ping.id,
-		checkId: ping.checkId,
+		cronJobId: ping.cronJobId,
 		type: ping.type,
 		body: ping.body,
 		sourceIp: ping.sourceIp,
@@ -37,27 +37,27 @@ function toPingResponse(ping: PingModel): PingEntryResponse {
 	}
 }
 
-async function getAuthorizedCheck(c: Context<AuthEnv>, checkId: string) {
-	const check = await getCheckById(checkId)
-	if (!check) throw notFound("Check not found")
+async function getAuthorizedCronJob(c: Context<AuthEnv>, cronJobId: string) {
+	const cronJob = await getCronJobById(cronJobId)
+	if (!cronJob) throw notFound("Cron job not found")
 
 	if (isApiKeyAuth(c)) {
 		const apiKeyProjectId = getApiKeyProjectId(c)
-		if (check.projectId !== apiKeyProjectId)
-			throw forbidden("API key not valid for this check")
+		if (cronJob.projectId !== apiKeyProjectId)
+			throw forbidden("API key not valid for this cron job")
 	} else {
 		const org = getRequiredOrg(c)
-		await getProjectForOrg(check.projectId, org.id)
+		await getProjectForOrg(cronJob.projectId, org.id)
 	}
 
-	return check
+	return cronJob
 }
 
 const listPingsRoute = createRoute({
 	method: "get",
 	path: "/{id}/pings",
 	request: {
-		params: checkIdParamSchema,
+		params: cronJobIdParamSchema,
 		query: pingQuerySchema,
 	},
 	responses: {
@@ -75,18 +75,18 @@ const listPingsRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
 	tags: ["Pings"],
-	summary: "List ping history for a check",
+	summary: "List ping history for a cron job",
 })
 
 pingHistoryRoutes.openapi(listPingsRoute, async (c) => {
 	const { id } = c.req.valid("param")
 	const { page, limit } = c.req.valid("query")
-	const check = await getAuthorizedCheck(c, id)
-	const result = await listPingsByCheckPaginated(check.id, page, limit)
+	const cronJob = await getAuthorizedCronJob(c, id)
+	const result = await listPingsByCronJobPaginated(cronJob.id, page, limit)
 	return c.json(
 		{
 			pings: result.data.map(toPingResponse),

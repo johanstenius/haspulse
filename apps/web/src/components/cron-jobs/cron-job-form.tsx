@@ -36,8 +36,8 @@ import {
 import type {
 	AnomalySensitivity,
 	Channel,
-	Check,
-	CreateCheckData,
+	CreateCronJobData,
+	CronJob,
 	ScheduleType,
 } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -47,7 +47,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
-const checkFormSchema = z.object({
+const cronJobFormSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	slug: z
 		.string()
@@ -62,7 +62,7 @@ const checkFormSchema = z.object({
 	channelIds: z.array(z.string()),
 })
 
-type CheckFormValues = z.infer<typeof checkFormSchema>
+type CronJobFormValues = z.infer<typeof cronJobFormSchema>
 
 const PERIOD_PRESETS = [
 	{ label: "1 min", seconds: 60 },
@@ -130,11 +130,11 @@ function parseCronDescription(cron: string): string | null {
 	}
 }
 
-type CheckFormProps = {
+type CronJobFormProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	onSubmit: (data: CreateCheckData & { channelIds?: string[] }) => void
-	check?: Check
+	onSubmit: (data: CreateCronJobData & { channelIds?: string[] }) => void
+	cronJob?: CronJob
 	channels?: Channel[]
 	isLoading?: boolean
 }
@@ -156,15 +156,15 @@ const channelIcons: Record<string, typeof Mail> = {
 	WEBHOOK: Globe,
 }
 
-export function CheckForm({
+export function CronJobForm({
 	open,
 	onOpenChange,
 	onSubmit,
-	check,
+	cronJob,
 	channels = [],
 	isLoading,
-}: CheckFormProps) {
-	const form = useForm<CheckFormValues>({
+}: CronJobFormProps) {
+	const form = useForm<CronJobFormValues>({
 		defaultValues: {
 			name: "",
 			slug: "",
@@ -177,7 +177,7 @@ export function CheckForm({
 		},
 	})
 
-	const isEdit = !!check
+	const isEdit = !!cronJob
 	const name = useWatch({ control: form.control, name: "name" })
 	const scheduleType = useWatch({ control: form.control, name: "scheduleType" })
 	const scheduleValue = useWatch({
@@ -208,7 +208,6 @@ export function CheckForm({
 
 	const isCustomGrace = !GRACE_PRESETS.some((p) => p.seconds === graceSeconds)
 
-	// State for custom duration inputs (value + unit)
 	const [customPeriod, setCustomPeriod] = useState({
 		value: 1,
 		unit: "hours" as DurationUnit,
@@ -220,51 +219,52 @@ export function CheckForm({
 
 	useEffect(() => {
 		if (open) {
-			const periodSeconds = Number.parseInt(check?.scheduleValue ?? "86400", 10)
-			const graceSecondsVal = check?.graceSeconds ?? 300
+			const periodSeconds = Number.parseInt(
+				cronJob?.scheduleValue ?? "86400",
+				10,
+			)
+			const graceSecondsVal = cronJob?.graceSeconds ?? 300
 
-			// Set custom period state if it's a custom value
 			if (
-				check?.scheduleType === "PERIOD" &&
+				cronJob?.scheduleType === "PERIOD" &&
 				!PERIOD_PRESETS.some((p) => p.seconds === periodSeconds)
 			) {
 				setCustomPeriod(secondsToUnit(periodSeconds))
 			}
 
-			// Set custom grace state if it's a custom value
 			if (!GRACE_PRESETS.some((p) => p.seconds === graceSecondsVal)) {
 				setCustomGrace(secondsToUnit(graceSecondsVal))
 			}
 
 			form.reset({
-				name: check?.name ?? "",
-				slug: check?.slug ?? "",
-				scheduleType: check?.scheduleType ?? "PERIOD",
-				scheduleValue: check?.scheduleValue ?? "86400",
-				graceSeconds: check?.graceSeconds ?? 300,
-				alertOnRecovery: check?.alertOnRecovery ?? true,
-				anomalySensitivity: check?.anomalySensitivity ?? "NORMAL",
-				channelIds: check?.channelIds ?? [],
+				name: cronJob?.name ?? "",
+				slug: cronJob?.slug ?? "",
+				scheduleType: cronJob?.scheduleType ?? "PERIOD",
+				scheduleValue: cronJob?.scheduleValue ?? "86400",
+				graceSeconds: cronJob?.graceSeconds ?? 300,
+				alertOnRecovery: cronJob?.alertOnRecovery ?? true,
+				anomalySensitivity: cronJob?.anomalySensitivity ?? "NORMAL",
+				channelIds: cronJob?.channelIds ?? [],
 			})
 		}
-	}, [open, check, form])
+	}, [open, cronJob, form])
 
-	// Auto-generate slug from name when creating
 	useEffect(() => {
 		if (!isEdit && name && !form.formState.dirtyFields.slug) {
 			form.setValue("slug", slugify(name))
 		}
 	}, [name, isEdit, form])
 
-	function handleSubmit(values: CheckFormValues) {
-		const result = checkFormSchema.safeParse(values)
+	function handleSubmit(values: CronJobFormValues) {
+		const result = cronJobFormSchema.safeParse(values)
 		if (!result.success) {
 			for (const issue of result.error.issues) {
-				const path = issue.path[0] as keyof CheckFormValues
+				const path = issue.path[0] as keyof CronJobFormValues
 				form.setError(path, { message: issue.message })
 			}
 			return
 		}
+
 		onSubmit({
 			name: result.data.name,
 			slug: result.data.slug || undefined,
@@ -281,16 +281,18 @@ export function CheckForm({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
-					<DialogTitle>{isEdit ? "Edit check" : "Create check"}</DialogTitle>
+					<DialogTitle>
+						{isEdit ? "Edit cron job" : "Create cron job"}
+					</DialogTitle>
 					<DialogDescription>
 						{isEdit
-							? "Update your check configuration."
-							: "Configure a new monitoring check."}
+							? "Update your cron job configuration."
+							: "Configure a new cron job monitor."}
 					</DialogDescription>
 				</DialogHeader>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)}>
-						<div className="space-y-6 py-4">
+						<div className="space-y-6">
 							<FormField
 								control={form.control}
 								name="name"
@@ -415,7 +417,6 @@ export function CheckForm({
 															) {
 																return
 															}
-															// Initialize custom state and set form value
 															setCustomPeriod({ value: 1, unit: "hours" })
 															field.onChange(String(unitToSeconds(1, "hours")))
 														}}
@@ -596,7 +597,6 @@ export function CheckForm({
 													) {
 														return
 													}
-													// Initialize custom state and set form value
 													setCustomGrace({ value: 10, unit: "minutes" })
 													field.onChange(unitToSeconds(10, "minutes"))
 												}}
@@ -660,7 +660,7 @@ export function CheckForm({
 										<div className="space-y-0.5">
 											<FormLabel>Alert on recovery</FormLabel>
 											<FormDescription>
-												Get notified when check recovers
+												Get notified when cron job recovers
 											</FormDescription>
 										</div>
 										<FormControl>
@@ -726,7 +726,7 @@ export function CheckForm({
 										<FormItem>
 											<FormLabel>Notification Channels</FormLabel>
 											<FormDescription>
-												Select channels to notify when this check fails
+												Select channels to notify when this cron job fails
 											</FormDescription>
 											<div className="space-y-2 mt-2">
 												{channels.map((channel) => {
@@ -779,7 +779,7 @@ export function CheckForm({
 							)}
 						</div>
 
-						<DialogFooter className="mt-6">
+						<DialogFooter>
 							<Button
 								type="button"
 								variant="outline"

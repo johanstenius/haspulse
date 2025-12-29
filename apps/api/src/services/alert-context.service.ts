@@ -1,8 +1,8 @@
-import { checkRepository } from "../repositories/check.repository.js"
+import { cronJobRepository } from "../repositories/cron-job.repository.js"
 import { durationStatRepository } from "../repositories/duration-stat.repository.js"
 import { pingRepository } from "../repositories/ping.repository.js"
 import type { AlertContext } from "../routes/v1/alerts/alerts.schemas.js"
-import type { CheckModel } from "./check.service.js"
+import type { CronJobModel } from "./cron-job.service.js"
 import {
 	type AnomalyDetails,
 	detectAnomaly,
@@ -16,10 +16,10 @@ const CORRELATION_WINDOW_MINUTES = 5
 const MAX_RELATED_FAILURES = 10
 
 async function buildDurationContext(
-	checkId: string,
-	sensitivity: CheckModel["anomalySensitivity"],
+	cronJobId: string,
+	sensitivity: CronJobModel["anomalySensitivity"],
 ): Promise<AlertContext["duration"] | undefined> {
-	const trend = await getDurationTrend(checkId)
+	const trend = await getDurationTrend(cronJobId)
 
 	if (trend.last5Durations.length === 0) {
 		return undefined
@@ -30,7 +30,7 @@ async function buildDurationContext(
 
 	let anomalyDetails: AnomalyDetails | null = null
 	if (lastDurationMs !== null) {
-		const stats = await durationStatRepository.findLatestByCheckId(checkId)
+		const stats = await durationStatRepository.findLatestByCronJobId(cronJobId)
 		if (stats) {
 			anomalyDetails = detectAnomaly(lastDurationMs, stats, sensitivity)
 		}
@@ -48,9 +48,9 @@ async function buildDurationContext(
 }
 
 async function buildErrorContext(
-	checkId: string,
+	cronJobId: string,
 ): Promise<AlertContext["errorPattern"] | undefined> {
-	const recentPings = await pingRepository.findByCheckId(checkId, 10)
+	const recentPings = await pingRepository.findByCronJobId(cronJobId, 10)
 	const failedPings = recentPings.filter((p) => p.type === "FAIL")
 
 	const lastErrorPing = failedPings[0]
@@ -67,8 +67,8 @@ async function buildErrorContext(
 	const twentyFourHoursAgo = new Date()
 	twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
 
-	const errorCount24h = await pingRepository.countFailedByCheckId(
-		checkId,
+	const errorCount24h = await pingRepository.countFailedByCronJobId(
+		cronJobId,
 		twentyFourHoursAgo,
 	)
 
@@ -83,7 +83,7 @@ async function buildErrorContext(
 }
 
 async function buildCorrelationContext(
-	check: CheckModel,
+	cronJob: CronJobModel,
 ): Promise<AlertContext["correlation"] | undefined> {
 	const now = new Date()
 	const windowStart = new Date(
@@ -93,17 +93,17 @@ async function buildCorrelationContext(
 		now.getTime() + CORRELATION_WINDOW_MINUTES * 60 * 1000,
 	)
 
-	const allChecks = await checkRepository.findByProjectId(check.projectId)
-	const otherCheckIds = allChecks
-		.filter((c) => c.id !== check.id)
+	const allCronJobs = await cronJobRepository.findByProjectId(cronJob.projectId)
+	const otherCronJobIds = allCronJobs
+		.filter((c) => c.id !== cronJob.id)
 		.map((c) => c.id)
 
-	if (otherCheckIds.length === 0) {
+	if (otherCronJobIds.length === 0) {
 		return undefined
 	}
 
 	const failures = await pingRepository.findFailedInTimeWindow(
-		otherCheckIds,
+		otherCronJobIds,
 		windowStart,
 		windowEnd,
 	)
@@ -114,14 +114,14 @@ async function buildCorrelationContext(
 
 	const uniqueFailures = new Map<
 		string,
-		{ checkId: string; checkName: string; failedAt: string }
+		{ cronJobId: string; cronJobName: string; failedAt: string }
 	>()
 
 	for (const failure of failures) {
-		if (!uniqueFailures.has(failure.checkId)) {
-			uniqueFailures.set(failure.checkId, {
-				checkId: failure.checkId,
-				checkName: failure.checkName,
+		if (!uniqueFailures.has(failure.cronJobId)) {
+			uniqueFailures.set(failure.cronJobId, {
+				cronJobId: failure.cronJobId,
+				cronJobName: failure.cronJobName,
 				failedAt: failure.createdAt.toISOString(),
 			})
 		}
@@ -138,13 +138,13 @@ async function buildCorrelationContext(
 }
 
 export async function buildAlertContext(
-	check: CheckModel,
+	cronJob: CronJobModel,
 	_event: string,
 ): Promise<AlertContext> {
 	const [duration, errorPattern, correlation] = await Promise.all([
-		buildDurationContext(check.id, check.anomalySensitivity),
-		buildErrorContext(check.id),
-		buildCorrelationContext(check),
+		buildDurationContext(cronJob.id, cronJob.anomalySensitivity),
+		buildErrorContext(cronJob.id),
+		buildCorrelationContext(cronJob),
 	])
 
 	const context: AlertContext = {}

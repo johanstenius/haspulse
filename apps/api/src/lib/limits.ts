@@ -25,20 +25,39 @@ export async function checkProjectLimit(
 	return { allowed: true }
 }
 
-export async function checkCheckLimit(
+export async function checkCronJobLimit(
 	orgId: string,
 	plan: TierName,
 ): Promise<LimitCheckResult> {
 	const limits = getTierLimits(plan)
-	if (limits.checks === Number.POSITIVE_INFINITY) return { allowed: true }
+	if (limits.cronJobs === Number.POSITIVE_INFINITY) return { allowed: true }
 
-	const current = await organizationRepository.countChecksByOrg(orgId)
-	if (current >= limits.checks) {
+	const current = await organizationRepository.countCronJobsByOrg(orgId)
+	if (current >= limits.cronJobs) {
 		return {
 			allowed: false,
-			limit: limits.checks,
+			limit: limits.cronJobs,
 			current,
-			resource: "checks",
+			resource: "cron jobs",
+		}
+	}
+	return { allowed: true }
+}
+
+export async function checkHttpMonitorLimit(
+	orgId: string,
+	plan: TierName,
+): Promise<LimitCheckResult> {
+	const limits = getTierLimits(plan)
+	if (limits.httpMonitors === Number.POSITIVE_INFINITY) return { allowed: true }
+
+	const current = await organizationRepository.countHttpMonitorsByOrg(orgId)
+	if (current >= limits.httpMonitors) {
+		return {
+			allowed: false,
+			limit: limits.httpMonitors,
+			current,
+			resource: "HTTP monitors",
 		}
 	}
 	return { allowed: true }

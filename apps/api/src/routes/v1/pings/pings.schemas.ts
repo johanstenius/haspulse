@@ -5,14 +5,14 @@ import {
 	paginationQuerySchema,
 } from "../shared/schemas.js"
 
-export { errorResponseSchema, idParamSchema as checkIdParamSchema }
+export { errorResponseSchema, idParamSchema as cronJobIdParamSchema }
 
 export const pingTypeSchema = z.enum(["SUCCESS", "START", "FAIL"])
 
 export const pingResponseSchema = z
 	.object({
 		id: z.string(),
-		checkId: z.string(),
+		cronJobId: z.string(),
 		type: pingTypeSchema,
 		body: z.string().nullable(),
 		sourceIp: z.string(),

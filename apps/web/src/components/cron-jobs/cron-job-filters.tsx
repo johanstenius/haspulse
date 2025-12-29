@@ -9,19 +9,19 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
-import type { CheckStatus } from "@/lib/api"
+import type { MonitorStatus } from "@/lib/api"
 import { Search, X } from "lucide-react"
 import { useEffect, useRef } from "react"
 import { useDebouncedCallback } from "use-debounce"
 
-type CheckFiltersProps = {
+type CronJobFiltersProps = {
 	search: string
-	status: CheckStatus | undefined
+	status: MonitorStatus | undefined
 	onSearchChange: (search: string) => void
-	onStatusChange: (status: CheckStatus | undefined) => void
+	onStatusChange: (status: MonitorStatus | undefined) => void
 }
 
-const STATUS_OPTIONS: { value: CheckStatus | "ALL"; label: string }[] = [
+const STATUS_OPTIONS: { value: MonitorStatus | "ALL"; label: string }[] = [
 	{ value: "ALL", label: "All statuses" },
 	{ value: "UP", label: "Up" },
 	{ value: "DOWN", label: "Down" },
@@ -30,19 +30,18 @@ const STATUS_OPTIONS: { value: CheckStatus | "ALL"; label: string }[] = [
 	{ value: "PAUSED", label: "Paused" },
 ]
 
-export function CheckFilters({
+export function CronJobFilters({
 	search,
 	status,
 	onSearchChange,
 	onStatusChange,
-}: CheckFiltersProps) {
+}: CronJobFiltersProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const debouncedSearch = useDebouncedCallback((value: string) => {
 		onSearchChange(value)
 	}, 300)
 
-	// Sync input with external search prop changes (clear, browser nav)
 	useEffect(() => {
 		if (inputRef.current && inputRef.current.value !== search) {
 			inputRef.current.value = search
@@ -55,7 +54,7 @@ export function CheckFilters({
 				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 				<Input
 					ref={inputRef}
-					placeholder="Search checks..."
+					placeholder="Search cron jobs..."
 					defaultValue={search}
 					onChange={(e) => debouncedSearch(e.target.value)}
 					className="pl-9"
@@ -64,7 +63,7 @@ export function CheckFilters({
 			<Select
 				value={status ?? "ALL"}
 				onValueChange={(v) =>
-					onStatusChange(v === "ALL" ? undefined : (v as CheckStatus))
+					onStatusChange(v === "ALL" ? undefined : (v as MonitorStatus))
 				}
 			>
 				<SelectTrigger className="w-36">

@@ -17,15 +17,15 @@ type AlertContext = {
 	}
 	correlation?: {
 		relatedFailures: Array<{
-			checkId: string
-			checkName: string
+			cronJobId: string
+			cronJobName: string
 			failedAt: string
 		}>
 	}
 }
 
 type AlertEmailProps = {
-	checkName: string
+	cronJobName: string
 	projectName: string
 	status: "DOWN" | "RECOVERED" | "STILL DOWN" | "FAILED"
 	lastPingAt: string | null
@@ -43,7 +43,7 @@ function formatDuration(ms: number): string {
 }
 
 export function AlertEmail({
-	checkName,
+	cronJobName,
 	projectName,
 	status,
 	lastPingAt,
@@ -51,20 +51,20 @@ export function AlertEmail({
 }: AlertEmailProps) {
 	const isDown = status !== "RECOVERED"
 	const emoji = isDown ? "\u{1F534}" : "\u{2705}"
-	const preview = `${checkName} is ${status}`
+	const preview = `${cronJobName} is ${status}`
 
 	return (
 		<BaseEmail preview={preview}>
 			<Section style={content}>
 				<Text style={heading}>
-					{emoji} {checkName} is {status}
+					{emoji} {cronJobName} is {status}
 				</Text>
 				<Section style={details}>
 					<Text style={detailRow}>
 						<span style={label}>Project:</span> {projectName}
 					</Text>
 					<Text style={detailRow}>
-						<span style={label}>Check:</span> {checkName}
+						<span style={label}>Cron Job:</span> {cronJobName}
 					</Text>
 					<Text style={detailRow}>
 						<span style={label}>Status:</span>{" "}
@@ -121,13 +121,13 @@ export function AlertEmail({
 						<Section style={contextSection}>
 							<Text style={contextHeading}>Related Failures</Text>
 							<Text style={detailRow}>
-								These checks also failed around the same time:
+								These cron jobs also failed around the same time:
 							</Text>
 							{context.correlation.relatedFailures
 								.slice(0, 5)
 								.map((failure) => (
-									<Text key={failure.checkId} style={relatedFailure}>
-										• {failure.checkName}
+									<Text key={failure.cronJobId} style={relatedFailure}>
+										• {failure.cronJobName}
 									</Text>
 								))}
 						</Section>

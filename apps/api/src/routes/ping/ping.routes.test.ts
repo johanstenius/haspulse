@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { createApp } from "../../app.js"
 
-vi.mock("../../repositories/check.repository.js", () => ({
-	checkRepository: {
+vi.mock("../../repositories/cron-job.repository.js", () => ({
+	cronJobRepository: {
 		findIdBySlugInProject: vi.fn(),
 		updateOnPing: vi.fn(),
 	},
@@ -16,7 +16,7 @@ vi.mock("../../services/api-key.service.js", () => ({
 	validateApiKey: vi.fn(),
 }))
 
-import { checkRepository } from "../../repositories/check.repository.js"
+import { cronJobRepository } from "../../repositories/cron-job.repository.js"
 import { validateApiKey } from "../../services/api-key.service.js"
 import { recordPing } from "../../services/ping.service.js"
 
@@ -53,13 +53,13 @@ describe("Ping Routes", () => {
 			expect(res.status).toBe(401)
 		})
 
-		it("returns 200 for valid check slug", async () => {
-			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
-				"check123",
+		it("returns 200 for valid cron job slug", async () => {
+			vi.mocked(cronJobRepository.findIdBySlugInProject).mockResolvedValue(
+				"cronjob123",
 			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
-				checkId: "check123",
+				cronJobId: "cronjob123",
 				type: "SUCCESS",
 				body: null,
 				sourceIp: "127.0.0.1",
@@ -75,7 +75,7 @@ describe("Ping Routes", () => {
 			expect(res.status).toBe(200)
 			const json = await res.json()
 			expect(json).toEqual({ ok: true })
-			expect(checkRepository.findIdBySlugInProject).toHaveBeenCalledWith(
+			expect(cronJobRepository.findIdBySlugInProject).toHaveBeenCalledWith(
 				projectId,
 				"daily-backup",
 			)
@@ -83,9 +83,9 @@ describe("Ping Routes", () => {
 		})
 
 		it("returns 200 for unknown slug (silent fail)", async () => {
-			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(null)
+			vi.mocked(cronJobRepository.findIdBySlugInProject).mockResolvedValue(null)
 
-			const res = await app.request("/ping/unknown-check", {
+			const res = await app.request("/ping/unknown-cronjob", {
 				headers: { Authorization: `Bearer ${apiKey}` },
 			})
 
@@ -96,12 +96,12 @@ describe("Ping Routes", () => {
 
 	describe("GET /ping/{slug}/start", () => {
 		it("records start signal", async () => {
-			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
-				"check123",
+			vi.mocked(cronJobRepository.findIdBySlugInProject).mockResolvedValue(
+				"cronjob123",
 			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
-				checkId: "check123",
+				cronJobId: "cronjob123",
 				type: "START",
 				body: null,
 				sourceIp: "127.0.0.1",
@@ -123,12 +123,12 @@ describe("Ping Routes", () => {
 
 	describe("GET /ping/{slug}/fail", () => {
 		it("records fail signal", async () => {
-			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
-				"check123",
+			vi.mocked(cronJobRepository.findIdBySlugInProject).mockResolvedValue(
+				"cronjob123",
 			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
-				checkId: "check123",
+				cronJobId: "cronjob123",
 				type: "FAIL",
 				body: null,
 				sourceIp: "127.0.0.1",
@@ -150,12 +150,12 @@ describe("Ping Routes", () => {
 
 	describe("POST /ping/{slug}", () => {
 		it("captures request body", async () => {
-			vi.mocked(checkRepository.findIdBySlugInProject).mockResolvedValue(
-				"check123",
+			vi.mocked(cronJobRepository.findIdBySlugInProject).mockResolvedValue(
+				"cronjob123",
 			)
 			vi.mocked(recordPing).mockResolvedValue({
 				id: "ping123",
-				checkId: "check123",
+				cronJobId: "cronjob123",
 				type: "SUCCESS",
 				body: "job output",
 				sourceIp: "127.0.0.1",

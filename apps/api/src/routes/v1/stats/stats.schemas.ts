@@ -1,7 +1,7 @@
 import { z } from "@hono/zod-openapi"
-import { checkIdParamSchema, errorResponseSchema } from "../shared/schemas.js"
+import { cronJobIdParamSchema, errorResponseSchema } from "../shared/schemas.js"
 
-export { errorResponseSchema, checkIdParamSchema }
+export { errorResponseSchema, cronJobIdParamSchema }
 
 export const uptimeDaySchema = z.object({
 	date: z.string(),
@@ -13,14 +13,14 @@ export const uptimeDaySchema = z.object({
 
 export type UptimeDayResponse = z.infer<typeof uptimeDaySchema>
 
-export const checkStatsResponseSchema = z
+export const cronJobStatsResponseSchema = z
 	.object({
-		checkId: z.string(),
+		cronJobId: z.string(),
 		days: z.array(uptimeDaySchema),
 	})
-	.openapi("CheckStats")
+	.openapi("CronJobStats")
 
-export type CheckStatsResponse = z.infer<typeof checkStatsResponseSchema>
+export type CronJobStatsResponse = z.infer<typeof cronJobStatsResponseSchema>
 
 export const statsQuerySchema = z.object({
 	days: z

@@ -189,8 +189,12 @@ export const organizationRepository = {
 		return prisma.project.count({ where: { orgId } })
 	},
 
-	async countChecksByOrg(orgId: string): Promise<number> {
-		return prisma.check.count({ where: { project: { orgId } } })
+	async countCronJobsByOrg(orgId: string): Promise<number> {
+		return prisma.cronJob.count({ where: { project: { orgId } } })
+	},
+
+	async countHttpMonitorsByOrg(orgId: string): Promise<number> {
+		return prisma.httpMonitor.count({ where: { project: { orgId } } })
 	},
 
 	async countChannelsByProject(projectId: string): Promise<number> {
@@ -211,11 +215,11 @@ export const organizationRepository = {
 		return member !== null
 	},
 
-	async findByCheckId(checkId: string): Promise<OrgModel | null> {
-		const check = await prisma.check.findUnique({
-			where: { id: checkId },
+	async findByCronJobId(cronJobId: string): Promise<OrgModel | null> {
+		const cronJob = await prisma.cronJob.findUnique({
+			where: { id: cronJobId },
 			include: { project: { include: { org: true } } },
 		})
-		return check?.project?.org ? toOrgModel(check.project.org) : null
+		return cronJob?.project?.org ? toOrgModel(cronJob.project.org) : null
 	},
 }

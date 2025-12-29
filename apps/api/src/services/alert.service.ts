@@ -2,18 +2,18 @@ import { logger } from "../lib/logger.js"
 import {
 	type AlertFilters,
 	type AlertModel,
-	type AlertModelWithCheck,
+	type AlertModelWithCronJob,
 	type AlertOrgFilters,
 	alertRepository,
 } from "../repositories/alert.repository.js"
 import { createPaginatedResult } from "../routes/v1/shared/schemas.js"
 import { buildAlertContext } from "./alert-context.service.js"
 import { type AlertEvent, sendToChannel } from "./channel-sender.service.js"
-import { listChannelsByCheck } from "./channel.service.js"
-import type { CheckModel } from "./check.service.js"
+import { listChannelsByCronJob } from "./channel.service.js"
+import type { CronJobModel } from "./cron-job.service.js"
 import { getProjectById } from "./project.service.js"
 
-export type { AlertModel, AlertModelWithCheck }
+export type { AlertModel, AlertModelWithCronJob }
 
 export type AlertResult = {
 	sent: boolean
@@ -23,49 +23,52 @@ export type AlertResult = {
 
 // Dedup cooldown in minutes per event type
 const ALERT_COOLDOWN_MINUTES: Record<string, number> = {
-	"check.fail": 5, // Don't spam on repeated failures
-	"check.down": 0, // Always alert on down
-	"check.up": 0, // Always alert on recovery
-	"check.still_down": 0, // Handled by reminderIntervalHours
+	"cronJob.fail": 5, // Don't spam on repeated failures
+	"cronJob.down": 0, // Always alert on down
+	"cronJob.up": 0, // Always alert on recovery
+	"cronJob.still_down": 0, // Handled by reminderIntervalHours
 }
 
 export async function triggerAlert(
 	event: AlertEvent,
-	check: CheckModel,
+	cronJob: CronJobModel,
 	options: { skipDedup?: boolean } = {},
 ): Promise<AlertResult> {
 	const cooldown = ALERT_COOLDOWN_MINUTES[event] ?? 0
 	if (!options.skipDedup && cooldown > 0) {
 		const hasRecent = await alertRepository.hasRecentAlert(
-			check.id,
+			cronJob.id,
 			event,
 			cooldown,
 		)
 		if (hasRecent) {
 			logger.info(
-				{ checkId: check.id, event, cooldown },
+				{ cronJobId: cronJob.id, event, cooldown },
 				"Alert skipped (dedup cooldown)",
 			)
 			return { sent: false, success: false, skipped: true }
 		}
 	}
 
-	const channels = await listChannelsByCheck(check.id)
+	const channels = await listChannelsByCronJob(cronJob.id)
 	if (channels.length === 0) {
 		return { sent: false, success: false }
 	}
 
-	const project = await getProjectById(check.projectId)
+	const project = await getProjectById(cronJob.projectId)
 	if (!project) {
-		logger.error({ projectId: check.projectId }, "Project not found for alert")
+		logger.error(
+			{ projectId: cronJob.projectId },
+			"Project not found for alert",
+		)
 		return { sent: false, success: false }
 	}
 
-	const context = await buildAlertContext(check, event)
+	const context = await buildAlertContext(cronJob, event)
 
 	const results = await Promise.allSettled(
 		channels.map((channel) =>
-			sendToChannel(channel, event, check, project, context),
+			sendToChannel(channel, event, cronJob, project, context),
 		),
 	)
 
@@ -93,7 +96,7 @@ export async function triggerAlert(
 	}
 
 	await alertRepository.create({
-		checkId: check.id,
+		cronJobId: cronJob.id,
 		event,
 		channels: channelSnapshots,
 		context,
@@ -104,14 +107,14 @@ export async function triggerAlert(
 	return { sent: true, success: allSuccess }
 }
 
-export async function getCheckAlertsPaginated(
-	checkId: string,
+export async function getCronJobAlertsPaginated(
+	cronJobId: string,
 	page: number,
 	limit: number,
 	filters?: AlertFilters,
 ) {
-	const result = await alertRepository.findByCheckIdPaginated(
-		checkId,
+	const result = await alertRepository.findByCronJobIdPaginated(
+		cronJobId,
 		page,
 		limit,
 		filters,

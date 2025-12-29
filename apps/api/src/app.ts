@@ -8,6 +8,7 @@ import { AppError } from "./lib/errors.js"
 import { logger } from "./lib/logger.js"
 import { badgeRoutes } from "./routes/badge/badge.routes.js"
 import { pingRoutes } from "./routes/ping/ping.routes.js"
+import { statusRoutes } from "./routes/status/status.routes.js"
 import { v1Routes } from "./routes/v1/index.js"
 import { stripeWebhookRoutes } from "./routes/webhooks/stripe.routes.js"
 
@@ -93,6 +94,9 @@ export function createApp() {
 
 	// Mount badge routes (public, no auth required)
 	app.route("/", badgeRoutes)
+
+	// Mount public status routes (no auth required)
+	app.route("/", statusRoutes)
 
 	// Mount v1 management API
 	app.route("/v1", v1Routes)

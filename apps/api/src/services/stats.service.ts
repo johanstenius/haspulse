@@ -1,5 +1,6 @@
 import {
 	type DailyStatModel,
+	type HttpMonitorDailyStatModel,
 	statsRepository,
 } from "../repositories/stats.repository.js"
 
@@ -11,8 +12,8 @@ export type UptimeDay = {
 	totalPings: number
 }
 
-export type CheckUptimeHistory = {
-	checkId: string
+export type CronJobUptimeHistory = {
+	cronJobId: string
 	days: UptimeDay[]
 }
 
@@ -75,67 +76,164 @@ function fillMissingDays(
 	return result
 }
 
-export async function getCheckUptimeHistory(
-	checkId: string,
+export async function getCronJobUptimeHistory(
+	cronJobId: string,
 	days: number,
-): Promise<CheckUptimeHistory> {
+): Promise<CronJobUptimeHistory> {
 	const { startDate, endDate } = getDateRange(days)
 
-	const stats = await statsRepository.findByCheckIdAndDateRange(
-		checkId,
+	const stats = await statsRepository.findByCronJobIdAndDateRange(
+		cronJobId,
 		startDate,
 		endDate,
 	)
 
 	return {
-		checkId,
+		cronJobId,
 		days: fillMissingDays(stats, startDate, endDate),
 	}
 }
 
-export async function getChecksUptimeHistory(
-	checkIds: string[],
+export async function getCronJobsUptimeHistory(
+	cronJobIds: string[],
 	days: number,
 ): Promise<Map<string, UptimeDay[]>> {
 	const { startDate, endDate } = getDateRange(days)
 
-	const stats = await statsRepository.findByCheckIdsAndDateRange(
-		checkIds,
+	const stats = await statsRepository.findByCronJobIdsAndDateRange(
+		cronJobIds,
 		startDate,
 		endDate,
 	)
 
-	const statsByCheck = new Map<string, DailyStatModel[]>()
+	const statsByCronJob = new Map<string, DailyStatModel[]>()
 	for (const stat of stats) {
-		const existing = statsByCheck.get(stat.checkId) ?? []
+		const existing = statsByCronJob.get(stat.cronJobId) ?? []
 		existing.push(stat)
-		statsByCheck.set(stat.checkId, existing)
+		statsByCronJob.set(stat.cronJobId, existing)
 	}
 
 	const result = new Map<string, UptimeDay[]>()
-	for (const checkId of checkIds) {
-		const checkStats = statsByCheck.get(checkId) ?? []
-		result.set(checkId, fillMissingDays(checkStats, startDate, endDate))
+	for (const cronJobId of cronJobIds) {
+		const cronJobStats = statsByCronJob.get(cronJobId) ?? []
+		result.set(cronJobId, fillMissingDays(cronJobStats, startDate, endDate))
 	}
 
 	return result
 }
 
-export async function recordCheckStatus(
-	checkId: string,
+export async function recordCronJobStatus(
+	cronJobId: string,
 	status: string,
 ): Promise<void> {
 	const now = new Date()
 
 	if (status === "UP") {
-		await statsRepository.incrementStat(checkId, now, "upMinutes")
+		await statsRepository.incrementStat(cronJobId, now, "upMinutes")
 	} else if (status === "DOWN" || status === "LATE") {
-		await statsRepository.incrementStat(checkId, now, "downMinutes")
+		await statsRepository.incrementStat(cronJobId, now, "downMinutes")
 	}
 	// NEW and PAUSED don't count towards uptime
 }
 
-export async function recordPing(checkId: string): Promise<void> {
+export async function recordPing(cronJobId: string): Promise<void> {
 	const now = new Date()
-	await statsRepository.incrementStat(checkId, now, "totalPings")
+	await statsRepository.incrementStat(cronJobId, now, "totalPings")
+}
+
+export async function recordHttpMonitorStatus(
+	httpMonitorId: string,
+	status: string,
+): Promise<void> {
+	const now = new Date()
+
+	if (status === "UP") {
+		await statsRepository.incrementHttpMonitorStat(
+			httpMonitorId,
+			now,
+			"upMinutes",
+		)
+	} else if (status === "DOWN" || status === "LATE") {
+		await statsRepository.incrementHttpMonitorStat(
+			httpMonitorId,
+			now,
+			"downMinutes",
+		)
+	}
+}
+
+function httpStatToUptimeDay(stat: HttpMonitorDailyStatModel): UptimeDay {
+	return {
+		date: formatDate(stat.date),
+		upPercent: Math.round(stat.upPercent * 100) / 100,
+		upMinutes: stat.upMinutes,
+		downMinutes: stat.downMinutes,
+		totalPings: stat.totalPolls,
+	}
+}
+
+function fillMissingDaysHttp(
+	stats: HttpMonitorDailyStatModel[],
+	startDate: Date,
+	endDate: Date,
+): UptimeDay[] {
+	const result: UptimeDay[] = []
+	const statsByDate = new Map<string, HttpMonitorDailyStatModel>()
+
+	for (const stat of stats) {
+		statsByDate.set(formatDate(stat.date), stat)
+	}
+
+	const current = new Date(startDate)
+	while (current <= endDate) {
+		const dateStr = formatDate(current)
+		const stat = statsByDate.get(dateStr)
+
+		if (stat) {
+			result.push(httpStatToUptimeDay(stat))
+		} else {
+			result.push({
+				date: dateStr,
+				upPercent: 0,
+				upMinutes: 0,
+				downMinutes: 0,
+				totalPings: 0,
+			})
+		}
+
+		current.setDate(current.getDate() + 1)
+	}
+
+	return result
+}
+
+export async function getHttpMonitorsUptimeHistory(
+	httpMonitorIds: string[],
+	days: number,
+): Promise<Map<string, UptimeDay[]>> {
+	const { startDate, endDate } = getDateRange(days)
+
+	const stats = await statsRepository.findHttpMonitorStatsByIdsAndDateRange(
+		httpMonitorIds,
+		startDate,
+		endDate,
+	)
+
+	const statsByHttpMonitor = new Map<string, HttpMonitorDailyStatModel[]>()
+	for (const stat of stats) {
+		const existing = statsByHttpMonitor.get(stat.httpMonitorId) ?? []
+		existing.push(stat)
+		statsByHttpMonitor.set(stat.httpMonitorId, existing)
+	}
+
+	const result = new Map<string, UptimeDay[]>()
+	for (const httpMonitorId of httpMonitorIds) {
+		const httpStats = statsByHttpMonitor.get(httpMonitorId) ?? []
+		result.set(
+			httpMonitorId,
+			fillMissingDaysHttp(httpStats, startDate, endDate),
+		)
+	}
+
+	return result
 }

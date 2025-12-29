@@ -18,7 +18,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		"DISCORD",
 	)
 	const status = eventDisplayName(ctx.event)
-	const color = ctx.event === "check.up" ? 0x00ff00 : 0xff0000
+	const color = ctx.event === "cronJob.up" ? 0x00ff00 : 0xff0000
 
 	const fields: Array<{ name: string; value: string; inline?: boolean }> = [
 		{ name: "Project", value: ctx.project.name, inline: true },
@@ -55,13 +55,13 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	) {
 		const related = ctx.richContext.correlation.relatedFailures
 			.slice(0, 3)
-			.map((f) => f.checkName)
+			.map((f) => f.cronJobName)
 			.join(", ")
 		fields.push({ name: "Related Failures", value: related, inline: true })
 	}
 
 	const embed = {
-		title: `${ctx.check.name} is ${status}`,
+		title: `${ctx.cronJob.name} is ${status}`,
 		color,
 		fields,
 		timestamp: new Date().toISOString(),

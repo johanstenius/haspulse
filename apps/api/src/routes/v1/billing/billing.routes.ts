@@ -104,12 +104,19 @@ billingRoutes.openapi(getBillingRoute, async (c) => {
 		isTrialing,
 		trialEndsAt: org.trialEndsAt?.toISOString() ?? null,
 		usage: {
-			checks: {
-				current: usage.totalChecks,
+			cronJobs: {
+				current: usage.totalCronJobs,
 				limit:
-					tier.limits.checks === Number.POSITIVE_INFINITY
+					tier.limits.cronJobs === Number.POSITIVE_INFINITY
 						? null
-						: tier.limits.checks,
+						: tier.limits.cronJobs,
+			},
+			httpMonitors: {
+				current: usage.totalHttpMonitors,
+				limit:
+					tier.limits.httpMonitors === Number.POSITIVE_INFINITY
+						? null
+						: tier.limits.httpMonitors,
 			},
 			projects: {
 				current: usage.projectCount,

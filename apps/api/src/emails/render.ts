@@ -34,15 +34,15 @@ type AlertContext = {
 	}
 	correlation?: {
 		relatedFailures: Array<{
-			checkId: string
-			checkName: string
+			cronJobId: string
+			cronJobName: string
 			failedAt: string
 		}>
 	}
 }
 
 type AlertEmailParams = {
-	checkName: string
+	cronJobName: string
 	projectName: string
 	status: "DOWN" | "RECOVERED" | "STILL DOWN" | "FAILED"
 	lastPingAt: string | null

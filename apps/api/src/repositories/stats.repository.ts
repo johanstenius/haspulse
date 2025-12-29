@@ -2,7 +2,7 @@ import { prisma } from "@haspulse/db"
 
 export type DailyStatModel = {
 	id: string
-	checkId: string
+	cronJobId: string
 	date: Date
 	upMinutes: number
 	downMinutes: number
@@ -14,7 +14,7 @@ export type DailyStatModel = {
 
 function toDailyStatModel(stat: {
 	id: string
-	checkId: string
+	cronJobId: string
 	date: Date
 	upMinutes: number
 	downMinutes: number
@@ -25,7 +25,7 @@ function toDailyStatModel(stat: {
 }): DailyStatModel {
 	return {
 		id: stat.id,
-		checkId: stat.checkId,
+		cronJobId: stat.cronJobId,
 		date: stat.date,
 		upMinutes: stat.upMinutes,
 		downMinutes: stat.downMinutes,
@@ -38,7 +38,7 @@ function toDailyStatModel(stat: {
 
 export const statsRepository = {
 	async upsertDailyStat(
-		checkId: string,
+		cronJobId: string,
 		date: Date,
 		data: {
 			upMinutes?: number
@@ -48,12 +48,12 @@ export const statsRepository = {
 	): Promise<DailyStatModel> {
 		const dateOnly = new Date(date.toISOString().slice(0, 10))
 
-		const stat = await prisma.checkDailyStat.upsert({
+		const stat = await prisma.cronJobDailyStat.upsert({
 			where: {
-				checkId_date: { checkId, date: dateOnly },
+				cronJobId_date: { cronJobId, date: dateOnly },
 			},
 			create: {
-				checkId,
+				cronJobId,
 				date: dateOnly,
 				upMinutes: data.upMinutes ?? 0,
 				downMinutes: data.downMinutes ?? 0,
@@ -71,18 +71,18 @@ export const statsRepository = {
 	},
 
 	async incrementStat(
-		checkId: string,
+		cronJobId: string,
 		date: Date,
 		field: "upMinutes" | "downMinutes" | "totalPings",
 	): Promise<DailyStatModel> {
 		const dateOnly = new Date(date.toISOString().slice(0, 10))
 
-		const stat = await prisma.checkDailyStat.upsert({
+		const stat = await prisma.cronJobDailyStat.upsert({
 			where: {
-				checkId_date: { checkId, date: dateOnly },
+				cronJobId_date: { cronJobId, date: dateOnly },
 			},
 			create: {
-				checkId,
+				cronJobId,
 				date: dateOnly,
 				[field]: 1,
 				upPercent: field === "upMinutes" ? 100 : 0,
@@ -97,7 +97,7 @@ export const statsRepository = {
 		const upPercent = total > 0 ? (stat.upMinutes / total) * 100 : 0
 
 		if (Math.abs(upPercent - stat.upPercent) > 0.01) {
-			const updated = await prisma.checkDailyStat.update({
+			const updated = await prisma.cronJobDailyStat.update({
 				where: { id: stat.id },
 				data: { upPercent },
 			})
@@ -107,14 +107,14 @@ export const statsRepository = {
 		return toDailyStatModel(stat)
 	},
 
-	async findByCheckIdAndDateRange(
-		checkId: string,
+	async findByCronJobIdAndDateRange(
+		cronJobId: string,
 		startDate: Date,
 		endDate: Date,
 	): Promise<DailyStatModel[]> {
-		const stats = await prisma.checkDailyStat.findMany({
+		const stats = await prisma.cronJobDailyStat.findMany({
 			where: {
-				checkId,
+				cronJobId,
 				date: {
 					gte: startDate,
 					lte: endDate,
@@ -131,9 +131,9 @@ export const statsRepository = {
 		startDate: Date,
 		endDate: Date,
 	): Promise<DailyStatModel[]> {
-		const stats = await prisma.checkDailyStat.findMany({
+		const stats = await prisma.cronJobDailyStat.findMany({
 			where: {
-				check: { projectId },
+				cronJob: { projectId },
 				date: {
 					gte: startDate,
 					lte: endDate,
@@ -145,14 +145,14 @@ export const statsRepository = {
 		return stats.map(toDailyStatModel)
 	},
 
-	async findByCheckIdsAndDateRange(
-		checkIds: string[],
+	async findByCronJobIdsAndDateRange(
+		cronJobIds: string[],
 		startDate: Date,
 		endDate: Date,
 	): Promise<DailyStatModel[]> {
-		const stats = await prisma.checkDailyStat.findMany({
+		const stats = await prisma.cronJobDailyStat.findMany({
 			where: {
-				checkId: { in: checkIds },
+				cronJobId: { in: cronJobIds },
 				date: {
 					gte: startDate,
 					lte: endDate,
@@ -172,9 +172,9 @@ export const statsRepository = {
 		startDate.setDate(startDate.getDate() - days)
 		startDate.setHours(0, 0, 0, 0)
 
-		const result = await prisma.checkDailyStat.aggregate({
+		const result = await prisma.cronJobDailyStat.aggregate({
 			where: {
-				check: { project: { orgId } },
+				cronJob: { project: { orgId } },
 				date: { gte: startDate },
 			},
 			_sum: {
@@ -188,4 +188,88 @@ export const statsRepository = {
 			downMinutes: result._sum.downMinutes ?? 0,
 		}
 	},
+
+	// HTTP Monitor Stats
+	async incrementHttpMonitorStat(
+		httpMonitorId: string,
+		date: Date,
+		field: "upMinutes" | "downMinutes" | "totalPolls",
+	): Promise<void> {
+		const dateOnly = new Date(date.toISOString().slice(0, 10))
+
+		const stat = await prisma.httpMonitorDailyStat.upsert({
+			where: {
+				httpMonitorId_date: { httpMonitorId, date: dateOnly },
+			},
+			create: {
+				httpMonitorId,
+				date: dateOnly,
+				[field]: 1,
+				upPercent: field === "upMinutes" ? 100 : 0,
+			},
+			update: {
+				[field]: { increment: 1 },
+			},
+		})
+
+		// Recalculate upPercent
+		const total = stat.upMinutes + stat.downMinutes
+		const upPercent = total > 0 ? (stat.upMinutes / total) * 100 : 0
+
+		if (Math.abs(upPercent - stat.upPercent) > 0.01) {
+			await prisma.httpMonitorDailyStat.update({
+				where: { id: stat.id },
+				data: { upPercent },
+			})
+		}
+	},
+
+	async findHttpMonitorStatsByIdsAndDateRange(
+		httpMonitorIds: string[],
+		startDate: Date,
+		endDate: Date,
+	): Promise<HttpMonitorDailyStatModel[]> {
+		const stats = await prisma.httpMonitorDailyStat.findMany({
+			where: {
+				httpMonitorId: { in: httpMonitorIds },
+				date: {
+					gte: startDate,
+					lte: endDate,
+				},
+			},
+			orderBy: { date: "asc" },
+		})
+
+		return stats.map(toHttpMonitorDailyStatModel)
+	},
+}
+
+export type HttpMonitorDailyStatModel = {
+	id: string
+	httpMonitorId: string
+	date: Date
+	upMinutes: number
+	downMinutes: number
+	totalPolls: number
+	upPercent: number
+}
+
+function toHttpMonitorDailyStatModel(stat: {
+	id: string
+	httpMonitorId: string
+	date: Date
+	upMinutes: number
+	downMinutes: number
+	totalPolls: number
+	upPercent: number
+}): HttpMonitorDailyStatModel {
+	return {
+		id: stat.id,
+		httpMonitorId: stat.httpMonitorId,
+		date: stat.date,
+		upMinutes: stat.upMinutes,
+		downMinutes: stat.downMinutes,
+		totalPolls: stat.totalPolls,
+		upPercent: stat.upPercent,
+	}
 }

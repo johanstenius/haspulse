@@ -69,7 +69,7 @@ export function formatContextBlocks(
 	) {
 		const related = richContext.correlation.relatedFailures
 			.slice(0, 3)
-			.map((f) => `• ${f.checkName}`)
+			.map((f) => `• ${f.cronJobName}`)
 			.join("\n")
 		blocks.push({
 			type: "section",
@@ -90,7 +90,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		"SLACK_WEBHOOK",
 	)
 	const status = eventDisplayName(ctx.event)
-	const emoji = ctx.event === "check.up" ? ":white_check_mark:" : ":x:"
+	const emoji = ctx.event === "cronJob.up" ? ":white_check_mark:" : ":x:"
 
 	const blocks: Array<{
 		type: string
@@ -100,7 +100,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: `${emoji} *${ctx.check.name}* is ${status}\nProject: ${ctx.project.name}`,
+				text: `${emoji} *${ctx.cronJob.name}* is ${status}\nProject: ${ctx.project.name}`,
 			},
 		},
 	]
@@ -109,7 +109,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	blocks.push(...contextBlocks)
 
 	const message = {
-		text: `${emoji} *${ctx.check.name}* is ${status}`,
+		text: `${emoji} *${ctx.cronJob.name}* is ${status}`,
 		blocks,
 	}
 

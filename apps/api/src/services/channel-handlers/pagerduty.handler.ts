@@ -20,19 +20,19 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	)
 	const payload = buildPayload(
 		ctx.event,
-		ctx.check,
+		ctx.cronJob,
 		ctx.project,
 		ctx.richContext,
 	)
 
 	const pdEvent = {
 		routing_key: config.routingKey,
-		event_action: ctx.event === "check.up" ? "resolve" : "trigger",
-		dedup_key: `haspulse-${ctx.check.id}`,
+		event_action: ctx.event === "cronJob.up" ? "resolve" : "trigger",
+		dedup_key: `haspulse-${ctx.cronJob.id}`,
 		payload: {
-			summary: `${ctx.check.name} is ${eventDisplayName(ctx.event)}`,
+			summary: `${ctx.cronJob.name} is ${eventDisplayName(ctx.event)}`,
 			source: `haspulse/${ctx.project.slug}`,
-			severity: ctx.event === "check.up" ? "info" : "critical",
+			severity: ctx.event === "cronJob.up" ? "info" : "critical",
 			timestamp: payload.timestamp,
 			custom_details: payload,
 		},

@@ -26,7 +26,7 @@ vi.mock("better-auth/plugins", () => ({
 
 vi.mock("@haspulse/db", () => ({
 	prisma: {
-		check: {
+		cronJob: {
 			findUnique: vi.fn(),
 			findFirst: vi.fn(),
 			count: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock("@haspulse/db", () => ({
 			create: vi.fn(),
 		},
 	},
-	CheckStatus: {
+	MonitorStatus: {
 		NEW: "NEW",
 		UP: "UP",
 		LATE: "LATE",

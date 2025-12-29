@@ -22,9 +22,9 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			? "https://api.eu.opsgenie.com"
 			: "https://api.opsgenie.com"
 
-	const alias = `haspulse-${ctx.check.id}`
+	const alias = `haspulse-${ctx.cronJob.id}`
 
-	if (ctx.event === "check.up") {
+	if (ctx.event === "cronJob.up") {
 		try {
 			const response = await fetch(
 				`${baseUrl}/v2/alerts/${alias}/close?identifierType=alias`,
@@ -34,7 +34,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 						"Content-Type": "application/json",
 						Authorization: `GenieKey ${config.apiKey}`,
 					},
-					body: JSON.stringify({ note: "Check recovered" }),
+					body: JSON.stringify({ note: "Cron job recovered" }),
 				},
 			)
 			return response.ok
@@ -46,7 +46,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	}
 
 	const details: Record<string, string> = {
-		checkId: ctx.check.id,
+		cronJobId: ctx.cronJob.id,
 		projectSlug: ctx.project.slug,
 		event: ctx.event,
 	}
@@ -79,12 +79,12 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	) {
 		details.relatedFailures = ctx.richContext.correlation.relatedFailures
 			.slice(0, 5)
-			.map((f) => f.checkName)
+			.map((f) => f.cronJobName)
 			.join(", ")
 	}
 
 	const alert = {
-		message: `${ctx.check.name} is ${eventDisplayName(ctx.event)}`,
+		message: `${ctx.cronJob.name} is ${eventDisplayName(ctx.event)}`,
 		alias,
 		priority: "P1",
 		source: "Haspulse",

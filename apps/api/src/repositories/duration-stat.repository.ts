@@ -2,7 +2,7 @@ import { prisma } from "@haspulse/db"
 
 export type DurationStatModel = {
 	id: string
-	checkId: string
+	cronJobId: string
 	windowStart: Date
 	windowEnd: Date
 	sampleCount: number
@@ -32,7 +32,7 @@ type UpsertDurationStatInput = {
 
 function toModel(stat: {
 	id: string
-	checkId: string
+	cronJobId: string
 	windowStart: Date
 	windowEnd: Date
 	sampleCount: number
@@ -48,7 +48,7 @@ function toModel(stat: {
 }): DurationStatModel {
 	return {
 		id: stat.id,
-		checkId: stat.checkId,
+		cronJobId: stat.cronJobId,
 		windowStart: stat.windowStart,
 		windowEnd: stat.windowEnd,
 		sampleCount: stat.sampleCount,
@@ -65,38 +65,38 @@ function toModel(stat: {
 }
 
 export const durationStatRepository = {
-	async findLatestByCheckId(
-		checkId: string,
+	async findLatestByCronJobId(
+		cronJobId: string,
 	): Promise<DurationStatModel | null> {
-		const stat = await prisma.checkDurationStat.findFirst({
-			where: { checkId },
+		const stat = await prisma.cronJobDurationStat.findFirst({
+			where: { cronJobId },
 			orderBy: { windowEnd: "desc" },
 		})
 		return stat ? toModel(stat) : null
 	},
 
-	async findByCheckIdAndWindow(
-		checkId: string,
+	async findByCronJobIdAndWindow(
+		cronJobId: string,
 		windowStart: Date,
 	): Promise<DurationStatModel | null> {
-		const stat = await prisma.checkDurationStat.findUnique({
+		const stat = await prisma.cronJobDurationStat.findUnique({
 			where: {
-				checkId_windowStart: { checkId, windowStart },
+				cronJobId_windowStart: { cronJobId, windowStart },
 			},
 		})
 		return stat ? toModel(stat) : null
 	},
 
 	async upsert(
-		checkId: string,
+		cronJobId: string,
 		data: UpsertDurationStatInput,
 	): Promise<DurationStatModel> {
-		const stat = await prisma.checkDurationStat.upsert({
+		const stat = await prisma.cronJobDurationStat.upsert({
 			where: {
-				checkId_windowStart: { checkId, windowStart: data.windowStart },
+				cronJobId_windowStart: { cronJobId, windowStart: data.windowStart },
 			},
 			create: {
-				checkId,
+				cronJobId,
 				windowStart: data.windowStart,
 				windowEnd: data.windowEnd,
 				sampleCount: data.sampleCount,
@@ -123,22 +123,22 @@ export const durationStatRepository = {
 		return toModel(stat)
 	},
 
-	async findRecentByCheckId(
-		checkId: string,
+	async findRecentByCronJobId(
+		cronJobId: string,
 		limit: number,
 	): Promise<DurationStatModel[]> {
-		const stats = await prisma.checkDurationStat.findMany({
-			where: { checkId },
+		const stats = await prisma.cronJobDurationStat.findMany({
+			where: { cronJobId },
 			orderBy: { windowEnd: "desc" },
 			take: limit,
 		})
 		return stats.map(toModel)
 	},
 
-	async deleteOlderThan(checkId: string, cutoffDate: Date): Promise<number> {
-		const result = await prisma.checkDurationStat.deleteMany({
+	async deleteOlderThan(cronJobId: string, cutoffDate: Date): Promise<number> {
+		const result = await prisma.cronJobDurationStat.deleteMany({
 			where: {
-				checkId,
+				cronJobId,
 				windowEnd: { lt: cutoffDate },
 			},
 		})

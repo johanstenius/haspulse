@@ -11,7 +11,7 @@ import { isLimitExceeded } from "@/lib/api"
 import {
 	useBilling,
 	useCreateProject,
-	useDashboardChecks,
+	useDashboardCronJobs,
 	useProjects,
 } from "@/lib/query"
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts"
@@ -21,7 +21,7 @@ import { toast } from "sonner"
 
 export default function ProjectsPage() {
 	const { data, isLoading } = useProjects()
-	const { data: checksData } = useDashboardChecks()
+	const { data: cronJobsData } = useDashboardCronJobs()
 	const { data: billing } = useBilling()
 	const createProject = useCreateProject()
 	const [showForm, setShowForm] = useState(false)
@@ -29,15 +29,15 @@ export default function ProjectsPage() {
 
 	const projectLimit = billing?.usage.projects.limit ?? 2
 
-	const checksByProject = useMemo(() => {
-		const checks = checksData?.checks ?? []
-		const map = new Map<string, typeof checks>()
-		for (const check of checks) {
-			const existing = map.get(check.projectId) ?? []
-			map.set(check.projectId, [...existing, check])
+	const cronJobsByProject = useMemo(() => {
+		const cronJobs = cronJobsData?.cronJobs ?? []
+		const map = new Map<string, typeof cronJobs>()
+		for (const cronJob of cronJobs) {
+			const existing = map.get(cronJob.projectId) ?? []
+			map.set(cronJob.projectId, [...existing, cronJob])
 		}
 		return map
-	}, [checksData?.checks])
+	}, [cronJobsData?.cronJobs])
 
 	const openForm = useCallback(() => setShowForm(true), [])
 	const shortcuts = useMemo(() => ({ n: openForm }), [openForm])
@@ -68,7 +68,7 @@ export default function ProjectsPage() {
 		<div className="p-6">
 			<PageHeader
 				title="Projects"
-				description="Organize your checks into projects"
+				description="Organize your monitors into projects"
 				action={
 					<Button onClick={() => setShowForm(true)}>
 						<Plus className="h-4 w-4 mr-2" />
@@ -87,7 +87,7 @@ export default function ProjectsPage() {
 				<EmptyState
 					icon={FolderOpen}
 					title="No projects yet"
-					description="Projects help you organize your checks. Create your first one to get started."
+					description="Projects help you organize monitors. Create your first one to get started."
 					action={{
 						label: "Create project",
 						onClick: () => setShowForm(true),
@@ -99,7 +99,7 @@ export default function ProjectsPage() {
 						<ProjectCard
 							key={project.id}
 							project={project}
-							checks={checksByProject.get(project.id)}
+							cronJobs={cronJobsByProject.get(project.id)}
 						/>
 					))}
 				</div>

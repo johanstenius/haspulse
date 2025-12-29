@@ -110,7 +110,7 @@ export function ProjectForm({
 				</DialogHeader>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)}>
-						<div className="space-y-4 py-4">
+						<div className="space-y-6">
 							<FormField
 								control={form.control}
 								name="name"

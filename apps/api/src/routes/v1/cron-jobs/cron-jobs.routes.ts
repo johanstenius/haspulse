@@ -6,8 +6,8 @@ import {
 	limitExceeded,
 	notFound,
 } from "../../../lib/errors.js"
-import { checkCheckLimit } from "../../../lib/limits.js"
-import { toCheckResponse } from "../../../lib/mappers.js"
+import { checkCronJobLimit } from "../../../lib/limits.js"
+import { toCronJobResponse } from "../../../lib/mappers.js"
 import type { AuthEnv } from "../../../middleware/auth.js"
 import {
 	getApiKeyProjectId,
@@ -19,18 +19,18 @@ import { organizationRepository } from "../../../repositories/organization.repos
 import { pingRepository } from "../../../repositories/ping.repository.js"
 import { listDefaultChannelsByProject } from "../../../services/channel.service.js"
 import {
-	type CheckModel,
-	createCheck,
-	deleteCheck,
-	getCheckById,
-	getCheckChannelIds,
-	listChecksByProjectPaginated,
-	pauseCheck,
-	resumeCheck,
-	setCheckChannelIds,
+	type CronJobModel,
+	createCronJob,
+	deleteCronJob,
+	getCronJobById,
+	getCronJobChannelIds,
+	listCronJobsByProjectPaginated,
+	pauseCronJob,
+	resumeCronJob,
+	setCronJobChannelIds,
 	slugExistsInProject,
-	updateCheck,
-} from "../../../services/check.service.js"
+	updateCronJob,
+} from "../../../services/cron-job.service.js"
 import {
 	getDurationStats,
 	getDurationTrend,
@@ -42,26 +42,26 @@ import {
 } from "../../../services/project.service.js"
 import { calculateSparkline } from "../../../services/sparkline.service.js"
 import {
-	checkIdParamSchema,
-	checkListQuerySchema,
-	checkListResponseSchema,
-	checkResponseSchema,
-	createCheckBodySchema,
+	createCronJobBodySchema,
+	cronJobIdParamSchema,
+	cronJobListQuerySchema,
+	cronJobListResponseSchema,
+	cronJobResponseSchema,
 	durationStatsResponseSchema,
 	errorResponseSchema,
 	projectIdParamSchema,
-	updateCheckBodySchema,
-} from "./checks.schemas.js"
+	updateCronJobBodySchema,
+} from "./cron-jobs.schemas.js"
 
 // Routes for project-scoped operations (list, create)
 // Mounted at /projects
-const projectCheckRoutes = new OpenAPIHono<AuthEnv>()
-projectCheckRoutes.use("*", requireAuth)
+const projectCronJobRoutes = new OpenAPIHono<AuthEnv>()
+projectCronJobRoutes.use("*", requireAuth)
 
-// Routes for direct check operations (get, update, delete, pause, resume)
-// Mounted at /checks
-const checkRoutes = new OpenAPIHono<AuthEnv>()
-checkRoutes.use("*", requireAuth)
+// Routes for direct cron job operations (get, update, delete, pause, resume)
+// Mounted at /cron-jobs
+const cronJobRoutes = new OpenAPIHono<AuthEnv>()
+cronJobRoutes.use("*", requireAuth)
 
 async function getAuthorizedProject(c: Context<AuthEnv>, projectId: string) {
 	if (isApiKeyAuth(c)) {
@@ -78,33 +78,33 @@ async function getAuthorizedProject(c: Context<AuthEnv>, projectId: string) {
 	return getProjectForOrg(projectId, org.id)
 }
 
-async function getAuthorizedCheck(
+async function getAuthorizedCronJob(
 	c: Context<AuthEnv>,
-	checkId: string,
-): Promise<CheckModel> {
-	const check = await getCheckById(checkId)
-	if (!check) throw notFound("Check not found")
+	cronJobId: string,
+): Promise<CronJobModel> {
+	const cronJob = await getCronJobById(cronJobId)
+	if (!cronJob) throw notFound("Cron job not found")
 
 	if (isApiKeyAuth(c)) {
 		const apiKeyProjectId = getApiKeyProjectId(c)
-		if (check.projectId !== apiKeyProjectId)
-			throw forbidden("API key not valid for this check")
+		if (cronJob.projectId !== apiKeyProjectId)
+			throw forbidden("API key not valid for this cron job")
 	} else {
 		const org = getRequiredOrg(c)
-		await getProjectForOrg(check.projectId, org.id)
+		await getProjectForOrg(cronJob.projectId, org.id)
 	}
 
-	return check
+	return cronJob
 }
 
-const listChecksRoute = createRoute({
+const listCronJobsRoute = createRoute({
 	method: "get",
-	path: "/{projectId}/checks",
-	request: { params: projectIdParamSchema, query: checkListQuerySchema },
+	path: "/{projectId}/cron-jobs",
+	request: { params: projectIdParamSchema, query: cronJobListQuerySchema },
 	responses: {
 		200: {
-			content: { "application/json": { schema: checkListResponseSchema } },
-			description: "Paginated list of checks",
+			content: { "application/json": { schema: cronJobListResponseSchema } },
+			description: "Paginated list of cron jobs",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -115,23 +115,23 @@ const listChecksRoute = createRoute({
 			description: "Forbidden",
 		},
 	},
-	tags: ["Checks"],
-	summary: "List all checks for a project",
+	tags: ["Cron Jobs"],
+	summary: "List all cron jobs for a project",
 })
 
-const createCheckRoute = createRoute({
+const createCronJobRoute = createRoute({
 	method: "post",
-	path: "/{projectId}/checks",
+	path: "/{projectId}/cron-jobs",
 	request: {
 		params: projectIdParamSchema,
 		body: {
-			content: { "application/json": { schema: createCheckBodySchema } },
+			content: { "application/json": { schema: createCronJobBodySchema } },
 		},
 	},
 	responses: {
 		201: {
-			content: { "application/json": { schema: checkResponseSchema } },
-			description: "Check created",
+			content: { "application/json": { schema: cronJobResponseSchema } },
+			description: "Cron job created",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -146,18 +146,18 @@ const createCheckRoute = createRoute({
 			description: "Slug already exists",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Create a new check",
+	tags: ["Cron Jobs"],
+	summary: "Create a new cron job",
 })
 
-const getCheckRoute = createRoute({
+const getCronJobRoute = createRoute({
 	method: "get",
 	path: "/{id}",
-	request: { params: checkIdParamSchema },
+	request: { params: cronJobIdParamSchema },
 	responses: {
 		200: {
-			content: { "application/json": { schema: checkResponseSchema } },
-			description: "Check details",
+			content: { "application/json": { schema: cronJobResponseSchema } },
+			description: "Cron job details",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -169,26 +169,26 @@ const getCheckRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Get check by ID",
+	tags: ["Cron Jobs"],
+	summary: "Get cron job by ID",
 })
 
-const updateCheckRoute = createRoute({
+const updateCronJobRoute = createRoute({
 	method: "patch",
 	path: "/{id}",
 	request: {
-		params: checkIdParamSchema,
+		params: cronJobIdParamSchema,
 		body: {
-			content: { "application/json": { schema: updateCheckBodySchema } },
+			content: { "application/json": { schema: updateCronJobBodySchema } },
 		},
 	},
 	responses: {
 		200: {
-			content: { "application/json": { schema: checkResponseSchema } },
-			description: "Check updated",
+			content: { "application/json": { schema: cronJobResponseSchema } },
+			description: "Cron job updated",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -200,23 +200,23 @@ const updateCheckRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 		409: {
 			content: { "application/json": { schema: errorResponseSchema } },
 			description: "Slug already exists",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Update check",
+	tags: ["Cron Jobs"],
+	summary: "Update cron job",
 })
 
-const deleteCheckRoute = createRoute({
+const deleteCronJobRoute = createRoute({
 	method: "delete",
 	path: "/{id}",
-	request: { params: checkIdParamSchema },
+	request: { params: cronJobIdParamSchema },
 	responses: {
-		204: { description: "Check deleted" },
+		204: { description: "Cron job deleted" },
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
 			description: "Unauthorized",
@@ -227,21 +227,21 @@ const deleteCheckRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Delete check",
+	tags: ["Cron Jobs"],
+	summary: "Delete cron job",
 })
 
-const pauseCheckRoute = createRoute({
+const pauseCronJobRoute = createRoute({
 	method: "post",
 	path: "/{id}/pause",
-	request: { params: checkIdParamSchema },
+	request: { params: cronJobIdParamSchema },
 	responses: {
 		200: {
-			content: { "application/json": { schema: checkResponseSchema } },
-			description: "Check paused",
+			content: { "application/json": { schema: cronJobResponseSchema } },
+			description: "Cron job paused",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -253,21 +253,21 @@ const pauseCheckRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Pause check monitoring",
+	tags: ["Cron Jobs"],
+	summary: "Pause cron job monitoring",
 })
 
-const resumeCheckRoute = createRoute({
+const resumeCronJobRoute = createRoute({
 	method: "post",
 	path: "/{id}/resume",
-	request: { params: checkIdParamSchema },
+	request: { params: cronJobIdParamSchema },
 	responses: {
 		200: {
-			content: { "application/json": { schema: checkResponseSchema } },
-			description: "Check resumed",
+			content: { "application/json": { schema: cronJobResponseSchema } },
+			description: "Cron job resumed",
 		},
 		401: {
 			content: { "application/json": { schema: errorResponseSchema } },
@@ -279,17 +279,17 @@ const resumeCheckRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Resume check monitoring",
+	tags: ["Cron Jobs"],
+	summary: "Resume cron job monitoring",
 })
 
 const durationStatsRoute = createRoute({
 	method: "get",
 	path: "/{id}/duration-stats",
-	request: { params: checkIdParamSchema },
+	request: { params: cronJobIdParamSchema },
 	responses: {
 		200: {
 			content: { "application/json": { schema: durationStatsResponseSchema } },
@@ -305,46 +305,50 @@ const durationStatsRoute = createRoute({
 		},
 		404: {
 			content: { "application/json": { schema: errorResponseSchema } },
-			description: "Check not found",
+			description: "Cron job not found",
 		},
 	},
-	tags: ["Checks"],
-	summary: "Get duration statistics for a check",
+	tags: ["Cron Jobs"],
+	summary: "Get duration statistics for a cron job",
 })
 
 // Project-scoped routes
-projectCheckRoutes.openapi(listChecksRoute, async (c) => {
+projectCronJobRoutes.openapi(listCronJobsRoute, async (c) => {
 	const { projectId } = c.req.valid("param")
 	const { page, limit, search, status } = c.req.valid("query")
 	const project = await getAuthorizedProject(c, projectId)
-	const { data, total } = await listChecksByProjectPaginated(
+	const { data, total } = await listCronJobsByProjectPaginated(
 		project.id,
 		page,
 		limit,
 		{ search, status },
 	)
 
-	const checkIds = data.map((check) => check.id)
+	const cronJobIds = data.map((cronJob) => cronJob.id)
 	const [channelIdsMap, pingsMap] = await Promise.all([
-		Promise.all(data.map((check) => getCheckChannelIds(check.id))).then(
-			(results) => new Map(data.map((check, i) => [check.id, results[i]])),
+		Promise.all(data.map((cronJob) => getCronJobChannelIds(cronJob.id))).then(
+			(results) => new Map(data.map((cronJob, i) => [cronJob.id, results[i]])),
 		),
-		pingRepository.findRecentByCheckIds(checkIds, 20),
+		pingRepository.findRecentByCronJobIds(cronJobIds, 20),
 	])
 
-	const checks = data.map((check) => {
-		const pings = pingsMap.get(check.id) ?? []
-		const sparkline = calculateSparkline(check, pings)
-		return toCheckResponse(check, channelIdsMap.get(check.id) ?? [], sparkline)
+	const cronJobs = data.map((cronJob) => {
+		const pings = pingsMap.get(cronJob.id) ?? []
+		const sparkline = calculateSparkline(cronJob, pings)
+		return toCronJobResponse(
+			cronJob,
+			channelIdsMap.get(cronJob.id) ?? [],
+			sparkline,
+		)
 	})
 
 	return c.json(
-		{ checks, total, page, limit, totalPages: Math.ceil(total / limit) },
+		{ cronJobs, total, page, limit, totalPages: Math.ceil(total / limit) },
 		200,
 	)
 })
 
-projectCheckRoutes.openapi(createCheckRoute, async (c) => {
+projectCronJobRoutes.openapi(createCronJobRoute, async (c) => {
 	const { projectId } = c.req.valid("param")
 	const body = c.req.valid("json")
 	const project = await getAuthorizedProject(c, projectId)
@@ -363,7 +367,7 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 		plan = org.plan
 	}
 
-	const limitCheck = await checkCheckLimit(orgId, plan)
+	const limitCheck = await checkCronJobLimit(orgId, plan)
 	if (!limitCheck.allowed) {
 		throw limitExceeded(
 			limitCheck.resource,
@@ -376,7 +380,7 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 		throw conflict("Slug already exists in this project")
 	}
 
-	const check = await createCheck({
+	const cronJob = await createCronJob({
 		projectId: project.id,
 		name: body.name,
 		slug: body.slug,
@@ -392,94 +396,94 @@ projectCheckRoutes.openapi(createCheckRoute, async (c) => {
 	const defaultChannels = await listDefaultChannelsByProject(project.id)
 	const defaultChannelIds = defaultChannels.map((ch) => ch.id)
 	if (defaultChannelIds.length > 0) {
-		await setCheckChannelIds(check.id, defaultChannelIds)
+		await setCronJobChannelIds(cronJob.id, defaultChannelIds)
 	}
 
-	return c.json(toCheckResponse(check, defaultChannelIds), 201)
+	return c.json(toCronJobResponse(cronJob, defaultChannelIds), 201)
 })
 
-// Direct check routes
+// Direct cron job routes
 
-checkRoutes.openapi(getCheckRoute, async (c) => {
+cronJobRoutes.openapi(getCronJobRoute, async (c) => {
 	const { id } = c.req.valid("param")
-	const check = await getAuthorizedCheck(c, id)
+	const cronJob = await getAuthorizedCronJob(c, id)
 	const [channelIds, pingsMap] = await Promise.all([
-		getCheckChannelIds(check.id),
-		pingRepository.findRecentByCheckIds([check.id], 20),
+		getCronJobChannelIds(cronJob.id),
+		pingRepository.findRecentByCronJobIds([cronJob.id], 20),
 	])
-	const pings = pingsMap.get(check.id) ?? []
-	const sparkline = calculateSparkline(check, pings)
-	return c.json(toCheckResponse(check, channelIds, sparkline), 200)
+	const pings = pingsMap.get(cronJob.id) ?? []
+	const sparkline = calculateSparkline(cronJob, pings)
+	return c.json(toCronJobResponse(cronJob, channelIds, sparkline), 200)
 })
 
-checkRoutes.openapi(updateCheckRoute, async (c) => {
+cronJobRoutes.openapi(updateCronJobRoute, async (c) => {
 	const { id } = c.req.valid("param")
 	const body = c.req.valid("json")
-	const check = await getAuthorizedCheck(c, id)
+	const cronJob = await getAuthorizedCronJob(c, id)
 
 	if (
 		body.slug &&
-		body.slug !== check.slug &&
-		(await slugExistsInProject(check.projectId, body.slug))
+		body.slug !== cronJob.slug &&
+		(await slugExistsInProject(cronJob.projectId, body.slug))
 	) {
 		throw conflict("Slug already exists in this project")
 	}
 
 	const { channelIds, ...updateData } = body
-	const updated = await updateCheck(id, updateData)
+	const updated = await updateCronJob(id, updateData)
 
 	if (channelIds !== undefined) {
-		await setCheckChannelIds(id, channelIds)
+		await setCronJobChannelIds(id, channelIds)
 	}
 
 	const [finalChannelIds, pingsMap] = await Promise.all([
-		getCheckChannelIds(id),
-		pingRepository.findRecentByCheckIds([id], 20),
+		getCronJobChannelIds(id),
+		pingRepository.findRecentByCronJobIds([id], 20),
 	])
 	const pings = pingsMap.get(id) ?? []
 	const sparkline = calculateSparkline(updated, pings)
-	return c.json(toCheckResponse(updated, finalChannelIds, sparkline), 200)
+	return c.json(toCronJobResponse(updated, finalChannelIds, sparkline), 200)
 })
 
-checkRoutes.openapi(deleteCheckRoute, async (c) => {
+cronJobRoutes.openapi(deleteCronJobRoute, async (c) => {
 	const { id } = c.req.valid("param")
-	await getAuthorizedCheck(c, id)
-	await deleteCheck(id)
+	await getAuthorizedCronJob(c, id)
+	await deleteCronJob(id)
 	return c.body(null, 204)
 })
 
-checkRoutes.openapi(pauseCheckRoute, async (c) => {
+cronJobRoutes.openapi(pauseCronJobRoute, async (c) => {
 	const { id } = c.req.valid("param")
-	await getAuthorizedCheck(c, id)
-	const paused = await pauseCheck(id)
+	await getAuthorizedCronJob(c, id)
+	const paused = await pauseCronJob(id)
 	const [channelIds, pingsMap] = await Promise.all([
-		getCheckChannelIds(id),
-		pingRepository.findRecentByCheckIds([id], 20),
+		getCronJobChannelIds(id),
+		pingRepository.findRecentByCronJobIds([id], 20),
 	])
 	const pings = pingsMap.get(id) ?? []
 	const sparkline = calculateSparkline(paused, pings)
-	return c.json(toCheckResponse(paused, channelIds, sparkline), 200)
+	return c.json(toCronJobResponse(paused, channelIds, sparkline), 200)
 })
 
-checkRoutes.openapi(resumeCheckRoute, async (c) => {
+cronJobRoutes.openapi(resumeCronJobRoute, async (c) => {
 	const { id } = c.req.valid("param")
-	await getAuthorizedCheck(c, id)
-	const resumed = await resumeCheck(id)
+	await getAuthorizedCronJob(c, id)
+	const resumed = await resumeCronJob(id)
 	const [channelIds, pingsMap] = await Promise.all([
-		getCheckChannelIds(id),
-		pingRepository.findRecentByCheckIds([id], 20),
+		getCronJobChannelIds(id),
+		pingRepository.findRecentByCronJobIds([id], 20),
 	])
 	const pings = pingsMap.get(id) ?? []
 	const sparkline = calculateSparkline(resumed, pings)
-	return c.json(toCheckResponse(resumed, channelIds, sparkline), 200)
+	return c.json(toCronJobResponse(resumed, channelIds, sparkline), 200)
 })
 
-checkRoutes.openapi(durationStatsRoute, async (c) => {
+cronJobRoutes.openapi(durationStatsRoute, async (c) => {
 	const { id } = c.req.valid("param")
-	const check = await getAuthorizedCheck(c, id)
+	const cronJob = await getAuthorizedCronJob(c, id)
 	const [stats, trend] = await Promise.all([
-		getDurationStats(check.id),
-		getDurationTrend(check.id),
+		getDurationStats(cronJob.id),
+		getDurationTrend(cronJob.id),
 	])
 
 	return c.json(
@@ -503,4 +507,4 @@ checkRoutes.openapi(durationStatsRoute, async (c) => {
 	)
 })
 
-export { checkRoutes, projectCheckRoutes }
+export { cronJobRoutes, projectCronJobRoutes }

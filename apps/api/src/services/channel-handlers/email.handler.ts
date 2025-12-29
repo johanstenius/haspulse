@@ -19,14 +19,14 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		"EMAIL",
 	)
 	const status = eventDisplayName(ctx.event)
-	const emoji = ctx.event === "check.up" ? "\u{2705}" : "\u{1F534}"
+	const emoji = ctx.event === "cronJob.up" ? "\u{2705}" : "\u{1F534}"
 
-	const subject = `${emoji} ${ctx.check.name} is ${status}`
+	const subject = `${emoji} ${ctx.cronJob.name} is ${status}`
 	const html = await renderAlertEmail({
-		checkName: ctx.check.name,
+		cronJobName: ctx.cronJob.name,
 		projectName: ctx.project.name,
 		status: status as "DOWN" | "RECOVERED" | "STILL DOWN" | "FAILED",
-		lastPingAt: ctx.check.lastPingAt?.toISOString() ?? null,
+		lastPingAt: ctx.cronJob.lastPingAt?.toISOString() ?? null,
 		context: ctx.richContext,
 	})
 

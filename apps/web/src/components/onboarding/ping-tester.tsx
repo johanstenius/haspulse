@@ -27,35 +27,35 @@ export function PingTester({
 	const initialLastPingAt = useRef<string | null>(null)
 	const hasCalledSuccess = useRef(false)
 
-	const { data: check } = useQuery({
-		queryKey: ["check", checkId, "poll"],
-		queryFn: () => api.checks.get(checkId),
+	const { data: cronJob } = useQuery({
+		queryKey: ["cronJob", checkId, "poll"],
+		queryFn: () => api.cronJobs.get(checkId),
 		refetchInterval: pingReceived ? false : 2000,
 		enabled: !!checkId && !pingReceived,
 	})
 
 	useEffect(() => {
-		if (!check) return
+		if (!cronJob) return
 
 		// Store initial lastPingAt on first load
 		if (initialLastPingAt.current === null) {
-			initialLastPingAt.current = check.lastPingAt ?? "never"
+			initialLastPingAt.current = cronJob.lastPingAt ?? "never"
 		}
 
 		// Check if lastPingAt changed (new ping received)
 		if (
-			check.lastPingAt &&
-			check.lastPingAt !== initialLastPingAt.current &&
+			cronJob.lastPingAt &&
+			cronJob.lastPingAt !== initialLastPingAt.current &&
 			initialLastPingAt.current !== "never"
 		) {
 			setPingReceived(true)
 		}
 
 		// Also check if status changed to UP (for first ping)
-		if (check.status === "UP" && !pingReceived) {
+		if (cronJob.status === "UP" && !pingReceived) {
 			setPingReceived(true)
 		}
-	}, [check, pingReceived])
+	}, [cronJob, pingReceived])
 
 	useEffect(() => {
 		if (pingReceived && !hasCalledSuccess.current) {
@@ -112,7 +112,7 @@ export function PingTester({
 							<div>
 								<p className="font-semibold text-foreground">Ping received!</p>
 								<p className="text-sm text-muted-foreground">
-									Your check is now monitoring
+									Your cron job is now monitoring
 								</p>
 							</div>
 						</>
@@ -126,7 +126,7 @@ export function PingTester({
 									Waiting for ping...
 								</p>
 								<p className="text-sm text-muted-foreground">
-									Run the command above to test your check
+									Run the command above to test your cron job
 								</p>
 							</div>
 						</>

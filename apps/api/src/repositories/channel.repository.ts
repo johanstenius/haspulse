@@ -87,11 +87,11 @@ export const channelRepository = {
 		await prisma.channel.delete({ where: { id } })
 	},
 
-	async findByCheckId(checkId: string): Promise<ChannelModel[]> {
+	async findByCronJobId(cronJobId: string): Promise<ChannelModel[]> {
 		const channels = await prisma.channel.findMany({
 			where: {
-				checkChannels: {
-					some: { checkId },
+				cronJobChannels: {
+					some: { cronJobId },
 				},
 			},
 		})
