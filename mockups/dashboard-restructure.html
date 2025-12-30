@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HasPulse Dashboard Mockups</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg-card: #141414;
+      --bg-hover: #1a1a1a;
+      --border: #262626;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --emerald: #10b981;
+      --emerald-dim: #059669;
+      --red: #ef4444;
+      --yellow: #eab308;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem;
+    }
+
+    .mockup-label {
+      background: var(--emerald);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .mockup-section {
+      margin-bottom: 4rem;
+      padding-bottom: 4rem;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .mockup-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .mockup-desc {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 0.875rem;
+    }
+
+    /* Dashboard Frame */
+    .dashboard {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 1rem;
+      float: left;
+      min-height: 500px;
+    }
+
+    .sidebar-logo {
+      font-weight: 700;
+      font-size: 1.125rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sidebar-logo span {
+      color: var(--emerald);
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--emerald);
+    }
+
+    .main-content {
+      margin-left: 220px;
+      padding: 1.5rem;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .btn {
+      background: var(--emerald);
+      color: #000;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-sm {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    .tab {
+      padding: 0.75rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab:hover {
+      color: var(--text);
+    }
+
+    .tab.active {
+      color: var(--emerald);
+      border-bottom-color: var(--emerald);
+    }
+
+    .tab .count {
+      background: var(--bg-hover);
+      padding: 0.125rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+
+    .stat-value.green { color: var(--emerald); }
+    .stat-value.red { color: var(--red); }
+    .stat-value.yellow { color: var(--yellow); }
+
+    /* Table */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+      text-align: left;
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table th {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    .table td {
+      font-size: 0.875rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+
+    .status-dot.up { background: var(--emerald); }
+    .status-dot.down { background: var(--red); }
+    .status-dot.late { background: var(--yellow); }
+    .status-dot.new { background: var(--text-muted); }
+
+    .mono {
+      font-family: 'SF Mono', 'Monaco', monospace;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.625rem 0.75rem;
+      color: var(--text);
+      font-size: 0.875rem;
+    }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.375rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Status Page Config */
+    .component-list {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .component-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .component-item:last-child {
+      border-bottom: none;
+    }
+
+    .component-drag {
+      color: var(--text-muted);
+      cursor: grab;
+    }
+
+    .component-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--emerald);
+    }
+
+    .component-info {
+      flex: 1;
+    }
+
+    .component-name {
+      font-size: 0.875rem;
+    }
+
+    .component-type {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      font-size: 0.625rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    .badge-cron {
+      background: #3b82f620;
+      color: #60a5fa;
+    }
+
+    .badge-http {
+      background: #8b5cf620;
+      color: #a78bfa;
+    }
+
+    /* Dialog */
+    .dialog {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 480px;
+      padding: 1.5rem;
+    }
+
+    .dialog-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .dialog-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Clearfix */
+    .clearfix::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    .note {
+      background: #fef3c720;
+      border: 1px solid #fef3c740;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      color: #fef3c7;
+      margin-top: 1rem;
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- MOCKUP 1: Main Dashboard Overview -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 1</span>
+  <h2 class="mockup-title">Main Dashboard</h2>
+  <p class="mockup-desc">Overview showing combined stats from both Cron Jobs and HTTP Monitors</p>
+
+  <div class="dashboard clearfix">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span>●</span> HasPulse
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">Projects</a>
+        <a href="#">Alerts</a>
+        <a href="#">Settings</a>
+      </nav>
+    </div>
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Monitors</div>
+          <div class="stat-value">24</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Healthy</div>
+          <div class="stat-value green">21</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Down</div>
+          <div class="stat-value red">2</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Late</div>
+          <div class="stat-value yellow">1</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">All<span class="count">24</span></div>
+        <div class="tab">Cron Jobs<span class="count">18</span></div>
+        <div class="tab">HTTP Monitors<span class="count">6</span></div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Project</th>
+            <th>Status</th>
+            <th>Last Check</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status-dot up"></span>Daily Backup</td>
+            <td><span class="badge badge-cron">Cron</span></td>
+            <td>SendPigeon</td>
+            <td>UP</td>
+            <td class="mono">2 min ago</td>
+          </tr>
+          <tr>
+            <td><span class="status-dot up"></span>API Health</td>
+            <td><span class="badge badge-http">HTTP</span></td>
+            <td>SendPigeon</td>
+            <td>UP</td>
+            <td class="mono">30s ago</td>
+          </tr>
+          <tr>
+            <td><span class="status-dot down"></span>Email Queue</td>
+            <td><span class="badge badge-cron">Cron</span></td>
+            <td>SendPigeon</td>
+            <td>DOWN</td>
+            <td class="mono">1 hour ago</td>
+          </tr>
+          <tr>
+            <td><span class="status-dot up"></span>Payment Webhook</td>
+            <td><span class="badge badge-http">HTTP</span></td>
+            <td>Billing</td>
+            <td>UP</td>
+            <td class="mono">1 min ago</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Design Decision:</strong>
+    Dashboard shows unified view with type filter tabs. Both types share "UP/DOWN/LATE" status model.
+  </div>
+</div>
+
+<!-- MOCKUP 2: Project Detail Page -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 2</span>
+  <h2 class="mockup-title">Project Detail Page</h2>
+  <p class="mockup-desc">Project-level view with tabs for each monitor type + status page config</p>
+
+  <div class="dashboard clearfix">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span>●</span> HasPulse
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#">Dashboard</a>
+        <a href="#" class="active">Projects</a>
+        <a href="#">Alerts</a>
+        <a href="#">Settings</a>
+      </nav>
+    </div>
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">SendPigeon</h1>
+        <button class="btn">+ Add Monitor</button>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Cron Jobs<span class="count">5</span></div>
+        <div class="tab">HTTP Monitors<span class="count">3</span></div>
+        <div class="tab">Channels<span class="count">2</span></div>
+        <div class="tab">Status Page</div>
+        <div class="tab">Settings</div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Schedule</th>
+            <th>Status</th>
+            <th>Last Ping</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="status-dot up"></span>Daily Backup
+              <div class="mono" style="margin-top: 2px;">/ping/daily-backup</div>
+            </td>
+            <td class="mono">Every 24h</td>
+            <td>UP</td>
+            <td class="mono">2 min ago</td>
+            <td><button class="btn-outline btn-sm">Edit</button></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="status-dot up"></span>Email Queue Processor
+              <div class="mono" style="margin-top: 2px;">/ping/email-queue</div>
+            </td>
+            <td class="mono">Every 5m</td>
+            <td>UP</td>
+            <td class="mono">1 min ago</td>
+            <td><button class="btn-outline btn-sm">Edit</button></td>
+          </tr>
+          <tr>
+            <td>
+              <span class="status-dot down"></span>Weekly Report
+              <div class="mono" style="margin-top: 2px;">/ping/weekly-report</div>
+            </td>
+            <td class="mono">0 9 * * 1</td>
+            <td>DOWN</td>
+            <td class="mono">8 days ago</td>
+            <td><button class="btn-outline btn-sm">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Design Decision:</strong>
+    Cron Jobs tab shows ping URLs. HTTP Monitors tab (below) shows endpoints being polled.
+  </div>
+</div>
+
+<!-- MOCKUP 3: HTTP Monitors Tab -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 3</span>
+  <h2 class="mockup-title">HTTP Monitors Tab</h2>
+  <p class="mockup-desc">Separate view for pull-based HTTP monitoring</p>
+
+  <div class="dashboard clearfix">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span>●</span> HasPulse
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#">Dashboard</a>
+        <a href="#" class="active">Projects</a>
+        <a href="#">Alerts</a>
+        <a href="#">Settings</a>
+      </nav>
+    </div>
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">SendPigeon</h1>
+        <button class="btn">+ Add Monitor</button>
+      </div>
+
+      <div class="tabs">
+        <div class="tab">Cron Jobs<span class="count">5</span></div>
+        <div class="tab active">HTTP Monitors<span class="count">3</span></div>
+        <div class="tab">Channels<span class="count">2</span></div>
+        <div class="tab">Status Page</div>
+        <div class="tab">Settings</div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>URL</th>
+            <th>Interval</th>
+            <th>Status</th>
+            <th>Response</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status-dot up"></span>API Health</td>
+            <td class="mono">https://api.sendpigeon.dev/health</td>
+            <td class="mono">1m</td>
+            <td>UP</td>
+            <td class="mono">143ms</td>
+            <td><button class="btn-outline btn-sm">Edit</button></td>
+          </tr>
+          <tr>
+            <td><span class="status-dot up"></span>Dashboard</td>
+            <td class="mono">https://sendpigeon.dev</td>
+            <td class="mono">5m</td>
+            <td>UP</td>
+            <td class="mono">312ms</td>
+            <td><button class="btn-outline btn-sm">Edit</button></td>
+          </tr>
+          <tr>
+            <td><span class="status-dot up"></span>Webhook Receiver</td>
+            <td class="mono">https://api.sendpigeon.dev/webhooks</td>
+            <td class="mono">1m</td>
+            <td>UP</td>
+            <td class="mono">89ms</td>
+            <td><button class="btn-outline btn-sm">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Design Decision:</strong>
+    HTTP tab shows URL + response time. No ping URLs since HasPulse polls these.
+  </div>
+</div>
+
+<!-- MOCKUP 4: Create Cron Job Dialog -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 4</span>
+  <h2 class="mockup-title">Create Cron Job</h2>
+  <p class="mockup-desc">Focused form for push-based cron job monitoring</p>
+
+  <div class="dialog">
+    <h2 class="dialog-title">New Cron Job</h2>
+    <p class="dialog-desc">Monitor a scheduled task that pings HasPulse</p>
+
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" class="form-input" placeholder="Daily backup">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Slug</label>
+      <input type="text" class="form-input" placeholder="daily-backup">
+      <div class="form-hint">Ping URL: https://ping.haspulse.dev/abc123/<strong>daily-backup</strong></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Schedule</label>
+        <input type="text" class="form-input" value="Every 24 hours">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Grace Period</label>
+        <input type="text" class="form-input" value="5 minutes">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notification Channels</label>
+      <div class="form-hint">Select which channels receive alerts</div>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn btn-outline">Cancel</button>
+      <button class="btn">Create Cron Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOCKUP 5: Create HTTP Monitor Dialog -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 5</span>
+  <h2 class="mockup-title">Create HTTP Monitor</h2>
+  <p class="mockup-desc">Focused form for pull-based HTTP endpoint monitoring</p>
+
+  <div class="dialog">
+    <h2 class="dialog-title">New HTTP Monitor</h2>
+    <p class="dialog-desc">Monitor an endpoint by polling it at regular intervals</p>
+
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" class="form-input" placeholder="API Health Check">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">URL</label>
+      <input type="text" class="form-input" placeholder="https://api.example.com/health">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Method</label>
+        <input type="text" class="form-input" value="GET">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Check Interval</label>
+        <input type="text" class="form-input" value="Every 1 minute">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Expected Status</label>
+        <input type="text" class="form-input" value="200">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Timeout</label>
+        <input type="text" class="form-input" value="30 seconds">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Headers (optional)</label>
+      <input type="text" class="form-input" placeholder='{"Authorization": "Bearer ..."}'>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn btn-outline">Cancel</button>
+      <button class="btn">Create HTTP Monitor</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOCKUP 6: Status Page Config -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 6</span>
+  <h2 class="mockup-title">Status Page Configuration</h2>
+  <p class="mockup-desc">Select which monitors (both types) appear on the public status page</p>
+
+  <div class="dashboard clearfix">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span>●</span> HasPulse
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#">Dashboard</a>
+        <a href="#" class="active">Projects</a>
+        <a href="#">Alerts</a>
+        <a href="#">Settings</a>
+      </nav>
+    </div>
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">SendPigeon</h1>
+      </div>
+
+      <div class="tabs">
+        <div class="tab">Cron Jobs<span class="count">5</span></div>
+        <div class="tab">HTTP Monitors<span class="count">3</span></div>
+        <div class="tab">Channels<span class="count">2</span></div>
+        <div class="tab active">Status Page</div>
+        <div class="tab">Settings</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+          <div class="card">
+            <div class="card-title">Status Page URL</div>
+            <div class="mono" style="margin-top: 0.5rem;">https://status.haspulse.dev/sendpigeon</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Custom Domain</div>
+            <input type="text" class="form-input" placeholder="status.sendpigeon.dev" style="margin-top: 0.5rem;">
+          </div>
+
+          <div class="card">
+            <div class="card-title">Components</div>
+            <div class="card-desc">Drag to reorder. Check to include on status page.</div>
+
+            <div class="component-list" style="margin-top: 1rem;">
+              <div class="component-item">
+                <span class="component-drag">⋮⋮</span>
+                <input type="checkbox" class="component-checkbox" checked>
+                <div class="component-info">
+                  <div class="component-name">API</div>
+                  <div class="component-type">HTTP Monitor → API Health</div>
+                </div>
+                <span class="badge badge-http">HTTP</span>
+              </div>
+              <div class="component-item">
+                <span class="component-drag">⋮⋮</span>
+                <input type="checkbox" class="component-checkbox" checked>
+                <div class="component-info">
+                  <div class="component-name">Email Service</div>
+                  <div class="component-type">Cron Job → Email Queue Processor</div>
+                </div>
+                <span class="badge badge-cron">Cron</span>
+              </div>
+              <div class="component-item">
+                <span class="component-drag">⋮⋮</span>
+                <input type="checkbox" class="component-checkbox" checked>
+                <div class="component-info">
+                  <div class="component-name">Dashboard</div>
+                  <div class="component-type">HTTP Monitor → Dashboard</div>
+                </div>
+                <span class="badge badge-http">HTTP</span>
+              </div>
+              <div class="component-item">
+                <span class="component-drag">⋮⋮</span>
+                <input type="checkbox" class="component-checkbox">
+                <div class="component-info">
+                  <div class="component-name" style="color: var(--text-muted);">Weekly Report</div>
+                  <div class="component-type">Cron Job → Weekly Report (not shown)</div>
+                </div>
+                <span class="badge badge-cron">Cron</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title">Preview</div>
+            <div style="background: #000; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
+              <div style="font-weight: 600; margin-bottom: 1rem;">SendPigeon Status</div>
+              <div style="background: var(--emerald); color: #000; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500; margin-bottom: 1rem;">
+                ● All Systems Operational
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">COMPONENTS</div>
+              <div style="border: 1px solid var(--border); border-radius: 6px;">
+                <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                  <span>API</span>
+                  <span style="color: var(--emerald);">Operational</span>
+                </div>
+                <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                  <span>Email Service</span>
+                  <span style="color: var(--emerald);">Operational</span>
+                </div>
+                <div style="padding: 0.75rem; display: flex; justify-content: space-between;">
+                  <span>Dashboard</span>
+                  <span style="color: var(--emerald);">Operational</span>
+                </div>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem; text-align: center;">
+                Powered by HasPulse.dev
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Design Decision:</strong>
+    Status page components can be sourced from EITHER Cron Jobs or HTTP Monitors. Each component gets a custom display name. Internal monitor type shown as badge but not exposed to public.
+  </div>
+</div>
+
+<!-- MOCKUP 7: Data Model Summary -->
+<div class="mockup-section">
+  <span class="mockup-label">Mockup 7</span>
+  <h2 class="mockup-title">Proposed Data Model</h2>
+  <p class="mockup-desc">Separate models with shared status page abstraction</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+    <div class="card">
+      <div class="card-title" style="color: #60a5fa;">CronJob</div>
+      <div class="mono" style="font-size: 0.75rem; margin-top: 1rem; line-height: 1.8;">
+        id<br>
+        projectId<br>
+        name<br>
+        slug → ping URL<br>
+        scheduleType<br>
+        scheduleValue<br>
+        graceSeconds<br>
+        status<br>
+        lastPingAt<br>
+        nextExpectedAt<br>
+        alertOnRecovery<br>
+        channelIds[]
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color: #a78bfa;">HttpMonitor</div>
+      <div class="mono" style="font-size: 0.75rem; margin-top: 1rem; line-height: 1.8;">
+        id<br>
+        projectId<br>
+        name<br>
+        url<br>
+        method<br>
+        headers<br>
+        body<br>
+        timeout<br>
+        expectedStatus<br>
+        expectedBody<br>
+        interval<br>
+        status<br>
+        lastCheckedAt<br>
+        lastResponseMs<br>
+        alertOnRecovery<br>
+        channelIds[]
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color: var(--emerald);">StatusPageComponent</div>
+      <div class="mono" style="font-size: 0.75rem; margin-top: 1rem; line-height: 1.8;">
+        id<br>
+        statusPageId<br>
+        displayName<br>
+        sortOrder<br>
+        <br>
+        <span style="color: var(--text-muted);">// One of:</span><br>
+        cronJobId?<br>
+        httpMonitorId?
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Key Points:</strong>
+    <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
+      <li>Rename <code>Check</code> → <code>CronJob</code> (clearer intent)</li>
+      <li>New <code>HttpMonitor</code> model for pull-based monitoring</li>
+      <li><code>StatusPageComponent</code> can reference either type</li>
+      <li>Both share: status (UP/DOWN/LATE), alerts, channels</li>
+      <li>Different: CronJob has slug/pings, HttpMonitor has URL/response times</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
