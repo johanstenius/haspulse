@@ -9,6 +9,8 @@ import {
 	type ChannelHandler,
 	type SendResult,
 	eventDisplayName,
+	getMonitorName,
+	isRecoveryEvent,
 	parseConfig,
 } from "./types.js"
 
@@ -19,15 +21,21 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		"EMAIL",
 	)
 	const status = eventDisplayName(ctx.event)
-	const emoji = ctx.event === "cronJob.up" ? "\u{2705}" : "\u{1F534}"
+	const emoji = isRecoveryEvent(ctx.event) ? "\u{2705}" : "\u{1F534}"
+	const monitorName = getMonitorName(ctx)
 
-	const subject = `${emoji} ${ctx.cronJob.name} is ${status}`
+	const subject = `${emoji} ${monitorName} is ${status}`
+
+	const lastPingAt = ctx.cronJob
+		? (ctx.cronJob.lastPingAt?.toISOString() ?? null)
+		: (ctx.httpMonitor.lastCheckedAt?.toISOString() ?? null)
+
 	const html = await renderAlertEmail({
-		cronJobName: ctx.cronJob.name,
+		cronJobName: monitorName,
 		projectName: ctx.project.name,
 		status: status as "DOWN" | "RECOVERED" | "STILL DOWN" | "FAILED",
-		lastPingAt: ctx.cronJob.lastPingAt?.toISOString() ?? null,
-		context: ctx.richContext,
+		lastPingAt,
+		context: ctx.cronJob ? ctx.richContext : undefined,
 	})
 
 	return sendAlertEmail({

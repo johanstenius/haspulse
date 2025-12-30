@@ -167,6 +167,36 @@ export type UpdateHttpMonitorData = {
 	channelIds?: string[]
 }
 
+// HTTP Monitor Alert types
+export type HttpMonitorAlertEvent = "httpMonitor.down" | "httpMonitor.up"
+
+export type HttpMonitorAlert = {
+	id: string
+	httpMonitorId: string
+	event: HttpMonitorAlertEvent
+	channels: Array<{ id: string; name: string; type: string }>
+	context: Record<string, unknown> | null
+	success: boolean
+	error: string | null
+	createdAt: string
+}
+
+export type HttpMonitorAlertListParams = {
+	page?: number
+	limit?: number
+	event?: HttpMonitorAlertEvent
+	fromDate?: string
+	toDate?: string
+}
+
+export type HttpMonitorAlertListResponse = {
+	alerts: HttpMonitorAlert[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
 export type ChannelType =
 	| "EMAIL"
 	| "SLACK_WEBHOOK"
@@ -823,6 +853,18 @@ export const api = {
 			post<HttpMonitor>(`/v1/http-monitors/${id}/pause`, {}),
 		resume: (id: string) =>
 			post<HttpMonitor>(`/v1/http-monitors/${id}/resume`, {}),
+		listAlerts: (id: string, params?: HttpMonitorAlertListParams) => {
+			const searchParams = new URLSearchParams()
+			if (params?.page) searchParams.set("page", String(params.page))
+			if (params?.limit) searchParams.set("limit", String(params.limit))
+			if (params?.event) searchParams.set("event", params.event)
+			if (params?.fromDate) searchParams.set("fromDate", params.fromDate)
+			if (params?.toDate) searchParams.set("toDate", params.toDate)
+			const query = searchParams.toString()
+			return get<HttpMonitorAlertListResponse>(
+				`/v1/http-monitors/${id}/alerts${query ? `?${query}` : ""}`,
+			)
+		},
 	},
 	channels: {
 		list: (projectId: string) =>

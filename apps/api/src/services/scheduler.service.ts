@@ -2,7 +2,7 @@ import { MonitorStatus } from "@haspulse/db"
 import { logger } from "../lib/logger.js"
 import { cronJobRepository } from "../repositories/cron-job.repository.js"
 import { httpMonitorRepository } from "../repositories/http-monitor.repository.js"
-import { triggerAlert } from "./alert.service.js"
+import { triggerAlert, triggerHttpMonitorAlert } from "./alert.service.js"
 import { incidentService } from "./incident.service.js"
 import { pruneAllPings } from "./pruning.service.js"
 import {
@@ -128,7 +128,7 @@ async function pollHttpMonitors(now: Date): Promise<void> {
 				},
 			)
 
-			// Log status changes and handle auto-incidents
+			// Log status changes and handle alerts + auto-incidents
 			if (!result.success) {
 				logger.warn(
 					{
@@ -141,9 +141,27 @@ async function pollHttpMonitors(now: Date): Promise<void> {
 					"HTTP monitor check failed",
 				)
 
-				// Create auto-incident if this failure caused DOWN status
+				// Trigger alert and create auto-incident if this failure caused DOWN status
 				// (wasDown being false means we just transitioned to DOWN)
 				if (!wasDown) {
+					// Trigger down alert
+					try {
+						const updated = { ...monitor, status: MonitorStatus.DOWN }
+						const alertResult = await triggerHttpMonitorAlert(
+							"httpMonitor.down",
+							updated,
+						)
+						if (alertResult.sent) {
+							await httpMonitorRepository.updateLastAlertAt(monitor.id, now)
+						}
+					} catch (err) {
+						logger.error(
+							{ err, httpMonitorId: monitor.id },
+							"HTTP monitor alert failed",
+						)
+					}
+
+					// Create auto-incident
 					try {
 						await incidentService.handleMonitorDown(
 							monitor.projectId,
@@ -167,6 +185,19 @@ async function pollHttpMonitors(now: Date): Promise<void> {
 					},
 					"HTTP monitor recovered",
 				)
+
+				// Trigger recovery alert if enabled
+				if (monitor.alertOnRecovery) {
+					try {
+						const updated = { ...monitor, status: MonitorStatus.UP }
+						await triggerHttpMonitorAlert("httpMonitor.up", updated)
+					} catch (err) {
+						logger.error(
+							{ err, httpMonitorId: monitor.id },
+							"HTTP monitor recovery alert failed",
+						)
+					}
+				}
 
 				// Resolve auto-incident on recovery
 				try {

@@ -4,8 +4,11 @@ import {
 } from "../../routes/v1/channels/channels.schemas.js"
 import {
 	type AlertContext,
+	type AlertPayload,
 	type ChannelHandler,
+	type HttpMonitorAlertPayload,
 	type SendResult,
+	buildHttpMonitorPayload,
 	buildPayload,
 	getErrorMessage,
 	parseConfig,
@@ -17,12 +20,13 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		ctx.channel.config,
 		"WEBHOOK",
 	)
-	const payload = buildPayload(
-		ctx.event,
-		ctx.cronJob,
-		ctx.project,
-		ctx.richContext,
-	)
+
+	let payload: AlertPayload | HttpMonitorAlertPayload
+	if (ctx.cronJob) {
+		payload = buildPayload(ctx.event, ctx.cronJob, ctx.project, ctx.richContext)
+	} else {
+		payload = buildHttpMonitorPayload(ctx.event, ctx.httpMonitor, ctx.project)
+	}
 
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",

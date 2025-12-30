@@ -6,6 +6,7 @@ import {
 } from "./channel-handlers/index.js"
 import type { ChannelModel } from "./channel.service.js"
 import type { CronJobModel } from "./cron-job.service.js"
+import type { HttpMonitorModel } from "./http-monitor.service.js"
 import type { ProjectModel } from "./project.service.js"
 
 export type {
@@ -26,6 +27,19 @@ export async function sendToChannel(
 		return { success: false, error: `Unknown channel type: ${channel.type}` }
 	}
 	return handler.send({ channel, event, cronJob, project, richContext })
+}
+
+export async function sendToChannelForHttpMonitor(
+	channel: ChannelModel,
+	event: AlertEvent,
+	httpMonitor: HttpMonitorModel,
+	project: ProjectModel,
+): Promise<SendResult> {
+	const handler = getHandler(channel.type)
+	if (!handler) {
+		return { success: false, error: `Unknown channel type: ${channel.type}` }
+	}
+	return handler.send({ channel, event, httpMonitor, project })
 }
 
 export async function testChannel(

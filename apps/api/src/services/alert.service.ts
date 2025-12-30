@@ -6,14 +6,27 @@ import {
 	type AlertOrgFilters,
 	alertRepository,
 } from "../repositories/alert.repository.js"
+import {
+	type HttpMonitorAlertFilters,
+	type HttpMonitorAlertModel,
+	httpMonitorAlertRepository,
+} from "../repositories/http-monitor-alert.repository.js"
 import { createPaginatedResult } from "../routes/v1/shared/schemas.js"
 import { buildAlertContext } from "./alert-context.service.js"
-import { type AlertEvent, sendToChannel } from "./channel-sender.service.js"
-import { listChannelsByCronJob } from "./channel.service.js"
+import {
+	type AlertEvent,
+	sendToChannel,
+	sendToChannelForHttpMonitor,
+} from "./channel-sender.service.js"
+import {
+	listChannelsByCronJob,
+	listChannelsByHttpMonitor,
+} from "./channel.service.js"
 import type { CronJobModel } from "./cron-job.service.js"
+import type { HttpMonitorModel } from "./http-monitor.service.js"
 import { getProjectById } from "./project.service.js"
 
-export type { AlertModel, AlertModelWithCronJob }
+export type { AlertModel, AlertModelWithCronJob, HttpMonitorAlertModel }
 
 export type AlertResult = {
 	sent: boolean
@@ -130,6 +143,81 @@ export async function getOrgAlertsPaginated(
 ) {
 	const result = await alertRepository.findByOrgIdPaginated(
 		orgId,
+		page,
+		limit,
+		filters,
+	)
+	return createPaginatedResult(result.data, result.total, page, limit)
+}
+
+// HTTP Monitor Alerts
+
+export async function triggerHttpMonitorAlert(
+	event: AlertEvent,
+	httpMonitor: HttpMonitorModel,
+): Promise<AlertResult> {
+	const channels = await listChannelsByHttpMonitor(httpMonitor.id)
+	if (channels.length === 0) {
+		return { sent: false, success: false }
+	}
+
+	const project = await getProjectById(httpMonitor.projectId)
+	if (!project) {
+		logger.error(
+			{ projectId: httpMonitor.projectId },
+			"Project not found for HTTP monitor alert",
+		)
+		return { sent: false, success: false }
+	}
+
+	const results = await Promise.allSettled(
+		channels.map((channel) =>
+			sendToChannelForHttpMonitor(channel, event, httpMonitor, project),
+		),
+	)
+
+	const channelSnapshots = channels.map((c) => ({
+		id: c.id,
+		name: c.name,
+		type: c.type,
+	}))
+
+	let allSuccess = true
+	const errors: string[] = []
+
+	for (let i = 0; i < results.length; i++) {
+		const result = results[i]
+		const channel = channels[i]
+		if (!result || !channel) continue
+
+		if (result.status === "rejected") {
+			allSuccess = false
+			errors.push(`${channel.name}: ${String(result.reason)}`)
+		} else if (!result.value.success) {
+			allSuccess = false
+			errors.push(`${channel.name}: ${result.value.error}`)
+		}
+	}
+
+	await httpMonitorAlertRepository.create({
+		httpMonitorId: httpMonitor.id,
+		event,
+		channels: channelSnapshots,
+		success: allSuccess,
+		error: errors.length > 0 ? errors.join("; ") : null,
+	})
+
+	return { sent: true, success: allSuccess }
+}
+
+export async function getHttpMonitorAlertsPaginated(
+	httpMonitorId: string,
+	page: number,
+	limit: number,
+	filters?: HttpMonitorAlertFilters,
+) {
+	const result = await httpMonitorAlertRepository.findByHttpMonitorIdPaginated(
+		httpMonitorId,
 		page,
 		limit,
 		filters,

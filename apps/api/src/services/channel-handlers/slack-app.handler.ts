@@ -12,6 +12,8 @@ import {
 	type SendResult,
 	eventDisplayName,
 	getErrorMessage,
+	getMonitorName,
+	isRecoveryEvent,
 	parseConfig,
 } from "./types.js"
 
@@ -55,7 +57,8 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 
 	// Fallback to chat.postMessage API
 	const status = eventDisplayName(ctx.event)
-	const emoji = ctx.event === "cronJob.up" ? ":white_check_mark:" : ":x:"
+	const emoji = isRecoveryEvent(ctx.event) ? ":white_check_mark:" : ":x:"
+	const monitorName = getMonitorName(ctx)
 
 	const blocks: Array<{
 		type: string
@@ -65,13 +68,15 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: `${emoji} *${ctx.cronJob.name}* is ${status}\nProject: ${ctx.project.name}`,
+				text: `${emoji} *${monitorName}* is ${status}\nProject: ${ctx.project.name}`,
 			},
 		},
 	]
 
-	const contextBlocks = formatContextBlocks(ctx.richContext)
-	blocks.push(...contextBlocks)
+	if (ctx.cronJob) {
+		const contextBlocks = formatContextBlocks(ctx.richContext)
+		blocks.push(...contextBlocks)
+	}
 
 	try {
 		const response = await fetch("https://slack.com/api/chat.postMessage", {
@@ -82,7 +87,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			},
 			body: JSON.stringify({
 				channel: config.channelId,
-				text: `${emoji} *${ctx.cronJob.name}* is ${status}`,
+				text: `${emoji} *${monitorName}* is ${status}`,
 				blocks,
 			}),
 		})

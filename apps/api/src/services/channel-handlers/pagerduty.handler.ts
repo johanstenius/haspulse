@@ -4,11 +4,16 @@ import {
 } from "../../routes/v1/channels/channels.schemas.js"
 import {
 	type AlertContext,
+	type AlertPayload,
 	type ChannelHandler,
+	type HttpMonitorAlertPayload,
 	type SendResult,
+	buildHttpMonitorPayload,
 	buildPayload,
 	eventDisplayName,
 	getErrorMessage,
+	getMonitorName,
+	isRecoveryEvent,
 	parseConfig,
 } from "./types.js"
 
@@ -18,21 +23,27 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 		ctx.channel.config,
 		"PAGERDUTY",
 	)
-	const payload = buildPayload(
-		ctx.event,
-		ctx.cronJob,
-		ctx.project,
-		ctx.richContext,
-	)
+
+	let payload: AlertPayload | HttpMonitorAlertPayload
+	let monitorId: string
+	if (ctx.cronJob) {
+		payload = buildPayload(ctx.event, ctx.cronJob, ctx.project, ctx.richContext)
+		monitorId = ctx.cronJob.id
+	} else {
+		payload = buildHttpMonitorPayload(ctx.event, ctx.httpMonitor, ctx.project)
+		monitorId = ctx.httpMonitor.id
+	}
+
+	const monitorName = getMonitorName(ctx)
 
 	const pdEvent = {
 		routing_key: config.routingKey,
-		event_action: ctx.event === "cronJob.up" ? "resolve" : "trigger",
-		dedup_key: `haspulse-${ctx.cronJob.id}`,
+		event_action: isRecoveryEvent(ctx.event) ? "resolve" : "trigger",
+		dedup_key: `haspulse-${monitorId}`,
 		payload: {
-			summary: `${ctx.cronJob.name} is ${eventDisplayName(ctx.event)}`,
+			summary: `${monitorName} is ${eventDisplayName(ctx.event)}`,
 			source: `haspulse/${ctx.project.slug}`,
-			severity: ctx.event === "cronJob.up" ? "info" : "critical",
+			severity: isRecoveryEvent(ctx.event) ? "info" : "critical",
 			timestamp: payload.timestamp,
 			custom_details: payload,
 		},

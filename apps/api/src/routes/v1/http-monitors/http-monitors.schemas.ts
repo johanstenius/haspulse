@@ -123,3 +123,74 @@ export const updateHttpMonitorBodySchema = z
 	.openapi("UpdateHttpMonitorRequest")
 
 export type UpdateHttpMonitorBody = z.infer<typeof updateHttpMonitorBodySchema>
+
+// HTTP Monitor Alerts
+
+export const httpMonitorAlertEventSchema = z.enum([
+	"httpMonitor.down",
+	"httpMonitor.up",
+])
+
+export const alertChannelSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	type: z.string(),
+})
+
+export const httpMonitorAlertResponseSchema = z
+	.object({
+		id: z.string(),
+		httpMonitorId: z.string(),
+		event: httpMonitorAlertEventSchema,
+		channels: z.array(alertChannelSchema),
+		context: z.record(z.unknown()).nullable(),
+		success: z.boolean(),
+		error: z.string().nullable(),
+		createdAt: z.string().datetime(),
+	})
+	.openapi("HttpMonitorAlert")
+
+export type HttpMonitorAlertResponse = z.infer<
+	typeof httpMonitorAlertResponseSchema
+>
+
+export const httpMonitorAlertFiltersQuerySchema = paginationQuerySchema.extend({
+	event: httpMonitorAlertEventSchema.optional().openapi({
+		param: { name: "event", in: "query" },
+		example: "httpMonitor.down",
+	}),
+	fromDate: z
+		.string()
+		.datetime()
+		.optional()
+		.openapi({
+			param: { name: "fromDate", in: "query" },
+			example: "2024-01-01T00:00:00Z",
+		}),
+	toDate: z
+		.string()
+		.datetime()
+		.optional()
+		.openapi({
+			param: { name: "toDate", in: "query" },
+			example: "2024-12-31T23:59:59Z",
+		}),
+})
+
+export type HttpMonitorAlertFiltersQuery = z.infer<
+	typeof httpMonitorAlertFiltersQuerySchema
+>
+
+export const httpMonitorAlertsListResponseSchema = z
+	.object({
+		alerts: z.array(httpMonitorAlertResponseSchema),
+		total: z.number(),
+		page: z.number(),
+		limit: z.number(),
+		totalPages: z.number(),
+	})
+	.openapi("HttpMonitorAlertsList")
+
+export type HttpMonitorAlertsListResponse = z.infer<
+	typeof httpMonitorAlertsListResponseSchema
+>

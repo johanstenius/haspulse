@@ -67,6 +67,12 @@ export async function listChannelsByCronJob(
 	return channelRepository.findByCronJobId(cronJobId)
 }
 
+export async function listChannelsByHttpMonitor(
+	httpMonitorId: string,
+): Promise<ChannelModel[]> {
+	return channelRepository.findByHttpMonitorId(httpMonitorId)
+}
+
 export async function listDefaultChannelsByProject(
 	projectId: string,
 ): Promise<ChannelModel[]> {

@@ -25,6 +25,7 @@ import {
 	type CronJob,
 	type CronJobListParams,
 	type HttpMonitor,
+	type HttpMonitorAlertListParams,
 	type HttpMonitorListParams,
 	type Incident,
 	type IncidentUpdate,
@@ -73,6 +74,8 @@ export const queryKeys = {
 		list: (projectId: string, params?: HttpMonitorListParams) =>
 			["httpMonitors", projectId, params] as const,
 		detail: (id: string) => ["httpMonitors", "detail", id] as const,
+		alerts: (id: string, params?: HttpMonitorAlertListParams) =>
+			["httpMonitors", "alerts", id, params] as const,
 	},
 	channels: {
 		list: (projectId: string) => ["channels", projectId] as const,
@@ -367,6 +370,18 @@ export function useHttpMonitor(id: string) {
 		queryKey: queryKeys.httpMonitors.detail(id),
 		queryFn: () => api.httpMonitors.get(id),
 		enabled: !!id,
+	})
+}
+
+export function useHttpMonitorAlerts(
+	httpMonitorId: string,
+	params?: HttpMonitorAlertListParams,
+) {
+	return useQuery({
+		queryKey: queryKeys.httpMonitors.alerts(httpMonitorId, params),
+		queryFn: () => api.httpMonitors.listAlerts(httpMonitorId, params),
+		enabled: !!httpMonitorId,
+		placeholderData: keepPreviousData,
 	})
 }
 

@@ -98,6 +98,17 @@ export const channelRepository = {
 		return channels.map(toChannelModel)
 	},
 
+	async findByHttpMonitorId(httpMonitorId: string): Promise<ChannelModel[]> {
+		const channels = await prisma.channel.findMany({
+			where: {
+				httpMonitorChannels: {
+					some: { httpMonitorId },
+				},
+			},
+		})
+		return channels.map(toChannelModel)
+	},
+
 	async findDefaultByProjectId(projectId: string): Promise<ChannelModel[]> {
 		const channels = await prisma.channel.findMany({
 			where: { projectId, isDefault: true },

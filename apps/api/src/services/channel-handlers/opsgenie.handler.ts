@@ -8,6 +8,8 @@ import {
 	type SendResult,
 	eventDisplayName,
 	getErrorMessage,
+	getMonitorName,
+	isRecoveryEvent,
 	parseConfig,
 } from "./types.js"
 
@@ -22,9 +24,11 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 			? "https://api.eu.opsgenie.com"
 			: "https://api.opsgenie.com"
 
-	const alias = `haspulse-${ctx.cronJob.id}`
+	const monitorId = ctx.cronJob ? ctx.cronJob.id : ctx.httpMonitor.id
+	const alias = `haspulse-${monitorId}`
+	const monitorName = getMonitorName(ctx)
 
-	if (ctx.event === "cronJob.up") {
+	if (isRecoveryEvent(ctx.event)) {
 		try {
 			const response = await fetch(
 				`${baseUrl}/v2/alerts/${alias}/close?identifierType=alias`,
@@ -34,7 +38,7 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 						"Content-Type": "application/json",
 						Authorization: `GenieKey ${config.apiKey}`,
 					},
-					body: JSON.stringify({ note: "Cron job recovered" }),
+					body: JSON.stringify({ note: "Monitor recovered" }),
 				},
 			)
 			return response.ok
@@ -46,45 +50,54 @@ async function send(ctx: AlertContext): Promise<SendResult> {
 	}
 
 	const details: Record<string, string> = {
-		cronJobId: ctx.cronJob.id,
+		monitorId,
 		projectSlug: ctx.project.slug,
 		event: ctx.event,
 	}
 
-	if (
-		ctx.richContext?.duration?.lastDurationMs !== null &&
-		ctx.richContext?.duration?.lastDurationMs !== undefined
-	) {
-		details.durationMs = String(ctx.richContext.duration.lastDurationMs)
-		if (ctx.richContext.duration.avgDurationMs) {
-			details.avgDurationMs = String(
-				Math.round(ctx.richContext.duration.avgDurationMs),
+	if (ctx.cronJob) {
+		details.cronJobId = ctx.cronJob.id
+		if (
+			ctx.richContext?.duration?.lastDurationMs !== null &&
+			ctx.richContext?.duration?.lastDurationMs !== undefined
+		) {
+			details.durationMs = String(ctx.richContext.duration.lastDurationMs)
+			if (ctx.richContext.duration.avgDurationMs) {
+				details.avgDurationMs = String(
+					Math.round(ctx.richContext.duration.avgDurationMs),
+				)
+			}
+			if (ctx.richContext.duration.isAnomaly) {
+				details.isAnomaly = "true"
+			}
+		}
+
+		if (ctx.richContext?.errorPattern?.lastErrorSnippet) {
+			details.lastError = ctx.richContext.errorPattern.lastErrorSnippet.slice(
+				0,
+				500,
 			)
 		}
-		if (ctx.richContext.duration.isAnomaly) {
-			details.isAnomaly = "true"
+
+		if (
+			ctx.richContext?.correlation?.relatedFailures &&
+			ctx.richContext.correlation.relatedFailures.length > 0
+		) {
+			details.relatedFailures = ctx.richContext.correlation.relatedFailures
+				.slice(0, 5)
+				.map((f) => f.cronJobName)
+				.join(", ")
 		}
-	}
-
-	if (ctx.richContext?.errorPattern?.lastErrorSnippet) {
-		details.lastError = ctx.richContext.errorPattern.lastErrorSnippet.slice(
-			0,
-			500,
-		)
-	}
-
-	if (
-		ctx.richContext?.correlation?.relatedFailures &&
-		ctx.richContext.correlation.relatedFailures.length > 0
-	) {
-		details.relatedFailures = ctx.richContext.correlation.relatedFailures
-			.slice(0, 5)
-			.map((f) => f.cronJobName)
-			.join(", ")
+	} else {
+		details.httpMonitorId = ctx.httpMonitor.id
+		details.url = ctx.httpMonitor.url
+		if (ctx.httpMonitor.lastResponseMs !== null) {
+			details.responseMs = String(ctx.httpMonitor.lastResponseMs)
+		}
 	}
 
 	const alert = {
-		message: `${ctx.cronJob.name} is ${eventDisplayName(ctx.event)}`,
+		message: `${monitorName} is ${eventDisplayName(ctx.event)}`,
 		alias,
 		priority: "P1",
 		source: "Haspulse",

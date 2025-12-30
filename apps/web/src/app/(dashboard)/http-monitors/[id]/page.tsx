@@ -1,8 +1,9 @@
 "use client"
 
-import { HttpMonitorForm } from "@/components/http-monitors/http-monitor-form"
 import { PingSparkline } from "@/components/cron-jobs/ping-sparkline"
 import { StatusBadge } from "@/components/cron-jobs/status-badge"
+import { HttpMonitorAlertsTab } from "@/components/http-monitors/http-monitor-alerts-tab"
+import { HttpMonitorForm } from "@/components/http-monitors/http-monitor-form"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,6 +24,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
 	Tooltip,
 	TooltipContent,
@@ -40,6 +42,7 @@ import {
 } from "@/lib/query"
 import {
 	ArrowLeft,
+	Bell,
 	Clock,
 	ExternalLink,
 	Globe,
@@ -95,7 +98,9 @@ export default function HttpMonitorDetailPage({
 	const resumeHttpMonitor = useResumeHttpMonitor()
 	const deleteHttpMonitor = useDeleteHttpMonitor()
 
-	function handleUpdate(data: UpdateHttpMonitorData & { channelIds?: string[] }) {
+	function handleUpdate(
+		data: UpdateHttpMonitorData & { channelIds?: string[] },
+	) {
 		if (!httpMonitor) return
 		updateHttpMonitor.mutate(
 			{ id: httpMonitor.id, data },
@@ -163,7 +168,9 @@ export default function HttpMonitorDetailPage({
 
 	const isPaused = httpMonitor.status === "PAUSED"
 	const isActioning =
-		pauseHttpMonitor.isPending || resumeHttpMonitor.isPending || deleteHttpMonitor.isPending
+		pauseHttpMonitor.isPending ||
+		resumeHttpMonitor.isPending ||
+		deleteHttpMonitor.isPending
 
 	return (
 		<div className="p-6">
@@ -244,7 +251,9 @@ export default function HttpMonitorDetailPage({
 									{httpMonitor.url}
 								</TooltipTrigger>
 								<TooltipContent side="bottom" className="max-w-md">
-									<span className="font-mono text-xs break-all">{httpMonitor.url}</span>
+									<span className="font-mono text-xs break-all">
+										{httpMonitor.url}
+									</span>
 								</TooltipContent>
 							</Tooltip>
 						</div>
@@ -254,8 +263,14 @@ export default function HttpMonitorDetailPage({
 							</Badge>
 						</div>
 					</div>
-					<StatCell label="Check Interval" value={formatInterval(httpMonitor.interval)} />
-					<StatCell label="Grace Period" value={formatGrace(httpMonitor.graceSeconds)} />
+					<StatCell
+						label="Check Interval"
+						value={formatInterval(httpMonitor.interval)}
+					/>
+					<StatCell
+						label="Grace Period"
+						value={formatGrace(httpMonitor.graceSeconds)}
+					/>
 					<StatCell label="Timeout" value={`${httpMonitor.timeout}s`} />
 				</div>
 			</div>
@@ -304,59 +319,83 @@ export default function HttpMonitorDetailPage({
 				</div>
 			</div>
 
-			{/* Configuration Panel */}
-			<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10">
-				<div className="px-4 py-3 border-b border-border flex items-center gap-2">
-					<Timer className="h-4 w-4 text-muted-foreground" />
-					<h2 className="font-medium">Configuration</h2>
-				</div>
-				<div className="p-4 space-y-3">
-					{httpMonitor.headers && Object.keys(httpMonitor.headers).length > 0 && (
-						<div>
-							<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-								Headers
+			{/* Tabs for Configuration and Alerts */}
+			<Tabs defaultValue="config" className="mb-6">
+				<TabsList>
+					<TabsTrigger value="config" className="flex items-center gap-2">
+						<Timer className="h-4 w-4" />
+						Configuration
+					</TabsTrigger>
+					<TabsTrigger value="alerts" className="flex items-center gap-2">
+						<Bell className="h-4 w-4" />
+						Alerts
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="config" className="mt-4">
+					<div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/10">
+						<div className="p-4 space-y-3">
+							{httpMonitor.headers &&
+								Object.keys(httpMonitor.headers).length > 0 && (
+									<div>
+										<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+											Headers
+										</div>
+										<pre className="text-xs font-mono bg-muted/50 p-2 rounded-md overflow-x-auto">
+											{JSON.stringify(httpMonitor.headers, null, 2)}
+										</pre>
+									</div>
+								)}
+							{httpMonitor.body && (
+								<div>
+									<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+										Request Body
+									</div>
+									<pre className="text-xs font-mono bg-muted/50 p-2 rounded-md overflow-x-auto">
+										{httpMonitor.body}
+									</pre>
+								</div>
+							)}
+							{httpMonitor.expectedBody && (
+								<div>
+									<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+										Expected Body Contains
+									</div>
+									<code className="text-xs font-mono bg-muted/50 px-2 py-1 rounded-md">
+										{httpMonitor.expectedBody}
+									</code>
+								</div>
+							)}
+							{!httpMonitor.headers &&
+								!httpMonitor.body &&
+								!httpMonitor.expectedBody && (
+									<div className="text-center py-6 text-muted-foreground">
+										<Clock className="h-6 w-6 mx-auto mb-2 opacity-50" />
+										<p className="text-sm">No advanced configuration</p>
+									</div>
+								)}
+							<div className="pt-3 border-t border-border">
+								<div className="flex items-center justify-between text-sm">
+									<span className="text-muted-foreground">
+										Alert on recovery
+									</span>
+									<Badge
+										variant={
+											httpMonitor.alertOnRecovery ? "default" : "secondary"
+										}
+									>
+										{httpMonitor.alertOnRecovery ? "Enabled" : "Disabled"}
+									</Badge>
+								</div>
 							</div>
-							<pre className="text-xs font-mono bg-muted/50 p-2 rounded-md overflow-x-auto">
-								{JSON.stringify(httpMonitor.headers, null, 2)}
-							</pre>
-						</div>
-					)}
-					{httpMonitor.body && (
-						<div>
-							<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-								Request Body
-							</div>
-							<pre className="text-xs font-mono bg-muted/50 p-2 rounded-md overflow-x-auto">
-								{httpMonitor.body}
-							</pre>
-						</div>
-					)}
-					{httpMonitor.expectedBody && (
-						<div>
-							<div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-								Expected Body Contains
-							</div>
-							<code className="text-xs font-mono bg-muted/50 px-2 py-1 rounded-md">
-								{httpMonitor.expectedBody}
-							</code>
-						</div>
-					)}
-					{!httpMonitor.headers && !httpMonitor.body && !httpMonitor.expectedBody && (
-						<div className="text-center py-6 text-muted-foreground">
-							<Clock className="h-6 w-6 mx-auto mb-2 opacity-50" />
-							<p className="text-sm">No advanced configuration</p>
-						</div>
-					)}
-					<div className="pt-3 border-t border-border">
-						<div className="flex items-center justify-between text-sm">
-							<span className="text-muted-foreground">Alert on recovery</span>
-							<Badge variant={httpMonitor.alertOnRecovery ? "default" : "secondary"}>
-								{httpMonitor.alertOnRecovery ? "Enabled" : "Disabled"}
-							</Badge>
 						</div>
 					</div>
-				</div>
-			</div>
+				</TabsContent>
+
+				<TabsContent value="alerts" className="mt-4">
+					<HttpMonitorAlertsTab httpMonitorId={httpMonitor.id} />
+				</TabsContent>
+			</Tabs>
 
 			<HttpMonitorForm
 				open={showEdit}

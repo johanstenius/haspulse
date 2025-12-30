@@ -11,6 +11,7 @@ import {
 } from "../../../middleware/auth.js"
 import { httpMonitorRepository } from "../../../repositories/http-monitor.repository.js"
 import { organizationRepository } from "../../../repositories/organization.repository.js"
+import { getHttpMonitorAlertsPaginated } from "../../../services/alert.service.js"
 import { listDefaultChannelsByProject } from "../../../services/channel.service.js"
 import {
 	type HttpMonitorModel,
@@ -32,6 +33,8 @@ import {
 import {
 	createHttpMonitorBodySchema,
 	errorResponseSchema,
+	httpMonitorAlertFiltersQuerySchema,
+	httpMonitorAlertsListResponseSchema,
 	httpMonitorIdParamSchema,
 	httpMonitorListQuerySchema,
 	httpMonitorListResponseSchema,
@@ -313,6 +316,37 @@ const resumeHttpMonitorRoute = createRoute({
 	summary: "Resume HTTP monitor",
 })
 
+const listHttpMonitorAlertsRoute = createRoute({
+	method: "get",
+	path: "/{id}/alerts",
+	request: {
+		params: httpMonitorIdParamSchema,
+		query: httpMonitorAlertFiltersQuerySchema,
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": { schema: httpMonitorAlertsListResponseSchema },
+			},
+			description: "Paginated list of HTTP monitor alerts",
+		},
+		401: {
+			content: { "application/json": { schema: errorResponseSchema } },
+			description: "Unauthorized",
+		},
+		403: {
+			content: { "application/json": { schema: errorResponseSchema } },
+			description: "Forbidden",
+		},
+		404: {
+			content: { "application/json": { schema: errorResponseSchema } },
+			description: "HTTP monitor not found",
+		},
+	},
+	tags: ["HTTP Monitors"],
+	summary: "List alerts for an HTTP monitor",
+})
+
 // Project-scoped routes
 projectHttpMonitorRoutes.openapi(listHttpMonitorsRoute, async (c) => {
 	const { projectId } = c.req.valid("param")
@@ -463,6 +497,38 @@ httpMonitorRoutes.openapi(resumeHttpMonitorRoute, async (c) => {
 	])
 	const sparkline = calculateHttpSparkline(pollResults)
 	return c.json(toHttpMonitorResponse(resumed, channelIds, sparkline), 200)
+})
+
+httpMonitorRoutes.openapi(listHttpMonitorAlertsRoute, async (c) => {
+	const { id } = c.req.valid("param")
+	const { page, limit, event, fromDate, toDate } = c.req.valid("query")
+	await getAuthorizedHttpMonitor(c, id)
+
+	const result = await getHttpMonitorAlertsPaginated(id, page, limit, {
+		event,
+		fromDate: fromDate ? new Date(fromDate) : undefined,
+		toDate: toDate ? new Date(toDate) : undefined,
+	})
+
+	return c.json(
+		{
+			alerts: result.data.map((alert) => ({
+				id: alert.id,
+				httpMonitorId: alert.httpMonitorId,
+				event: alert.event as "httpMonitor.down" | "httpMonitor.up",
+				channels: alert.channels,
+				context: alert.context,
+				success: alert.success,
+				error: alert.error,
+				createdAt: alert.createdAt.toISOString(),
+			})),
+			total: result.total,
+			page: result.page,
+			limit: result.limit,
+			totalPages: result.totalPages,
+		},
+		200,
+	)
 })
 
 export { httpMonitorRoutes, projectHttpMonitorRoutes }

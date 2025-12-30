@@ -1,6 +1,7 @@
 import type { AlertContext as RichAlertContext } from "../alert-context.service.js"
 import type { ChannelModel } from "../channel.service.js"
 import type { CronJobModel } from "../cron-job.service.js"
+import type { HttpMonitorModel } from "../http-monitor.service.js"
 import type { ProjectModel } from "../project.service.js"
 
 export type AlertEvent =
@@ -8,6 +9,8 @@ export type AlertEvent =
 	| "cronJob.up"
 	| "cronJob.still_down"
 	| "cronJob.fail"
+	| "httpMonitor.down"
+	| "httpMonitor.up"
 
 export type AlertPayloadContext = {
 	duration?: {
@@ -49,18 +52,47 @@ export type AlertPayload = {
 	context?: AlertPayloadContext
 }
 
+export type HttpMonitorAlertPayload = {
+	event: AlertEvent
+	httpMonitor: {
+		id: string
+		name: string
+		url: string
+		method: string
+		status: string
+		lastCheckedAt: string | null
+		lastResponseMs: number | null
+	}
+	project: {
+		slug: string
+		name: string
+	}
+	timestamp: string
+}
+
 export type SendResult = {
 	success: boolean
 	error?: string
 }
 
-export type AlertContext = {
+export type CronJobAlertContext = {
 	channel: ChannelModel
 	event: AlertEvent
 	cronJob: CronJobModel
+	httpMonitor?: never
 	project: ProjectModel
 	richContext?: RichAlertContext
 }
+
+export type HttpMonitorAlertContext = {
+	channel: ChannelModel
+	event: AlertEvent
+	cronJob?: never
+	httpMonitor: HttpMonitorModel
+	project: ProjectModel
+}
+
+export type AlertContext = CronJobAlertContext | HttpMonitorAlertContext
 
 export type ChannelHandler = {
 	send: (ctx: AlertContext) => Promise<SendResult>
@@ -123,12 +155,51 @@ export function buildPayload(
 export function eventDisplayName(event: AlertEvent): string {
 	switch (event) {
 		case "cronJob.down":
+		case "httpMonitor.down":
 			return "DOWN"
 		case "cronJob.up":
+		case "httpMonitor.up":
 			return "RECOVERED"
 		case "cronJob.still_down":
 			return "STILL DOWN"
 		case "cronJob.fail":
 			return "FAILED"
+	}
+}
+
+export function getMonitorName(ctx: AlertContext): string {
+	if (ctx.cronJob) return ctx.cronJob.name
+	return ctx.httpMonitor.name
+}
+
+export function getMonitorType(ctx: AlertContext): "cronJob" | "httpMonitor" {
+	return ctx.cronJob ? "cronJob" : "httpMonitor"
+}
+
+export function isRecoveryEvent(event: AlertEvent): boolean {
+	return event === "cronJob.up" || event === "httpMonitor.up"
+}
+
+export function buildHttpMonitorPayload(
+	event: AlertEvent,
+	httpMonitor: HttpMonitorModel,
+	project: ProjectModel,
+): HttpMonitorAlertPayload {
+	return {
+		event,
+		httpMonitor: {
+			id: httpMonitor.id,
+			name: httpMonitor.name,
+			url: httpMonitor.url,
+			method: httpMonitor.method,
+			status: httpMonitor.status.toLowerCase(),
+			lastCheckedAt: httpMonitor.lastCheckedAt?.toISOString() ?? null,
+			lastResponseMs: httpMonitor.lastResponseMs,
+		},
+		project: {
+			slug: project.slug,
+			name: project.name,
+		},
+		timestamp: new Date().toISOString(),
 	}
 }
