@@ -318,9 +318,12 @@ export function StatusPageTab({ projectId, projectSlug }: StatusPageTabProps) {
 		},
 	})
 
+	// Track if form has been initialized with server data
+	const [formInitialized, setFormInitialized] = useState(false)
+
 	// Sync form with server data when it loads
 	useEffect(() => {
-		if (statusPage) {
+		if (statusPage && !formInitialized) {
 			form.reset({
 				slug: statusPage.slug,
 				name: statusPage.name,
@@ -332,8 +335,9 @@ export function StatusPageTab({ projectId, projectSlug }: StatusPageTabProps) {
 				autoIncidents: statusPage.autoIncidents,
 			})
 			setDomainInput(statusPage.customDomain ?? "")
+			setFormInitialized(true)
 		}
-	}, [statusPage, form])
+	}, [statusPage, form, formInitialized])
 
 	const components = componentsData?.components ?? []
 	const cronJobs = cronJobsData?.cronJobs ?? []
@@ -639,7 +643,7 @@ export function StatusPageTab({ projectId, projectSlug }: StatusPageTabProps) {
 		)
 	}
 
-	if (isLoading) {
+	if (isLoading || (hasStatusPage && !formInitialized)) {
 		return <Skeleton className="h-96" />
 	}
 
